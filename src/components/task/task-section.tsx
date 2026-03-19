@@ -113,11 +113,7 @@ export function TaskSection({
   }, [tasks]);
 
   const sensors = useSensors(
-    useSensor(PointerSensor, {
-      activationConstraint: {
-        distance: 4, // 4px移動するまでドラッグ開始しない（クリックと区別）
-      },
-    }),
+    useSensor(PointerSensor),
     useSensor(TouchSensor, {
       activationConstraint: {
         delay: 200, // 200ms長押しでドラッグ開始（スクロールとの誤爆防止）
