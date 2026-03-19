@@ -6,6 +6,7 @@ import {
   DndContext,
   closestCenter,
   PointerSensor,
+  TouchSensor,
   useSensor,
   useSensors,
   type DragEndEvent,
@@ -58,14 +59,16 @@ interface SortableTaskCardProps {
   task: Task;
   handlers: TaskCardHandlers;
   showScheduledDate?: boolean;
+  enableDragAndDrop?: boolean;
 }
 
 function SortableTaskCard({
   task,
   handlers,
   showScheduledDate,
+  enableDragAndDrop,
 }: SortableTaskCardProps) {
-  const { setNodeRef, transform, transition, isDragging, listeners } =
+  const { setNodeRef, transform, transition, isDragging, listeners, attributes } =
     useSortable({ id: task.id });
 
   const style = {
@@ -78,13 +81,14 @@ function SortableTaskCard({
     <div
       ref={setNodeRef}
       style={style}
-      className="cursor-grab active:cursor-grabbing"
-      {...listeners}
     >
       <TaskCard
         task={task}
         handlers={handlers}
         showScheduledDate={showScheduledDate}
+        enableDragAndDrop={enableDragAndDrop}
+        dragHandleListeners={listeners}
+        dragHandleAttributes={attributes}
       />
     </div>
   );
@@ -112,6 +116,12 @@ export function TaskSection({
     useSensor(PointerSensor, {
       activationConstraint: {
         distance: 4, // 4px移動するまでドラッグ開始しない（クリックと区別）
+      },
+    }),
+    useSensor(TouchSensor, {
+      activationConstraint: {
+        delay: 200, // 200ms長押しでドラッグ開始（スクロールとの誤爆防止）
+        tolerance: 5,
       },
     }),
   );
@@ -179,6 +189,7 @@ export function TaskSection({
                       task={task}
                       handlers={handlers}
                       showScheduledDate={showScheduledDate}
+                      enableDragAndDrop={enableDragAndDrop}
                     />
                   ))}
                 </div>

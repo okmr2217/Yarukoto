@@ -11,7 +11,8 @@ import {
 import { cn } from "@/lib/utils";
 import { LinkText } from "@/components/ui/link-text";
 import type { Task } from "@/types";
-import { Pencil, Ban, Trash2, MoreVertical, Info } from "lucide-react";
+import { Pencil, Ban, Trash2, MoreVertical, Info, GripVertical } from "lucide-react";
+import type { DraggableAttributes, DraggableSyntheticListeners } from "@dnd-kit/core";
 
 /**
  * タスクカードのアクションハンドラー
@@ -38,6 +39,12 @@ interface TaskCardProps {
   handlers: TaskCardHandlers;
   /** 予定日を表示するか（デフォルト: false） */
   showScheduledDate?: boolean;
+  /** ドラッグ&ドロップを有効にするか */
+  enableDragAndDrop?: boolean;
+  /** ドラッグハンドル用のリスナー（dnd-kit） */
+  dragHandleListeners?: DraggableSyntheticListeners;
+  /** ドラッグハンドル用の属性（dnd-kit） */
+  dragHandleAttributes?: DraggableAttributes;
 }
 
 const priorityLabels: Record<string, { label: string; className: string }> = {
@@ -50,6 +57,9 @@ export function TaskCard({
   task,
   handlers,
   showScheduledDate = false,
+  enableDragAndDrop = false,
+  dragHandleListeners,
+  dragHandleAttributes,
 }: TaskCardProps) {
   const [isHovered, setIsHovered] = useState(false);
 
@@ -127,6 +137,16 @@ export function TaskCard({
       {/* Main card content */}
       <div className="relative bg-card border rounded-lg p-3">
         <div className="flex items-start gap-3">
+          {enableDragAndDrop && (
+            <button
+              className="cursor-grab active:cursor-grabbing mt-0.5 text-muted-foreground hover:text-foreground touch-none flex-shrink-0"
+              aria-label="ドラッグして並び替え"
+              {...dragHandleListeners}
+              {...dragHandleAttributes}
+            >
+              <GripVertical className="h-4 w-4" />
+            </button>
+          )}
           <div
             onPointerDown={(e) => e.stopPropagation()}
             onClick={(e) => e.stopPropagation()}
