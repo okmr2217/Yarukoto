@@ -20,146 +20,150 @@ interface FilterPanelProps {
   hasActiveFilters: boolean;
 }
 
+const STATUS_OPTIONS: { value: FilterValues["status"]; label: string }[] = [
+  { value: "all", label: "すべて" },
+  { value: "pending", label: "未完了" },
+  { value: "completed", label: "完了" },
+  { value: "skipped", label: "やらない" },
+];
+
 export function FilterPanel({ values, onChange, onClear, hasActiveFilters }: FilterPanelProps) {
   const today = getTodayInJST();
-  const isToday = values.date === today;
 
   const handlePrevDay = () => {
-    const base = values.date || today;
-    onChange("date", addDaysJST(base, -1));
+    onChange("date", addDaysJST(values.date || today, -1));
   };
 
   const handleNextDay = () => {
-    const base = values.date || today;
-    onChange("date", addDaysJST(base, 1));
+    onChange("date", addDaysJST(values.date || today, 1));
   };
 
   return (
-    <div className="bg-muted/30 border-b px-4 py-3 space-y-3">
-      {/* キーワード検索 */}
-      <div className="relative">
-        <Search className="absolute left-3 top-1/2 -translate-y-1/2 size-4 text-muted-foreground" />
-        <Input
-          type="text"
-          placeholder="キーワードを入力..."
-          value={values.keyword}
-          onChange={(e) => onChange("keyword", e.target.value)}
-          className="pl-10 pr-10"
-        />
-        {values.keyword && (
-          <button
-            type="button"
-            onClick={() => onChange("keyword", "")}
-            className="absolute right-3 top-1/2 -translate-y-1/2 text-muted-foreground hover:text-foreground"
-          >
-            <X className="size-4" />
-          </button>
-        )}
-      </div>
+    <div className="bg-muted/30 border-b px-4 py-3">
+      <div className="grid grid-cols-[5rem_1fr] gap-x-4 gap-y-2.5 items-center">
 
-      {/* ステータスフィルタ */}
-      <div className="flex items-center gap-2 flex-wrap">
-        <span className="text-xs text-muted-foreground shrink-0">ステータス:</span>
-        {(
-          [
-            { value: "all", label: "すべて" },
-            { value: "pending", label: "未完了" },
-            { value: "completed", label: "完了" },
-            { value: "skipped", label: "やらない" },
-          ] as { value: FilterValues["status"]; label: string }[]
-        ).map((option) => (
+        {/* キーワード */}
+        <span className="text-sm text-muted-foreground">キーワード</span>
+        <div className="relative">
+          <Search className="absolute left-2.5 top-1/2 -translate-y-1/2 size-3.5 text-muted-foreground" />
+          <Input
+            type="text"
+            placeholder="キーワードを入力..."
+            value={values.keyword}
+            onChange={(e) => onChange("keyword", e.target.value)}
+            className="pl-8 pr-7 h-8 text-sm"
+          />
+          {values.keyword && (
+            <button
+              type="button"
+              onClick={() => onChange("keyword", "")}
+              className="absolute right-2.5 top-1/2 -translate-y-1/2 text-muted-foreground hover:text-foreground"
+            >
+              <X className="size-3.5" />
+            </button>
+          )}
+        </div>
+
+        {/* ステータス */}
+        <span className="text-sm text-muted-foreground">ステータス</span>
+        <div className="flex flex-wrap gap-1.5">
+          {STATUS_OPTIONS.map((option) => (
+            <Button
+              key={option.value}
+              type="button"
+              variant={values.status === option.value ? "default" : "outline"}
+              size="sm"
+              className="h-7 text-xs px-2.5"
+              onClick={() => onChange("status", option.value)}
+            >
+              {option.label}
+            </Button>
+          ))}
+        </div>
+
+        {/* 日付 */}
+        <span className="text-sm text-muted-foreground">日付</span>
+        <div className="flex items-center gap-1">
           <Button
-            key={option.value}
             type="button"
-            variant={values.status === option.value ? "default" : "outline"}
-            size="sm"
-            className="h-7 text-xs"
-            onClick={() => onChange("status", option.value)}
+            variant="ghost"
+            size="icon"
+            className="h-7 w-7 shrink-0"
+            onClick={handlePrevDay}
+            aria-label="前日"
           >
-            {option.label}
+            <ChevronLeft className="size-4" />
           </Button>
-        ))}
-      </div>
-
-      {/* 日付ナビゲーション */}
-      <div className="flex items-center gap-1.5">
-        <span className="text-xs text-muted-foreground shrink-0">日付:</span>
-        <Button
-          type="button"
-          variant="ghost"
-          size="icon"
-          className="h-7 w-7"
-          onClick={handlePrevDay}
-          aria-label="前日"
-        >
-          <ChevronLeft className="size-4" />
-        </Button>
-        <Input
-          type="date"
-          value={values.date}
-          onChange={(e) => onChange("date", e.target.value)}
-          className="h-7 text-xs w-36"
-        />
-        <Button
-          type="button"
-          variant="ghost"
-          size="icon"
-          className="h-7 w-7"
-          onClick={handleNextDay}
-          aria-label="翌日"
-        >
-          <ChevronRight className="size-4" />
-        </Button>
-        <Button
-          type="button"
-          variant="outline"
-          size="sm"
-          className="h-7 text-xs"
-          onClick={() => onChange("date", today)}
-          disabled={isToday}
-        >
-          今日
-        </Button>
-        {values.date && (
-          <button
+          <Input
+            type="date"
+            value={values.date}
+            onChange={(e) => onChange("date", e.target.value)}
+            className="h-7 text-xs w-36"
+          />
+          <Button
             type="button"
-            onClick={() => onChange("date", "")}
-            className="text-muted-foreground hover:text-foreground"
-            aria-label="日付フィルタを解除"
+            variant="ghost"
+            size="icon"
+            className="h-7 w-7 shrink-0"
+            onClick={handleNextDay}
+            aria-label="翌日"
           >
-            <X className="size-4" />
-          </button>
-        )}
-      </div>
+            <ChevronRight className="size-4" />
+          </Button>
+          <Button
+            type="button"
+            variant="outline"
+            size="sm"
+            className="h-7 text-xs shrink-0"
+            onClick={() => onChange("date", today)}
+            disabled={values.date === today}
+          >
+            今日
+          </Button>
+          {values.date && (
+            <button
+              type="button"
+              onClick={() => onChange("date", "")}
+              className="text-muted-foreground hover:text-foreground shrink-0"
+              aria-label="日付フィルタを解除"
+            >
+              <X className="size-3.5" />
+            </button>
+          )}
+        </div>
 
-      {/* お気に入り */}
-      <div className="flex items-center gap-2">
-        <Checkbox
-          id="filter-favorite"
-          checked={values.isFavorite}
-          onCheckedChange={(checked) => onChange("isFavorite", !!checked)}
-        />
-        <label
-          htmlFor="filter-favorite"
-          className="text-sm cursor-pointer flex items-center gap-1"
-        >
-          <Star className="size-3.5 text-yellow-500" fill="currentColor" />
-          お気に入りのみ
-        </label>
+        {/* お気に入り */}
+        <span className="text-sm text-muted-foreground">お気に入り</span>
+        <div className="flex items-center gap-2">
+          <Checkbox
+            id="filter-favorite"
+            checked={values.isFavorite}
+            onCheckedChange={(checked) => onChange("isFavorite", !!checked)}
+          />
+          <label
+            htmlFor="filter-favorite"
+            className="text-sm cursor-pointer flex items-center gap-1"
+          >
+            <Star className="size-3.5 text-yellow-500" fill="currentColor" />
+            お気に入りのみ
+          </label>
+        </div>
       </div>
 
       {/* フィルタクリア */}
       {hasActiveFilters && (
-        <Button
-          type="button"
-          variant="ghost"
-          size="sm"
-          onClick={onClear}
-          className="w-full text-muted-foreground h-7"
-        >
-          <X className="size-4 mr-1" />
-          フィルターをクリア
-        </Button>
+        <div className="mt-3 pt-2.5 border-t border-border/50">
+          <Button
+            type="button"
+            variant="ghost"
+            size="sm"
+            onClick={onClear}
+            className="w-full text-muted-foreground h-7"
+          >
+            <X className="size-3.5 mr-1" />
+            フィルターをクリア
+          </Button>
+        </div>
       )}
     </div>
   );
