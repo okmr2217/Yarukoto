@@ -44,7 +44,7 @@ export function FilterPanel({ values, onChange, onClear, hasActiveFilters }: Fil
 
         {/* キーワード */}
         <span className="text-sm text-muted-foreground">キーワード</span>
-        <div className="relative">
+        <div className="relative max-w-xs">
           <Search className="absolute left-2.5 top-1/2 -translate-y-1/2 size-3 text-muted-foreground" />
           <Input
             type="text"
