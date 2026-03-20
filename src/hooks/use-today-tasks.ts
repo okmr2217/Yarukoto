@@ -34,7 +34,7 @@ export function useCreateTask() {
       }
       return result.data.task;
     },
-    onMutate: async ({ title, scheduledAt, categoryId, priority, memo }) => {
+    onMutate: async ({ title, scheduledAt, categoryId, memo }) => {
       await queryClient.cancelQueries({ queryKey: ["todayTasks"] });
 
       const previous = queryClient.getQueryData<TodayTasks>(["todayTasks"]);
@@ -45,7 +45,7 @@ export function useCreateTask() {
         title,
         memo: memo || null,
         status: "PENDING",
-        priority: priority || null,
+        isFavorite: false,
         scheduledAt: scheduledAt || null,
         completedAt: null,
         skippedAt: null,
@@ -305,7 +305,6 @@ export function useUpdateTask() {
         title: input.title,
         scheduledAt: input.scheduledAt === null ? undefined : input.scheduledAt,
         categoryId: input.categoryId === null ? undefined : input.categoryId,
-        priority: input.priority === null ? undefined : input.priority,
         memo: input.memo === null ? undefined : input.memo,
       });
       if (!result.success) {
@@ -318,7 +317,6 @@ export function useUpdateTask() {
       title,
       scheduledAt,
       categoryId,
-      priority,
       memo,
     }) => {
       await queryClient.cancelQueries({ queryKey: ["todayTasks"] });
@@ -335,7 +333,6 @@ export function useUpdateTask() {
                   scheduledAt !== undefined ? scheduledAt : t.scheduledAt,
                 categoryId:
                   categoryId !== undefined ? categoryId : t.categoryId,
-                priority: priority !== undefined ? priority : t.priority,
                 memo: memo !== undefined ? memo : t.memo,
                 updatedAt: new Date().toISOString(),
               };

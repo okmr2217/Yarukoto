@@ -2,6 +2,7 @@
 
 import { useState, useEffect } from "react";
 import { useRouter, useSearchParams } from "next/navigation";
+import { Star } from "lucide-react";
 import { Header, CategoryFilter } from "@/components/layout";
 import {
   TaskSection,
@@ -20,6 +21,7 @@ import {
   useSettings,
   useCategories,
 } from "@/hooks";
+import { cn } from "@/lib/utils";
 import type { Task } from "@/types";
 
 export default function HomePage() {
@@ -35,6 +37,7 @@ export default function HomePage() {
   const [taskInputOpen, setTaskInputOpen] = useState(false);
   const [detailTask, setDetailTask] = useState<TaskDetail | null>(null);
   const [detailOpen, setDetailOpen] = useState(false);
+  const [showFavoritesOnly, setShowFavoritesOnly] = useState(false);
 
   // カテゴリ選択時にURLを更新
   const handleCategoryChange = (categoryId: string | null) => {
@@ -61,7 +64,6 @@ export default function HomePage() {
     title: string;
     scheduledAt?: string;
     categoryId?: string;
-    priority?: "HIGH" | "MEDIUM" | "LOW";
     memo?: string;
   }) => {
     mutations.createTask.mutate(data);
@@ -125,6 +127,10 @@ export default function HomePage() {
     }
   };
 
+  const handleToggleFavorite = (id: string) => {
+    mutations.toggleFavorite.mutate(id);
+  };
+
   const taskHandlers = {
     onDetail: handleDetail,
     onComplete: handleComplete,
@@ -132,6 +138,7 @@ export default function HomePage() {
     onEdit: handleEdit,
     onSkip: handleSkip,
     onDelete: handleDelete,
+    onToggleFavorite: handleToggleFavorite,
   };
 
   // Nキーでタスク作成モーダルを開く
@@ -185,28 +192,34 @@ export default function HomePage() {
   }
 
   // ステータス別に分類
-  // 未完了: サーバーから取得した順序をそのまま使用（displayOrder優先、次に作成日降順）
-  const pendingTasks = tasks?.filter((task) => task.status === "PENDING") || [];
+  const applyFavoriteFilter = (list: Task[]) =>
+    showFavoritesOnly ? list.filter((t) => t.isFavorite) : list;
+
+  const pendingTasks = applyFavoriteFilter(
+    tasks?.filter((task) => task.status === "PENDING") || [],
+  );
 
   // 完了済み: 完了日時降順（新しい順）
-  const completedTasks =
+  const completedTasks = applyFavoriteFilter(
     tasks
       ?.filter((task) => task.status === "COMPLETED")
       .sort(
         (a, b) =>
           new Date(b.completedAt || b.createdAt).getTime() -
           new Date(a.completedAt || a.createdAt).getTime(),
-      ) || [];
+      ) || [],
+  );
 
   // やらない: スキップ日時降順（新しい順）
-  const skippedTasks =
+  const skippedTasks = applyFavoriteFilter(
     tasks
       ?.filter((task) => task.status === "SKIPPED")
       .sort(
         (a, b) =>
           new Date(b.skippedAt || b.createdAt).getTime() -
           new Date(a.skippedAt || a.createdAt).getTime(),
-      ) || [];
+      ) || [],
+  );
 
   const hasNoTasks =
     pendingTasks.length === 0 &&
@@ -224,19 +237,45 @@ export default function HomePage() {
       />
 
       <div className="flex-1 flex flex-col max-w-2xl w-full mx-auto">
+        {/* お気に入りフィルタトグル */}
+        <div className="px-4 pt-2 flex items-center gap-2">
+          <button
+            onClick={() => setShowFavoritesOnly((v) => !v)}
+            className={cn(
+              "flex items-center gap-1.5 px-3 py-1.5 rounded-full text-sm border transition-colors",
+              showFavoritesOnly
+                ? "bg-yellow-500/10 border-yellow-500/40 text-yellow-600"
+                : "border-border text-muted-foreground hover:bg-accent",
+            )}
+            aria-pressed={showFavoritesOnly}
+          >
+            <Star
+              className="size-3.5"
+              fill={showFavoritesOnly ? "currentColor" : "none"}
+            />
+            お気に入り
+          </button>
+        </div>
+
         <main className="flex-1 overflow-auto">
           <div className="px-4 pt-2 pb-20 md:pb-4">
             {hasNoTasks ? (
               <div className="text-center py-12 text-muted-foreground">
-                <p>タスクがありません</p>
-                <p className="text-sm mt-1">
-                  <kbd className="px-1.5 py-0.5 text-xs bg-muted rounded border">
-                    N
-                  </kbd>{" "}
-                  キーまたは下の{" "}
-                  <span className="text-primary font-semibold">＋</span>{" "}
-                  ボタンから新しいタスクを追加しましょう
-                </p>
+                {showFavoritesOnly ? (
+                  <p>お気に入りのタスクがありません</p>
+                ) : (
+                  <>
+                    <p>タスクがありません</p>
+                    <p className="text-sm mt-1">
+                      <kbd className="px-1.5 py-0.5 text-xs bg-muted rounded border">
+                        N
+                      </kbd>{" "}
+                      キーまたは下の{" "}
+                      <span className="text-primary font-semibold">＋</span>{" "}
+                      ボタンから新しいタスクを追加しましょう
+                    </p>
+                  </>
+                )}
               </div>
             ) : (
               <>

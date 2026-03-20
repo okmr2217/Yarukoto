@@ -9,7 +9,7 @@ export type SearchFilters = {
   keyword: string;
   status: "all" | "pending" | "completed" | "skipped";
   categoryId: string | null | undefined;
-  priority: "HIGH" | "MEDIUM" | "LOW" | "all" | null | undefined;
+  isFavorite: boolean | undefined;
   dateFrom: string | undefined;
   dateTo: string | undefined;
 };
@@ -18,7 +18,7 @@ const defaultFilters: SearchFilters = {
   keyword: "",
   status: "all",
   categoryId: undefined,
-  priority: undefined,
+  isFavorite: undefined,
   dateFrom: undefined,
   dateTo: undefined,
 };
@@ -31,7 +31,7 @@ export function useSearchTasks(filters: Partial<SearchFilters> = {}) {
     mergedFilters.keyword.trim() !== "" ||
     mergedFilters.status !== "all" ||
     mergedFilters.categoryId !== undefined ||
-    mergedFilters.priority !== undefined ||
+    mergedFilters.isFavorite !== undefined ||
     mergedFilters.dateFrom !== undefined ||
     mergedFilters.dateTo !== undefined;
 
@@ -49,8 +49,8 @@ export function useSearchTasks(filters: Partial<SearchFilters> = {}) {
       if (mergedFilters.categoryId !== undefined) {
         input.categoryId = mergedFilters.categoryId;
       }
-      if (mergedFilters.priority !== undefined) {
-        input.priority = mergedFilters.priority;
+      if (mergedFilters.isFavorite !== undefined) {
+        input.isFavorite = mergedFilters.isFavorite;
       }
       if (mergedFilters.dateFrom) {
         input.dateFrom = mergedFilters.dateFrom;

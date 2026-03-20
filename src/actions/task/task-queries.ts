@@ -114,7 +114,7 @@ export async function getTasksByDate(
 /**
  * タスクを検索します。
  *
- * @param input - 検索条件（キーワード、ステータス、カテゴリ、優先度、日付範囲）
+ * @param input - 検索条件（キーワード、ステータス、カテゴリ、お気に入り、日付範囲）
  * @returns 検索結果（displayOrder降順にソートされたタスク）
  *
  * @remarks
@@ -132,7 +132,7 @@ export async function searchTasks(
     }
 
     const user = await getRequiredUser();
-    const { keyword, status, categoryId, priority, dateFrom, dateTo } =
+    const { keyword, status, categoryId, isFavorite, dateFrom, dateTo } =
       parsed.data;
 
     // WHERE句の構築
@@ -157,9 +157,9 @@ export async function searchTasks(
       where.categoryId = categoryId;
     }
 
-    // 優先度フィルタ
-    if (priority !== undefined && priority !== "all") {
-      where.priority = priority;
+    // お気に入りフィルタ
+    if (isFavorite !== undefined) {
+      where.isFavorite = isFavorite;
     }
 
     // 日付範囲フィルタ（JSTベースで日付範囲を計算）

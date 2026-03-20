@@ -78,7 +78,6 @@ export default function TaskPage() {
     title: string;
     scheduledAt?: string;
     categoryId?: string;
-    priority?: "HIGH" | "MEDIUM" | "LOW";
     memo?: string;
   }) => {
     mutations.createTask.mutate(data);
@@ -136,6 +135,10 @@ export default function TaskPage() {
     }
   };
 
+  const handleToggleFavorite = (id: string) => {
+    mutations.toggleFavorite.mutate(id);
+  };
+
   // タスクカード用のハンドラーをまとめる
   const taskHandlers = {
     onDetail: handleDetail,
@@ -144,6 +147,7 @@ export default function TaskPage() {
     onEdit: handleEdit,
     onSkip: handleSkip,
     onDelete: handleDelete,
+    onToggleFavorite: handleToggleFavorite,
   };
 
   // Nキーでタスク作成モーダルを開く（今日と未来のみ）

@@ -11,7 +11,7 @@ import {
 import { cn } from "@/lib/utils";
 import { LinkText } from "@/components/ui/link-text";
 import type { Task } from "@/types";
-import { Pencil, Ban, Trash2, MoreVertical, Info, GripVertical } from "lucide-react";
+import { Pencil, Ban, Trash2, MoreVertical, Info, GripVertical, Star } from "lucide-react";
 import type { DraggableAttributes, DraggableSyntheticListeners } from "@dnd-kit/core";
 
 /**
@@ -30,6 +30,8 @@ export interface TaskCardHandlers {
   onSkip: (id: string) => void;
   /** タスク削除時のハンドラー */
   onDelete: (id: string) => void;
+  /** お気に入りトグル時のハンドラー */
+  onToggleFavorite: (id: string) => void;
 }
 
 interface TaskCardProps {
@@ -46,12 +48,6 @@ interface TaskCardProps {
   /** ドラッグハンドル用の属性（dnd-kit） */
   dragHandleAttributes?: DraggableAttributes;
 }
-
-const priorityLabels: Record<string, { label: string; className: string }> = {
-  HIGH: { label: "高", className: "text-destructive" },
-  MEDIUM: { label: "中", className: "text-warning" },
-  LOW: { label: "低", className: "text-muted-foreground" },
-};
 
 export function TaskCard({
   task,
@@ -170,6 +166,28 @@ export function TaskCard({
                 {task.title}
               </p>
 
+              {/* Star favorite button (always visible) */}
+              <div
+                onPointerDown={(e) => e.stopPropagation()}
+                onClick={(e) => e.stopPropagation()}
+              >
+                <button
+                  onClick={() => handlers.onToggleFavorite(task.id)}
+                  className={cn(
+                    "p-1 rounded transition-colors",
+                    task.isFavorite
+                      ? "text-yellow-500 hover:text-yellow-600"
+                      : "text-muted-foreground hover:text-yellow-500",
+                  )}
+                  aria-label={task.isFavorite ? "お気に入りを解除" : "お気に入りに追加"}
+                >
+                  <Star
+                    className="h-3.5 w-3.5"
+                    fill={task.isFavorite ? "currentColor" : "none"}
+                  />
+                </button>
+              </div>
+
               {/* Three-dot menu (mobile) */}
               <div
                 onPointerDown={(e) => e.stopPropagation()}
@@ -234,7 +252,6 @@ export function TaskCard({
 
             {((showScheduledDate && task.scheduledAt) ||
               task.category ||
-              task.priority ||
               (isSkipped && task.skipReason)) && (
               <div
                 className={cn(
@@ -273,16 +290,6 @@ export function TaskCard({
                     }}
                   >
                     🏷️ {task.category.name}
-                  </span>
-                )}
-                {task.priority && priorityLabels[task.priority] && (
-                  <span
-                    className={cn(
-                      "text-xs",
-                      priorityLabels[task.priority].className,
-                    )}
-                  >
-                    ⚡ {priorityLabels[task.priority].label}
                   </span>
                 )}
                 {isSkipped && task.skipReason && (

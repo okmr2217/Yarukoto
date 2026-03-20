@@ -20,6 +20,7 @@ import {
   useSkipTask,
   useDeleteTask,
   useInvalidateSearchTasks,
+  useTaskMutations,
   type SearchFilters,
 } from "@/hooks";
 import type { Task, TaskDetail } from "@/types";
@@ -29,7 +30,7 @@ export default function SearchPage() {
     keyword: "",
     status: "all",
     categoryId: undefined,
-    priority: undefined,
+    isFavorite: undefined,
     dateFrom: undefined,
     dateTo: undefined,
   });
@@ -51,12 +52,13 @@ export default function SearchPage() {
   const skipTask = useSkipTask();
   const deleteTask = useDeleteTask();
   const invalidateSearch = useInvalidateSearchTasks();
+  const mutations = useTaskMutations();
 
   const hasSearchCriteria =
     filters.keyword.trim() !== "" ||
     filters.status !== "all" ||
     filters.categoryId !== undefined ||
-    filters.priority !== undefined ||
+    filters.isFavorite !== undefined ||
     filters.dateFrom !== undefined ||
     filters.dateTo !== undefined;
 
@@ -121,6 +123,10 @@ export default function SearchPage() {
     }
   };
 
+  const handleToggleFavorite = (id: string) => {
+    mutations.toggleFavorite.mutate(id, { onSuccess: invalidateSearch });
+  };
+
   // タスクカード用のハンドラーをまとめる
   const taskHandlers = {
     onDetail: handleDetail,
@@ -129,6 +135,7 @@ export default function SearchPage() {
     onEdit: handleEdit,
     onSkip: handleSkip,
     onDelete: handleDelete,
+    onToggleFavorite: handleToggleFavorite,
   };
 
   return (

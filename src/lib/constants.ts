@@ -33,6 +33,7 @@ export const ERROR_MESSAGES = {
   TASK_DELETE_FAILED: "タスクの削除に失敗しました",
   TASK_COMPLETE_FAILED: "タスクの完了に失敗しました",
   TASK_NOT_FOUND: "タスクが見つかりません",
+  TASK_FAVORITE_FAILED: "お気に入りの更新に失敗しました",
   TASK_STATS_FAILED: "タスク統計の取得に失敗しました",
 
   // カテゴリ関連

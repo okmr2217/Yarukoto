@@ -19,7 +19,7 @@ export function toTask(task: PrismaTask & { category: Category | null }): Task {
     title: task.title,
     memo: task.memo,
     status: task.status,
-    priority: task.priority,
+    isFavorite: task.isFavorite,
     // scheduledAtはJSTの日付文字列として返す（YYYY-MM-DD形式）
     scheduledAt: task.scheduledAt ? formatDateToJST(task.scheduledAt) : null,
     completedAt: task.completedAt ? task.completedAt.toISOString() : null,

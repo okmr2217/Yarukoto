@@ -8,9 +8,11 @@ import {
   updateTaskSchema,
   taskIdSchema,
   skipTaskSchema,
+  toggleFavoriteSchema,
   type CreateTaskInput,
   type UpdateTaskInput,
   type SkipTaskInput,
+  type ToggleFavoriteInput,
 } from "@/lib/validations";
 import { ERROR_MESSAGES } from "@/lib/constants";
 import { toTask } from "@/lib/task-helpers";
@@ -18,7 +20,7 @@ import { toTask } from "@/lib/task-helpers";
 /**
  * タスクを作成します。
  *
- * @param input - タスク作成情報（タイトル、予定日、カテゴリ、優先度、メモ）
+ * @param input - タスク作成情報（タイトル、予定日、カテゴリ、メモ）
  * @returns 作成されたタスク
  *
  * @remarks
@@ -36,7 +38,7 @@ export async function createTask(
     }
 
     const user = await getRequiredUser();
-    const { title, scheduledAt, categoryId, priority, memo } = parsed.data;
+    const { title, scheduledAt, categoryId, memo } = parsed.data;
 
     // scheduledAtはPostgreSQLのDATE型なので、YYYY-MM-DD形式の文字列をDateオブジェクトに変換
     const parsedScheduledAt = scheduledAt ? new Date(scheduledAt) : null;
@@ -67,7 +69,6 @@ export async function createTask(
         memo: memo?.trim() || null,
         scheduledAt: parsedScheduledAt,
         categoryId: categoryId || null,
-        priority: priority || null,
         displayOrder: newDisplayOrder,
         userId: user.id,
       },
@@ -84,7 +85,7 @@ export async function createTask(
 /**
  * タスクを更新します。
  *
- * @param input - タスク更新情報（ID、タイトル、予定日、カテゴリ、優先度、メモ）
+ * @param input - タスク更新情報（ID、タイトル、予定日、カテゴリ、メモ）
  * @returns 更新されたタスク
  *
  * @remarks
@@ -103,7 +104,7 @@ export async function updateTask(
     }
 
     const user = await getRequiredUser();
-    const { id, title, scheduledAt, categoryId, priority, memo } = parsed.data;
+    const { id, title, scheduledAt, categoryId, memo } = parsed.data;
 
     // タスクがユーザーに属することを確認
     const existingTask = await prisma.task.findFirst({
@@ -133,7 +134,6 @@ export async function updateTask(
       updateData.scheduledAt = scheduledAt ? new Date(scheduledAt) : null;
     }
     if (categoryId !== undefined) updateData.categoryId = categoryId;
-    if (priority !== undefined) updateData.priority = priority;
 
     const task = await prisma.task.update({
       where: { id },
@@ -455,5 +455,47 @@ export async function reorderTasks(input: {
   } catch (error) {
     console.error("reorderTasks error:", error);
     return failure(ERROR_MESSAGES.TASK_UPDATE_FAILED, "INTERNAL_ERROR");
+  }
+}
+
+/**
+ * タスクのお気に入りをトグルします。
+ *
+ * @param input - タスクID
+ * @returns 更新されたタスク
+ *
+ * @remarks
+ * - タスクがユーザーのものであることを確認します
+ * - isFavoriteをトグル（true↔false）します
+ */
+export async function toggleFavorite(
+  input: ToggleFavoriteInput,
+): Promise<ActionResult<{ task: Task }>> {
+  try {
+    const parsed = toggleFavoriteSchema.safeParse(input);
+    if (!parsed.success) {
+      return failure(parsed.error.issues[0].message, "VALIDATION_ERROR");
+    }
+
+    const user = await getRequiredUser();
+    const { id } = parsed.data;
+
+    const existingTask = await prisma.task.findFirst({
+      where: { id, userId: user.id },
+    });
+    if (!existingTask) {
+      return failure(ERROR_MESSAGES.TASK_NOT_FOUND, "NOT_FOUND");
+    }
+
+    const task = await prisma.task.update({
+      where: { id },
+      data: { isFavorite: !existingTask.isFavorite },
+      include: { category: true },
+    });
+
+    return success({ task: toTask(task) });
+  } catch (error) {
+    console.error("toggleFavorite error:", error);
+    return failure(ERROR_MESSAGES.TASK_FAVORITE_FAILED, "INTERNAL_ERROR");
   }
 }

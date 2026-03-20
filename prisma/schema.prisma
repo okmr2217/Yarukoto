@@ -99,6 +99,7 @@ model Task {
   memo         String?    @db.Text
   status       TaskStatus @default(PENDING)
   priority     Priority?
+  isFavorite   Boolean    @default(false)
   scheduledAt  DateTime?  @db.Date
   completedAt  DateTime?
   skippedAt    DateTime?

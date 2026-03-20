@@ -45,29 +45,6 @@ function StatusBadge({ status }: { status: TaskDetail["status"] }) {
   return <Badge variant="outline">未完了</Badge>;
 }
 
-function PriorityBadge({ priority }: { priority: TaskDetail["priority"] }) {
-  if (!priority) return null;
-  if (priority === "HIGH") {
-    return (
-      <Badge className="bg-destructive/10 text-destructive border-destructive/20 hover:bg-destructive/20">
-        高
-      </Badge>
-    );
-  }
-  if (priority === "MEDIUM") {
-    return (
-      <Badge className="bg-warning/10 text-warning border-warning/20 hover:bg-warning/20">
-        中
-      </Badge>
-    );
-  }
-  return (
-    <Badge className="bg-blue-500/10 text-blue-600 border-blue-500/20 hover:bg-blue-500/20">
-      低
-    </Badge>
-  );
-}
-
 // ── DetailRow ─────────────────────────────────────────────────
 
 function DetailRow({
@@ -95,10 +72,14 @@ function DetailRow({
 function TaskDetailContent({ task }: { task: TaskDetail }) {
   return (
     <div className="space-y-4 py-2">
-      {/* ステータス・優先度バッジ */}
+      {/* ステータス・お気に入りバッジ */}
       <div className="flex items-center gap-2 flex-wrap">
         <StatusBadge status={task.status} />
-        <PriorityBadge priority={task.priority} />
+        {task.isFavorite && (
+          <Badge className="bg-yellow-500/10 text-yellow-600 border-yellow-500/20 hover:bg-yellow-500/20">
+            ★ お気に入り
+          </Badge>
+        )}
       </div>
 
       <Separator />

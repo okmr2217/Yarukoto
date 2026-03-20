@@ -24,6 +24,7 @@ export {
   unskipTask,
   deleteTask,
   reorderTasks,
+  toggleFavorite,
 } from "./task-mutations";
 
 // ヘルパー関数

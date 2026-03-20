@@ -14,19 +14,11 @@ import { Textarea } from "@/components/ui/textarea";
 import { cn } from "@/lib/utils";
 import type { Task, Category } from "@/types";
 
-const PRIORITIES = [
-  { value: "none", label: "なし" },
-  { value: "LOW", label: "低" },
-  { value: "MEDIUM", label: "中" },
-  { value: "HIGH", label: "高" },
-] as const;
-
 export interface TaskEditData {
   id: string;
   title: string;
   scheduledAt?: string | null;
   categoryId?: string | null;
-  priority?: "HIGH" | "MEDIUM" | "LOW" | null;
   memo?: string | null;
 }
 
@@ -50,7 +42,6 @@ export function TaskEditDialog({
   const [title, setTitle] = useState(task?.title ?? "");
   const [scheduledAt, setScheduledAt] = useState(task?.scheduledAt ?? "");
   const [categoryId, setCategoryId] = useState<string>(task?.categoryId ?? "none");
-  const [priority, setPriority] = useState<string>(task?.priority ?? "none");
   const [memo, setMemo] = useState(task?.memo ?? "");
   const [error, setError] = useState<string | null>(null);
 
@@ -70,8 +61,6 @@ export function TaskEditDialog({
       title: trimmedTitle,
       scheduledAt: scheduledAt || null,
       categoryId: categoryId !== "none" ? categoryId : null,
-      priority:
-        priority !== "none" ? (priority as "HIGH" | "MEDIUM" | "LOW") : null,
       memo: memo.trim() || null,
     });
   };
@@ -171,34 +160,6 @@ export function TaskEditDialog({
                     style={{ backgroundColor: cat.color || "#6B7280" }}
                   />
                   {cat.name}
-                </button>
-              ))}
-            </div>
-          </div>
-
-          {/* 優先度 */}
-          <div className="space-y-2">
-            <Label>優先度</Label>
-            <div className="grid grid-cols-4 gap-1.5">
-              {PRIORITIES.map((p) => (
-                <button
-                  key={p.value}
-                  type="button"
-                  onClick={() => setPriority(p.value)}
-                  className={cn(
-                    "h-8 rounded-md border text-sm font-medium transition-colors",
-                    priority === p.value
-                      ? p.value === "HIGH"
-                        ? "bg-destructive text-destructive-foreground border-destructive"
-                        : p.value === "MEDIUM"
-                          ? "bg-yellow-500 text-white border-yellow-500"
-                          : p.value === "LOW"
-                            ? "bg-blue-500 text-white border-blue-500"
-                            : "bg-primary text-primary-foreground border-primary"
-                      : "bg-background hover:bg-accent border-border",
-                  )}
-                >
-                  {p.label}
                 </button>
               ))}
             </div>

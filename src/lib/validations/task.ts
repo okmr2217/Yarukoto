@@ -1,8 +1,6 @@
 import { z } from "zod";
 import { TASK_CONSTANTS } from "@/lib/constants";
 
-const prioritySchema = z.enum(["HIGH", "MEDIUM", "LOW"]);
-
 const dateStringSchema = z
   .string()
   .regex(/^\d{4}-\d{2}-\d{2}$/, "日付はYYYY-MM-DD形式で入力してください");
@@ -18,7 +16,6 @@ export const createTaskSchema = z.object({
     .refine((val) => val.trim().length > 0, "タスク名を入力してください"),
   scheduledAt: dateStringSchema.optional(),
   categoryId: z.string().optional(),
-  priority: prioritySchema.optional(),
   memo: z
     .string()
     .max(
@@ -41,7 +38,6 @@ export const updateTaskSchema = z.object({
     .optional(),
   scheduledAt: dateStringSchema.nullable().optional(),
   categoryId: z.string().nullable().optional(),
-  priority: prioritySchema.nullable().optional(),
   memo: z
     .string()
     .max(
@@ -71,11 +67,15 @@ export const getTasksByDateSchema = z.object({
   date: dateStringSchema,
 });
 
+export const toggleFavoriteSchema = z.object({
+  id: z.string().min(1, "タスクIDは必須です"),
+});
+
 export const searchTasksSchema = z.object({
   keyword: z.string().optional(),
   status: z.enum(["all", "pending", "completed", "skipped"]).optional(),
   categoryId: z.string().nullable().optional(),
-  priority: prioritySchema.or(z.literal("all")).nullable().optional(),
+  isFavorite: z.boolean().optional(),
   dateFrom: dateStringSchema.optional(),
   dateTo: dateStringSchema.optional(),
 });
@@ -88,6 +88,7 @@ export type CreateTaskInput = z.infer<typeof createTaskSchema>;
 export type UpdateTaskInput = z.infer<typeof updateTaskSchema>;
 export type TaskIdInput = z.infer<typeof taskIdSchema>;
 export type SkipTaskInput = z.infer<typeof skipTaskSchema>;
+export type ToggleFavoriteInput = z.infer<typeof toggleFavoriteSchema>;
 export type GetTasksByDateInput = z.infer<typeof getTasksByDateSchema>;
 export type SearchTasksInput = z.infer<typeof searchTasksSchema>;
 export type GetMonthlyTaskStatsInput = z.infer<

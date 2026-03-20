@@ -1,6 +1,6 @@
 "use client";
 
-import { Search, X, Calendar } from "lucide-react";
+import { Search, X, Calendar, Star } from "lucide-react";
 import { Input } from "@/components/ui/input";
 import { Button } from "@/components/ui/button";
 import {
@@ -10,6 +10,7 @@ import {
   SelectTrigger,
   SelectValue,
 } from "@/components/ui/select";
+import { Checkbox } from "@/components/ui/checkbox";
 import type { Category } from "@/types";
 import type { SearchFilters } from "@/hooks";
 
@@ -36,7 +37,7 @@ export function SearchFiltersComponent({
       keyword: "",
       status: "all",
       categoryId: undefined,
-      priority: undefined,
+      isFavorite: undefined,
       dateFrom: undefined,
       dateTo: undefined,
     });
@@ -46,7 +47,7 @@ export function SearchFiltersComponent({
     filters.keyword.trim() !== "" ||
     filters.status !== "all" ||
     filters.categoryId !== undefined ||
-    filters.priority !== undefined ||
+    filters.isFavorite !== undefined ||
     filters.dateFrom !== undefined ||
     filters.dateTo !== undefined;
 
@@ -100,81 +101,64 @@ export function SearchFiltersComponent({
         </div>
       </div>
 
-      {/* Category & Priority Filters */}
-      <div className="flex flex-col md:flex-row gap-4">
-        {/* Category Filter */}
-        <div className="flex flex-col md:flex-row md:items-center gap-2 md:gap-3 md:flex-1">
-          <label className="text-sm font-medium text-muted-foreground md:w-24 shrink-0">
-            カテゴリ
-          </label>
-          <Select
-            value={
-              filters.categoryId === null
-                ? "none"
-                : (filters.categoryId ?? "all")
+      {/* Category Filter */}
+      <div className="flex flex-col md:flex-row md:items-center gap-2 md:gap-3">
+        <label className="text-sm font-medium text-muted-foreground md:w-24 shrink-0">
+          カテゴリ
+        </label>
+        <Select
+          value={
+            filters.categoryId === null
+              ? "none"
+              : (filters.categoryId ?? "all")
+          }
+          onValueChange={(value) => {
+            if (value === "all") {
+              updateFilter("categoryId", undefined);
+            } else if (value === "none") {
+              updateFilter("categoryId", null);
+            } else {
+              updateFilter("categoryId", value);
             }
-            onValueChange={(value) => {
-              if (value === "all") {
-                updateFilter("categoryId", undefined);
-              } else if (value === "none") {
-                updateFilter("categoryId", null);
-              } else {
-                updateFilter("categoryId", value);
-              }
-            }}
-          >
-            <SelectTrigger className="w-full">
-              <SelectValue placeholder="すべて" />
-            </SelectTrigger>
-            <SelectContent>
-              <SelectItem value="all">すべて</SelectItem>
-              <SelectItem value="none">カテゴリなし</SelectItem>
-              {categories.map((category) => (
-                <SelectItem key={category.id} value={category.id}>
-                  <div className="flex items-center gap-2">
-                    <span
-                      className="size-3 rounded-full"
-                      style={{ backgroundColor: category.color || "#6B7280" }}
-                    />
-                    <span>{category.name}</span>
-                  </div>
-                </SelectItem>
-              ))}
-            </SelectContent>
-          </Select>
-        </div>
+          }}
+        >
+          <SelectTrigger className="w-full md:w-64">
+            <SelectValue placeholder="すべて" />
+          </SelectTrigger>
+          <SelectContent>
+            <SelectItem value="all">すべて</SelectItem>
+            <SelectItem value="none">カテゴリなし</SelectItem>
+            {categories.map((category) => (
+              <SelectItem key={category.id} value={category.id}>
+                <div className="flex items-center gap-2">
+                  <span
+                    className="size-3 rounded-full"
+                    style={{ backgroundColor: category.color || "#6B7280" }}
+                  />
+                  <span>{category.name}</span>
+                </div>
+              </SelectItem>
+            ))}
+          </SelectContent>
+        </Select>
+      </div>
 
-        {/* Priority Filter */}
-        <div className="flex flex-col md:flex-row md:items-center gap-2 md:gap-3 md:flex-1">
-          <label className="text-sm font-medium text-muted-foreground md:w-24 shrink-0">
-            優先度
-          </label>
-          <Select
-            value={
-              filters.priority === null ? "none" : (filters.priority ?? "all")
-            }
-            onValueChange={(value) => {
-              if (value === "all") {
-                updateFilter("priority", undefined);
-              } else if (value === "none") {
-                updateFilter("priority", null);
-              } else {
-                updateFilter("priority", value as "HIGH" | "MEDIUM" | "LOW");
-              }
-            }}
-          >
-            <SelectTrigger className="w-full">
-              <SelectValue placeholder="すべて" />
-            </SelectTrigger>
-            <SelectContent>
-              <SelectItem value="all">すべて</SelectItem>
-              <SelectItem value="none">優先度なし</SelectItem>
-              <SelectItem value="HIGH">高</SelectItem>
-              <SelectItem value="MEDIUM">中</SelectItem>
-              <SelectItem value="LOW">低</SelectItem>
-            </SelectContent>
-          </Select>
-        </div>
+      {/* Favorite Filter */}
+      <div className="flex items-center gap-3">
+        <Checkbox
+          id="favorite-filter"
+          checked={filters.isFavorite === true}
+          onCheckedChange={(checked) =>
+            updateFilter("isFavorite", checked ? true : undefined)
+          }
+        />
+        <label
+          htmlFor="favorite-filter"
+          className="text-sm font-medium cursor-pointer flex items-center gap-1.5"
+        >
+          <Star className="size-4 text-yellow-500" fill="currentColor" />
+          お気に入りのみ
+        </label>
       </div>
 
       {/* Date Range Filter */}

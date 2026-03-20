@@ -15,18 +15,10 @@ import { cn } from "@/lib/utils";
 import { getTodayInJST, addDaysJST } from "@/lib/dateUtils";
 import type { Category } from "@/types";
 
-const PRIORITIES = [
-  { value: "none", label: "なし" },
-  { value: "LOW", label: "低" },
-  { value: "MEDIUM", label: "中" },
-  { value: "HIGH", label: "高" },
-] as const;
-
 export interface TaskInputData {
   title: string;
   scheduledAt?: string;
   categoryId?: string;
-  priority?: "HIGH" | "MEDIUM" | "LOW";
   memo?: string;
 }
 
@@ -62,7 +54,6 @@ export function TaskInputModal({
   const [categoryId, setCategoryId] = useState<string | undefined>(
     getInitialCategoryId(),
   );
-  const [priority, setPriority] = useState<string>("none");
   const [memo, setMemo] = useState("");
   const [showMemo, setShowMemo] = useState(false);
 
@@ -86,10 +77,6 @@ export function TaskInputModal({
       title: title.trim(),
       scheduledAt: scheduledAt || undefined,
       categoryId: categoryId || undefined,
-      priority:
-        priority !== "none"
-          ? (priority as "HIGH" | "MEDIUM" | "LOW")
-          : undefined,
       memo: memo.trim() || undefined,
     });
 
@@ -97,7 +84,7 @@ export function TaskInputModal({
     setTitle("");
     setMemo("");
     setShowMemo(false);
-    // カテゴリと優先度は保持（連続入力用）
+    // カテゴリは保持（連続入力用）
     // 日付は次回モーダルを開いたときにdefaultDateでリセットされる
     onOpenChange(false);
   };
@@ -237,34 +224,6 @@ export function TaskInputModal({
                       style={{ backgroundColor: cat.color || "#6B7280" }}
                     />
                     {cat.name}
-                  </button>
-                ))}
-              </div>
-            </div>
-
-            {/* 優先度 */}
-            <div className="space-y-2">
-              <label className="text-sm font-medium">優先度</label>
-              <div className="grid grid-cols-4 gap-1.5">
-                {PRIORITIES.map((p) => (
-                  <button
-                    key={p.value}
-                    type="button"
-                    onClick={() => setPriority(p.value)}
-                    className={cn(
-                      "h-8 rounded-md border text-sm font-medium transition-colors",
-                      priority === p.value
-                        ? p.value === "HIGH"
-                          ? "bg-destructive text-destructive-foreground border-destructive"
-                          : p.value === "MEDIUM"
-                            ? "bg-yellow-500 text-white border-yellow-500"
-                            : p.value === "LOW"
-                              ? "bg-blue-500 text-white border-blue-500"
-                              : "bg-primary text-primary-foreground border-primary"
-                        : "bg-background hover:bg-accent border-border",
-                    )}
-                  >
-                    {p.label}
                   </button>
                 ))}
               </div>

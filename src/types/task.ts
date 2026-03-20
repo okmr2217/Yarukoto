@@ -1,6 +1,6 @@
-import type { Priority, TaskStatus } from "@/generated/prisma/client";
+import type { TaskStatus } from "@/generated/prisma/client";
 
-export type { Priority, TaskStatus } from "@/generated/prisma/client";
+export type { TaskStatus } from "@/generated/prisma/client";
 
 export type CategorySummary = {
   id: string;
@@ -13,7 +13,7 @@ export type Task = {
   title: string;
   memo: string | null;
   status: TaskStatus;
-  priority: Priority | null;
+  isFavorite: boolean;
   scheduledAt: string | null;
   completedAt: string | null;
   skippedAt: string | null;

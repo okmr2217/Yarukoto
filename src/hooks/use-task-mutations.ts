@@ -10,6 +10,7 @@ import {
   unskipTask,
   deleteTask,
   reorderTasks,
+  toggleFavorite,
 } from "@/actions";
 import type {
   CreateTaskInput,
@@ -109,7 +110,7 @@ export function useTaskMutations() {
       title: input.title,
       memo: input.memo || null,
       status: "PENDING",
-      priority: input.priority || null,
+      isFavorite: false,
       scheduledAt,
       completedAt: null,
       skippedAt: null,
@@ -141,7 +142,6 @@ export function useTaskMutations() {
       ...oldTask,
       title: input.title ?? oldTask.title,
       memo: input.memo === undefined ? oldTask.memo : input.memo,
-      priority: input.priority === undefined ? oldTask.priority : input.priority,
       scheduledAt: newScheduledAt,
       categoryId: input.categoryId === undefined ? oldTask.categoryId : input.categoryId,
       updatedAt: new Date().toISOString(),
@@ -211,7 +211,7 @@ export function useTaskMutations() {
         title: input.title,
         memo: input.memo || null,
         status: "PENDING",
-        priority: input.priority || null,
+        isFavorite: false,
         scheduledAt: input.scheduledAt || null,
         completedAt: null,
         skippedAt: null,
@@ -244,7 +244,6 @@ export function useTaskMutations() {
         title: input.title,
         scheduledAt: input.scheduledAt,
         categoryId: input.categoryId,
-        priority: input.priority,
         memo: input.memo,
       });
       if (!result.success) {
@@ -262,7 +261,6 @@ export function useTaskMutations() {
               ...task,
               title: input.title ?? task.title,
               memo: input.memo === undefined ? task.memo : input.memo,
-              priority: input.priority === undefined ? task.priority : input.priority,
               scheduledAt: input.scheduledAt === undefined ? task.scheduledAt : input.scheduledAt,
               categoryId: input.categoryId === undefined ? task.categoryId : input.categoryId,
               updatedAt: new Date().toISOString(),
@@ -484,6 +482,30 @@ export function useTaskMutations() {
     },
   });
 
+  const toggleFav = useMutation({
+    mutationFn: async (id: string) => {
+      const result = await toggleFavorite({ id });
+      if (!result.success) {
+        throw new Error(result.error);
+      }
+      return result.data.task;
+    },
+    onMutate: async (id) => {
+      await cancelAllQueries();
+      const snapshot = snapshotCache();
+
+      updateAllTasksCache((task) =>
+        task.id === id ? { ...task, isFavorite: !task.isFavorite } : task
+      );
+
+      return snapshot;
+    },
+    onError: (_err, _id, context) => {
+      if (context) rollbackCache(context);
+    },
+    onSettled: invalidateAll,
+  });
+
   return {
     createTask: create,
     updateTask: update,
@@ -493,5 +515,6 @@ export function useTaskMutations() {
     unskipTask: unskip,
     deleteTask: remove,
     reorderTasks: reorder,
+    toggleFavorite: toggleFav,
   };
 }
