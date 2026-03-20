@@ -45,13 +45,13 @@ export function FilterPanel({ values, onChange, onClear, hasActiveFilters }: Fil
         {/* キーワード */}
         <span className="text-sm text-muted-foreground">キーワード</span>
         <div className="relative">
-          <Search className="absolute left-2.5 top-1/2 -translate-y-1/2 size-3.5 text-muted-foreground" />
+          <Search className="absolute left-2.5 top-1/2 -translate-y-1/2 size-3 text-muted-foreground" />
           <Input
             type="text"
             placeholder="キーワードを入力..."
             value={values.keyword}
             onChange={(e) => onChange("keyword", e.target.value)}
-            className="pl-8 pr-7 h-8 text-sm"
+            className="pl-8 pr-7 h-7 text-xs"
           />
           {values.keyword && (
             <button
