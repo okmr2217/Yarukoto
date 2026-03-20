@@ -5,6 +5,7 @@ import {
   getCategories,
   createCategory,
   updateCategory,
+  updateCategorySortOrder,
   deleteCategory,
 } from "@/actions";
 import type { Category } from "@/types";
@@ -37,22 +38,19 @@ export function useCreateCategory() {
       await queryClient.cancelQueries({ queryKey: ["categories"] });
       const previous = queryClient.getQueryData<Category[]>(["categories"]);
 
-      // Optimistic update
+      // Optimistic update: append to end
+      const maxSortOrder = previous ? Math.max(...previous.map((c) => c.sortOrder), -1) : -1;
       const optimisticCategory: Category = {
         id: `temp-${Date.now()}`,
         name,
         color,
+        sortOrder: maxSortOrder + 1,
         createdAt: new Date().toISOString(),
         updatedAt: new Date().toISOString(),
       };
 
       if (previous) {
-        queryClient.setQueryData<Category[]>(
-          ["categories"],
-          [...previous, optimisticCategory].sort((a, b) =>
-            a.name.localeCompare(b.name),
-          ),
-        );
+        queryClient.setQueryData<Category[]>(["categories"], [...previous, optimisticCategory]);
       }
 
       return { previous };
@@ -94,18 +92,16 @@ export function useUpdateCategory() {
       if (previous) {
         queryClient.setQueryData<Category[]>(
           ["categories"],
-          previous
-            .map((cat) =>
-              cat.id === id
-                ? {
-                    ...cat,
-                    name: name ?? cat.name,
-                    color: color !== undefined ? color : cat.color,
-                    updatedAt: new Date().toISOString(),
-                  }
-                : cat,
-            )
-            .sort((a, b) => a.name.localeCompare(b.name)),
+          previous.map((cat) =>
+            cat.id === id
+              ? {
+                  ...cat,
+                  name: name ?? cat.name,
+                  color: color !== undefined ? color : cat.color,
+                  updatedAt: new Date().toISOString(),
+                }
+              : cat,
+          ),
         );
       }
 
@@ -115,6 +111,21 @@ export function useUpdateCategory() {
       if (context?.previous) {
         queryClient.setQueryData(["categories"], context.previous);
       }
+    },
+    onSettled: () => {
+      queryClient.invalidateQueries({ queryKey: ["categories"] });
+    },
+  });
+}
+
+export function useUpdateCategorySortOrder() {
+  const queryClient = useQueryClient();
+
+  return useMutation({
+    mutationFn: async (updates: { id: string; sortOrder: number }[]) => {
+      const result = await updateCategorySortOrder({ updates });
+      if (!result.success) throw new Error(result.error);
+      return result.data;
     },
     onSettled: () => {
       queryClient.invalidateQueries({ queryKey: ["categories"] });

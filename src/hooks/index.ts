@@ -24,6 +24,7 @@ export {
   useCategories,
   useCreateCategory,
   useUpdateCategory,
+  useUpdateCategorySortOrder,
   useDeleteCategory,
 } from "./use-categories";
 

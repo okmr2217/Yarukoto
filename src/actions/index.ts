@@ -18,6 +18,7 @@ export {
   getCategories,
   createCategory,
   updateCategory,
+  updateCategorySortOrder,
   deleteCategory,
 } from "./category";
 

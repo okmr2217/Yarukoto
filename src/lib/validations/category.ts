@@ -35,6 +35,18 @@ export const categoryIdSchema = z.object({
   id: z.string().min(1, "カテゴリIDは必須です"),
 });
 
+export const updateCategorySortOrderSchema = z.object({
+  updates: z
+    .array(
+      z.object({
+        id: z.string().min(1),
+        sortOrder: z.number().int().min(0),
+      }),
+    )
+    .min(1),
+});
+
 export type CreateCategoryInput = z.infer<typeof createCategorySchema>;
 export type UpdateCategoryInput = z.infer<typeof updateCategorySchema>;
 export type CategoryIdInput = z.infer<typeof categoryIdSchema>;
+export type UpdateCategorySortOrderInput = z.infer<typeof updateCategorySortOrderSchema>;

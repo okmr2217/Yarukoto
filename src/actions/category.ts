@@ -7,8 +7,10 @@ import {
   createCategorySchema,
   updateCategorySchema,
   categoryIdSchema,
+  updateCategorySortOrderSchema,
   type CreateCategoryInput,
   type UpdateCategoryInput,
+  type UpdateCategorySortOrderInput,
 } from "@/lib/validations";
 import type { Category as PrismaCategory } from "@/generated/prisma/client";
 
@@ -18,6 +20,7 @@ function toCategory(category: PrismaCategory): Category {
     id: category.id,
     name: category.name,
     color: category.color,
+    sortOrder: category.sortOrder,
     createdAt: category.createdAt.toISOString(),
     updatedAt: category.updatedAt.toISOString(),
   };
@@ -31,7 +34,7 @@ export async function getCategories(): Promise<
 
     const categories = await prisma.category.findMany({
       where: { userId: user.id },
-      orderBy: { name: "asc" },
+      orderBy: [{ sortOrder: "asc" }, { createdAt: "asc" }],
     });
 
     return success({ categories: categories.map(toCategory) });
@@ -64,10 +67,17 @@ export async function createCategory(
       return failure("同じ名前のカテゴリが既に存在します", "CONFLICT");
     }
 
+    const maxSortOrder = await prisma.category.aggregate({
+      where: { userId: user.id },
+      _max: { sortOrder: true },
+    });
+    const nextSortOrder = (maxSortOrder._max.sortOrder ?? -1) + 1;
+
     const category = await prisma.category.create({
       data: {
         name: name.trim(),
         color,
+        sortOrder: nextSortOrder,
         userId: user.id,
       },
     });
@@ -131,6 +141,41 @@ export async function updateCategory(
   } catch (error) {
     console.error("updateCategory error:", error);
     return failure("カテゴリの更新に失敗しました", "INTERNAL_ERROR");
+  }
+}
+
+export async function updateCategorySortOrder(
+  input: UpdateCategorySortOrderInput,
+): Promise<ActionResult<{ success: true }>> {
+  try {
+    const parsed = updateCategorySortOrderSchema.safeParse(input);
+    if (!parsed.success) {
+      return failure(parsed.error.issues[0].message, "VALIDATION_ERROR");
+    }
+
+    const user = await getRequiredUser();
+    const { updates } = parsed.data;
+
+    // Verify all categories belong to the user
+    const ids = updates.map((u) => u.id);
+    const owned = await prisma.category.findMany({
+      where: { id: { in: ids }, userId: user.id },
+      select: { id: true },
+    });
+    if (owned.length !== ids.length) {
+      return failure("カテゴリが見つかりません", "NOT_FOUND");
+    }
+
+    await prisma.$transaction(
+      updates.map(({ id, sortOrder }) =>
+        prisma.category.update({ where: { id }, data: { sortOrder } }),
+      ),
+    );
+
+    return success({ success: true });
+  } catch (error) {
+    console.error("updateCategorySortOrder error:", error);
+    return failure("カテゴリの並び替えに失敗しました", "INTERNAL_ERROR");
   }
 }
 

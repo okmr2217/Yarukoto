@@ -2,7 +2,25 @@
 
 import { useState } from "react";
 import Link from "next/link";
-import { ArrowLeft, Plus, Pencil, Trash2 } from "lucide-react";
+import { ArrowLeft, Plus, Pencil, Trash2, GripVertical } from "lucide-react";
+import {
+  DndContext,
+  closestCenter,
+  PointerSensor,
+  TouchSensor,
+  DragOverlay,
+  useSensor,
+  useSensors,
+  type DragEndEvent,
+  type DragStartEvent,
+} from "@dnd-kit/core";
+import {
+  arrayMove,
+  SortableContext,
+  verticalListSortingStrategy,
+  useSortable,
+} from "@dnd-kit/sortable";
+import { CSS } from "@dnd-kit/utilities";
 import { Button } from "@/components/ui/button";
 import {
   AlertDialog,
@@ -19,20 +37,104 @@ import {
   useCategories,
   useCreateCategory,
   useUpdateCategory,
+  useUpdateCategorySortOrder,
   useDeleteCategory,
 } from "@/hooks";
+import { useQueryClient } from "@tanstack/react-query";
 import type { Category } from "@/types";
+
+interface SortableCategoryRowProps {
+  category: Category;
+  onEdit: (category: Category) => void;
+  onDelete: (category: Category) => void;
+}
+
+function SortableCategoryRow({ category, onEdit, onDelete }: SortableCategoryRowProps) {
+  const { attributes, listeners, setNodeRef, transform, transition, isDragging } = useSortable({
+    id: category.id,
+  });
+
+  const style = {
+    transform: CSS.Transform.toString(transform),
+    transition,
+    opacity: isDragging ? 0.4 : 1,
+  };
+
+  return (
+    <div
+      ref={setNodeRef}
+      style={style}
+      className="flex items-center justify-between p-4 bg-card rounded-lg border border-border"
+    >
+      <div className="flex items-center gap-3">
+        <button
+          {...attributes}
+          {...listeners}
+          className="touch-none cursor-grab active:cursor-grabbing text-muted-foreground hover:text-foreground"
+          aria-label="ドラッグして並び替え"
+        >
+          <GripVertical className="h-4 w-4" />
+        </button>
+        <div
+          className="w-4 h-4 rounded-full"
+          style={{ backgroundColor: category.color || "#6B7280" }}
+        />
+        <span className="font-medium">{category.name}</span>
+      </div>
+      <div className="flex items-center gap-1">
+        <Button variant="ghost" size="icon-sm" onClick={() => onEdit(category)} aria-label="編集">
+          <Pencil className="h-4 w-4" />
+        </Button>
+        <Button
+          variant="ghost"
+          size="icon-sm"
+          onClick={() => onDelete(category)}
+          aria-label="削除"
+          className="text-destructive hover:text-destructive"
+        >
+          <Trash2 className="h-4 w-4" />
+        </Button>
+      </div>
+    </div>
+  );
+}
+
+function CategoryRowOverlay({ category }: { category: Category }) {
+  return (
+    <div className="flex items-center justify-between p-4 bg-card rounded-lg border border-border shadow-lg">
+      <div className="flex items-center gap-3">
+        <GripVertical className="h-4 w-4 text-muted-foreground" />
+        <div
+          className="w-4 h-4 rounded-full"
+          style={{ backgroundColor: category.color || "#6B7280" }}
+        />
+        <span className="font-medium">{category.name}</span>
+      </div>
+    </div>
+  );
+}
 
 export default function CategoriesPage() {
   const { data: categories, isLoading, error } = useCategories();
+  const queryClient = useQueryClient();
   const createCategory = useCreateCategory();
   const updateCategory = useUpdateCategory();
+  const updateSortOrder = useUpdateCategorySortOrder();
   const deleteCategory = useDeleteCategory();
 
   const [editingCategory, setEditingCategory] = useState<Category | null>(null);
   const [isDialogOpen, setIsDialogOpen] = useState(false);
-  const [deletingCategory, setDeletingCategory] = useState<Category | null>(
-    null,
+  const [deletingCategory, setDeletingCategory] = useState<Category | null>(null);
+  const [activeCategory, setActiveCategory] = useState<Category | null>(null);
+
+  const sensors = useSensors(
+    useSensor(PointerSensor),
+    useSensor(TouchSensor, {
+      activationConstraint: {
+        delay: 200,
+        tolerance: 5,
+      },
+    }),
   );
 
   const handleCreate = () => {
@@ -75,6 +177,31 @@ export default function CategoriesPage() {
     }
   };
 
+  const handleDragStart = (event: DragStartEvent) => {
+    const cat = categories?.find((c) => c.id === event.active.id);
+    setActiveCategory(cat ?? null);
+  };
+
+  const handleDragEnd = (event: DragEndEvent) => {
+    setActiveCategory(null);
+    const { active, over } = event;
+    if (!over || active.id === over.id || !categories) return;
+
+    const oldIndex = categories.findIndex((c) => c.id === active.id);
+    const newIndex = categories.findIndex((c) => c.id === over.id);
+    const reordered = arrayMove(categories, oldIndex, newIndex);
+
+    // Optimistic update
+    queryClient.setQueryData<Category[]>(["categories"], reordered);
+
+    const updates = reordered.map((cat, i) => ({ id: cat.id, sortOrder: i }));
+    updateSortOrder.mutate(updates, {
+      onError: () => {
+        queryClient.setQueryData<Category[]>(["categories"], categories);
+      },
+    });
+  };
+
   return (
     <div className="flex-1 bg-background">
       {/* Header - Mobile only */}
@@ -95,9 +222,7 @@ export default function CategoriesPage() {
 
         <main className="px-4 py-6">
           {isLoading ? (
-            <div className="text-center py-12 text-muted-foreground">
-              読み込み中...
-            </div>
+            <div className="text-center py-12 text-muted-foreground">読み込み中...</div>
           ) : error ? (
             <div className="text-center py-12 text-destructive">
               エラーが発生しました: {error.message}
@@ -105,52 +230,39 @@ export default function CategoriesPage() {
           ) : (
             <>
               {/* Category list */}
-              <div className="space-y-2">
-                {categories && categories.length > 0 ? (
-                  categories.map((category) => (
-                    <div
-                      key={category.id}
-                      className="flex items-center justify-between p-4 bg-card rounded-lg border border-border"
-                    >
-                      <div className="flex items-center gap-3">
-                        <div
-                          className="w-4 h-4 rounded-full"
-                          style={{
-                            backgroundColor: category.color || "#6B7280",
-                          }}
+              <DndContext
+                sensors={sensors}
+                collisionDetection={closestCenter}
+                onDragStart={handleDragStart}
+                onDragEnd={handleDragEnd}
+              >
+                <SortableContext
+                  items={categories?.map((c) => c.id) ?? []}
+                  strategy={verticalListSortingStrategy}
+                >
+                  <div className="space-y-2">
+                    {categories && categories.length > 0 ? (
+                      categories.map((category) => (
+                        <SortableCategoryRow
+                          key={category.id}
+                          category={category}
+                          onEdit={handleEdit}
+                          onDelete={setDeletingCategory}
                         />
-                        <span className="font-medium">{category.name}</span>
+                      ))
+                    ) : (
+                      <div className="text-center py-12 text-muted-foreground">
+                        <p>カテゴリがありません</p>
+                        <p className="text-sm mt-1">下のボタンから新しいカテゴリを追加しましょう</p>
                       </div>
-                      <div className="flex items-center gap-1">
-                        <Button
-                          variant="ghost"
-                          size="icon-sm"
-                          onClick={() => handleEdit(category)}
-                          aria-label="編集"
-                        >
-                          <Pencil className="h-4 w-4" />
-                        </Button>
-                        <Button
-                          variant="ghost"
-                          size="icon-sm"
-                          onClick={() => setDeletingCategory(category)}
-                          aria-label="削除"
-                          className="text-destructive hover:text-destructive"
-                        >
-                          <Trash2 className="h-4 w-4" />
-                        </Button>
-                      </div>
-                    </div>
-                  ))
-                ) : (
-                  <div className="text-center py-12 text-muted-foreground">
-                    <p>カテゴリがありません</p>
-                    <p className="text-sm mt-1">
-                      下のボタンから新しいカテゴリを追加しましょう
-                    </p>
+                    )}
                   </div>
-                )}
-              </div>
+                </SortableContext>
+
+                <DragOverlay>
+                  {activeCategory && <CategoryRowOverlay category={activeCategory} />}
+                </DragOverlay>
+              </DndContext>
 
               {/* Add button */}
               <button
@@ -158,9 +270,7 @@ export default function CategoriesPage() {
                 className="w-full mt-4 flex items-center justify-center gap-2 p-4 bg-card rounded-lg border border-dashed border-border hover:border-primary hover:bg-accent transition-colors"
               >
                 <Plus className="h-5 w-5 text-muted-foreground" />
-                <span className="text-muted-foreground">
-                  新しいカテゴリを追加
-                </span>
+                <span className="text-muted-foreground">新しいカテゴリを追加</span>
               </button>
             </>
           )}
