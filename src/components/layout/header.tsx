@@ -1,7 +1,7 @@
 "use client";
 
 import { useState } from "react";
-import { Menu, Search, Settings, Tags, Home, Calendar } from "lucide-react";
+import { Menu, Settings, Tags, Home, Calendar } from "lucide-react";
 import Link from "next/link";
 import { usePathname } from "next/navigation";
 import { Button } from "@/components/ui/button";
@@ -23,16 +23,7 @@ const iconMap = {
   Settings,
 } as const;
 
-interface HeaderProps {
-  /** フィルタパネル開閉トグル（指定時は検索アイコンをトグルボタンとして使用） */
-  onFilterToggle?: () => void;
-  /** フィルタパネルが開いているか */
-  isFilterOpen?: boolean;
-  /** アクティブなフィルタが存在するか（インジケータ表示用） */
-  hasActiveFilters?: boolean;
-}
-
-export function Header({ onFilterToggle, isFilterOpen, hasActiveFilters }: HeaderProps) {
+export function Header() {
   const [open, setOpen] = useState(false);
   const pathname = usePathname();
 
@@ -109,21 +100,6 @@ export function Header({ onFilterToggle, isFilterOpen, hasActiveFilters }: Heade
         </div>
 
         <div className="flex items-center gap-1">
-          {onFilterToggle ? (
-            <Button
-              variant="ghost"
-              size="icon"
-              onClick={onFilterToggle}
-              aria-label="フィルターを開く"
-              aria-pressed={isFilterOpen}
-              className="relative"
-            >
-              <Search className={cn("h-5 w-5", isFilterOpen && "text-primary")} />
-              {hasActiveFilters && (
-                <span className="absolute top-1.5 right-1.5 w-2 h-2 rounded-full bg-primary" />
-              )}
-            </Button>
-          ) : null}
           <Button variant="ghost" size="icon" asChild>
             <Link href="/settings" aria-label="設定">
               <Settings className="h-5 w-5" />

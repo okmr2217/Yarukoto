@@ -274,16 +274,15 @@ export default function HomePage() {
 
   return (
     <div className="flex-1 bg-background flex flex-col">
-      <Header
-        onFilterToggle={() => setFilterPanelOpen((v) => !v)}
-        isFilterOpen={filterPanelOpen}
-        hasActiveFilters={hasActiveFilters}
-      />
+      <Header />
 
       <CategoryFilter
         categories={categories}
         selectedCategoryId={selectedCategoryId}
         onSelectCategory={handleCategoryChange}
+        onFilterToggle={() => setFilterPanelOpen((v) => !v)}
+        isFilterOpen={filterPanelOpen}
+        hasActiveFilters={hasActiveFilters}
       />
 
       {/* フィルタパネル */}

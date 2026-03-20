@@ -1,45 +1,81 @@
 "use client";
 
+import { SlidersHorizontal } from "lucide-react";
 import type { Category } from "@/types";
 import { CategoryChip } from "./category-chip";
+import { cn } from "@/lib/utils";
 
 interface CategoryFilterProps {
   categories: Category[];
   selectedCategoryId: string | null;
   onSelectCategory: (categoryId: string | null) => void;
+  /** フィルタパネル開閉トグル */
+  onFilterToggle?: () => void;
+  /** フィルタパネルが開いているか */
+  isFilterOpen?: boolean;
+  /** アクティブなフィルタが存在するか */
+  hasActiveFilters?: boolean;
 }
 
 export function CategoryFilter({
   categories,
   selectedCategoryId,
   onSelectCategory,
+  onFilterToggle,
+  isFilterOpen,
+  hasActiveFilters,
 }: CategoryFilterProps) {
   return (
     <div className="sticky top-14 md:top-0 z-40 bg-background border-b">
-      <div className="px-4 py-2 overflow-x-auto max-w-2xl mx-auto">
-        <div className="flex gap-2 min-w-max">
-          <CategoryChip
-            label="すべて"
-            active={selectedCategoryId === null}
-            onClick={() => onSelectCategory(null)}
-            isSpecial
-          />
-          {categories.map((category) => (
+      <div className="flex items-center max-w-2xl mx-auto">
+        {/* 横スクロール可能なカテゴリチップ */}
+        <div className="flex-1 px-4 py-2 overflow-x-auto">
+          <div className="flex gap-2 min-w-max">
             <CategoryChip
-              key={category.id}
-              label={category.name}
-              color={category.color}
-              active={selectedCategoryId === category.id}
-              onClick={() => onSelectCategory(category.id)}
+              label="すべて"
+              active={selectedCategoryId === null}
+              onClick={() => onSelectCategory(null)}
+              isSpecial
             />
-          ))}
-          <CategoryChip
-            label="カテゴリなし"
-            active={selectedCategoryId === "none"}
-            onClick={() => onSelectCategory("none")}
-            isSpecial
-          />
+            {categories.map((category) => (
+              <CategoryChip
+                key={category.id}
+                label={category.name}
+                color={category.color}
+                active={selectedCategoryId === category.id}
+                onClick={() => onSelectCategory(category.id)}
+              />
+            ))}
+            <CategoryChip
+              label="カテゴリなし"
+              active={selectedCategoryId === "none"}
+              onClick={() => onSelectCategory("none")}
+              isSpecial
+            />
+          </div>
         </div>
+
+        {/* フィルタトグルボタン */}
+        {onFilterToggle && (
+          <div className="px-2 shrink-0 border-l">
+            <button
+              onClick={onFilterToggle}
+              aria-label="フィルターを開く"
+              aria-pressed={isFilterOpen}
+              className={cn(
+                "relative p-1.5 rounded transition-colors",
+                isFilterOpen
+                  ? "text-primary bg-primary/10"
+                  : "text-muted-foreground hover:text-foreground hover:bg-accent",
+              )}
+            >
+              <SlidersHorizontal className="h-4 w-4" />
+              {hasActiveFilters && (
+                <span className="absolute top-1 right-1 w-1.5 h-1.5 rounded-full bg-primary" />
+              )}
+            </button>
+          </div>
+        )}
       </div>
     </div>
   );
