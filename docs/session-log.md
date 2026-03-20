@@ -4,6 +4,71 @@
 
 ---
 
+## 2026-03-20（タスク編集モーダルの楽観的更新改善）
+
+### やったこと
+
+- `sonner` を導入し、`Providers` に `<Toaster richColors />` を追加
+- タスク編集モーダルを即座に閉じる楽観的更新を実装
+  - `handleEditTaskWithDetails` を `mutateAsync` (await) → `mutate` に変更
+  - `setEditingTask(null)` を先に実行してモーダルを即閉じ
+  - 対象: `page.tsx`（ホーム）、`dates/[date]/page.tsx`、`search/page.tsx`
+- 更新失敗時に `toast.error("タスクの更新に失敗しました")` を表示
+  - `use-task-mutations.ts` の update onError に追加
+  - `use-today-tasks.ts` の useUpdateTask の onError に追加
+- `TaskEditDialog` から `isLoading` prop と関連ロジック（disabled・"保存中..."）を削除
+
+### 技術メモ
+
+- search/page.tsx は `useUpdateTask` を直接使うため `onSuccess: invalidateSearch` をコールバックで渡す形に変更
+- 既存の lint エラー（`use-media-query.ts`, `use-settings.ts`, `use-theme.ts`）は変更前からの既存問題
+
+### 次にやりたいこと
+
+- DB 接続を確認してマイグレーションを適用（isFavorite カラム）
+- 繰り返しタスクの実装検討
+
+---
+
+## 2026-03-20（お気に入り機能実装）
+
+### やったこと
+
+- 優先度（HIGH/MEDIUM/LOW）機能を廃止してお気に入り（★）機能に置き換え
+  - `isFavorite Boolean @default(false)` カラムを Prisma スキーマに追加
+  - マイグレーションファイルを手動作成（DB 接続不可のため）
+  - Task 型から priority を削除、isFavorite: boolean を追加
+  - バリデーションスキーマ（priority → toggleFavoriteSchema, searchTasksSchema の isFavorite）を更新
+  - `toggleFavorite` Server Action を追加（楽観的更新対応）
+  - タスクカードに ★ トグルボタンを追加（常時表示、lucide-react の Star アイコン）
+  - タスク作成・編集フォームから優先度選択 UI を削除
+  - 検索フィルタの優先度ドロップダウンを「お気に入りのみ」チェックボックスに置き換え
+  - ホーム画面に ★ フィルタトグルボタンを追加（お気に入りのみ表示/全表示）
+  - タスク詳細シートの PriorityBadge を「★ お気に入り」バッジに変更
+  - `use-task-mutations`, `use-today-tasks` から priority 参照を除去
+
+### 改善案（未対応）
+
+- DB が停止中のため、デプロイ後に `prisma migrate deploy` を実行する必要あり
+
+### 失敗したアプローチ
+
+- `prisma migrate dev` がリモート DB 接続不可で失敗 → マイグレーション SQL を手動作成で対応
+
+### 技術メモ
+
+- Prisma クライアントは `prisma generate` で問題なく生成できた（DB 接続不要）
+- DB の priority カラムはデータ保全のため残置（削除なし）
+- ★ ボタンは hover に依存せず常時表示（モバイルでも使いやすい設計）
+
+### 次にやりたいこと
+
+- DB 接続を確認してマイグレーションを適用
+- 繰り返しタスクの実装検討
+- 完了タスク折りたたみのデフォルト挙動設計
+
+---
+
 ## 2026-03-20
 
 ### やったこと
