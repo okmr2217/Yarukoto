@@ -30,6 +30,7 @@
 - ホーム画面の ★ フィルタトグル（お気に入りのみ表示）
 - 検索フィルタの「お気に入りのみ」チェックボックス
 - ドラッグ＆ドロップ並び替え（displayOrder Float 方式）
+- カテゴリ表示順並び替え（sortOrder Int、/categories ページで D&D）
 - N キーショートカットでタスク作成モーダルを開く
 - 新規タスクは常に最前に表示
 - タスクの日付別セクション表示（過期・今日・未予定・完了・スキップ）
@@ -85,8 +86,6 @@
 
 ## 積み残し・注意点（追記）
 
-- `prisma/migrations/20260320000000_add_is_favorite/migration.sql` を手動作成済み
-- **デプロイ後に `npx prisma migrate deploy` の実行が必要**（DB に isFavorite カラムが未適用）
 - priority カラムは DB に残置（データ保全目的）
 - lint エラーが既存ファイルに 3 件残存（`use-media-query.ts`, `use-settings.ts`, `use-theme.ts` — `react-hooks/set-state-in-effect`）。今回の変更とは無関係
 

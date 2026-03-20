@@ -4,6 +4,26 @@
 
 ---
 
+## 2026-03-20（カテゴリ表示順並び替え機能）
+
+### やったこと
+
+- `Category` モデルに `sortOrder Int @default(0)` を追加（migration + 既存データを name 昇順で初期化）
+- `getCategories` の orderBy を `name: asc` → `[sortOrder: asc, createdAt: asc]` に変更
+- `createCategory` で `MAX(sortOrder) + 1` を新規カテゴリに割り当て
+- `updateCategorySortOrder` Server Action を新規追加（`prisma.$transaction` で一括更新）
+- `useUpdateCategorySortOrder` mutation フックを追加
+- `useCreateCategory` / `useUpdateCategory` の楽観的更新から名前順ソートを削除
+- `/categories` ページに dnd-kit（DndContext + SortableContext + DragOverlay）でドラッグ並び替えを実装
+  - GripVertical ハンドル（touch-none）+ 楽観的更新 + エラー時ロールバック
+
+### 技術メモ
+
+- `useUpdateCategorySortOrder` は楽観的更新を hook 内ではなく page.tsx 側の handleDragEnd で直接実装（queryClient.setQueryData）
+- onSettled で invalidateQueries を実行してサーバーと同期
+
+---
+
 ## 2026-03-20（タスク編集モーダルの楽観的更新改善）
 
 ### やったこと
