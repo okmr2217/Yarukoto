@@ -4,6 +4,23 @@
 
 ---
 
+## 2026-03-21（TaskCard リファクタリング）
+
+### やったこと
+
+- **StopPropagation** ラッパーコンポーネントを作成し、`onPointerDown + onClick` の `stopPropagation` 重複（チェックボックス・スター・ドロップダウンの3箇所）を共通化
+- **ACTION_DEFINITIONS** 定数をコンポーネント外に切り出し（label / Icon / className / destructive の静的部分）
+- **TaskCardActions** サブコンポーネントに分割（スターボタン + ドロップダウンメニュー）
+- **TaskCardMeta** サブコンポーネントに分割（予定日バッジ・matchReasons・スキップ理由）
+- **getScheduledDateStatus** を `src/lib/dateUtils.ts` に移動し、コンポーネント内は `useMemo` で呼び出し
+
+### 技術メモ
+
+- `ACTION_DEFINITIONS` は `LucideIcon` 型を使うことで Icon コンポーネント参照を保持できる（`<action.Icon className="..." />` で JSX レンダリング）
+- `as const` ではなく明示的な型定義配列にした方が `destructive?: boolean` のオプショナルが扱いやすい
+
+---
+
 ## 2026-03-21（TaskCard / TaskSection スタイル変更）
 
 ### やったこと
