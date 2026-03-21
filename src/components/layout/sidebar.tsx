@@ -25,9 +25,9 @@ export function Sidebar() {
   };
 
   return (
-    <aside className="hidden md:flex md:w-64 flex-col border-r bg-card sticky top-0 h-screen">
+    <aside className="hidden md:flex md:w-64 flex-col sticky top-0 h-screen">
       {/* Logo */}
-      <div className="flex items-center h-14 px-4 border-b shrink-0">
+      <div className="flex items-center h-14 px-4 shrink-0">
         <Link href="/" className="flex items-center gap-2">
           <Image
             src="/icons/icon-192x192.png"
@@ -52,7 +52,7 @@ export function Sidebar() {
               className={cn(
                 "flex items-center gap-3 px-3 py-2.5 rounded-lg transition-colors",
                 active
-                  ? "bg-primary text-primary-foreground"
+                  ? "font-bold text-foreground"
                   : "text-muted-foreground hover:bg-accent hover:text-foreground",
               )}
             >

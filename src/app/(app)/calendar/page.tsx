@@ -176,7 +176,7 @@ export default function CalendarPage() {
       </header>
 
       <div className="flex-1 overflow-auto">
-        <div className="max-w-4xl mx-auto">
+        <div>
           {/* PC Header */}
           <header className="hidden md:flex items-center h-14 px-4 border-b border-border">
             <h1 className="text-lg font-semibold">カレンダー</h1>
