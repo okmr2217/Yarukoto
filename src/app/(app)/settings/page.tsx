@@ -173,6 +173,9 @@ export default function SettingsPage() {
         </header>
 
         <main className="px-4 py-6 space-y-6">
+          <p className="text-sm text-muted-foreground">
+            アカウント情報の確認・変更やパスワードの更新ができます。
+          </p>
           {/* Account Section */}
           <section>
             <h2 className="text-sm font-medium text-muted-foreground mb-3">

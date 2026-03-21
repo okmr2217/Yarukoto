@@ -221,6 +221,9 @@ export default function CategoriesPage() {
         </header>
 
         <main className="px-4 py-6">
+          <p className="text-sm text-muted-foreground mb-6">
+            タスクに設定するカテゴリを管理します。色を設定してタスクを視覚的に分類できます。ドラッグで表示順を並び替えられます。
+          </p>
           {isLoading ? (
             <div className="text-center py-12 text-muted-foreground">読み込み中...</div>
           ) : error ? (
