@@ -1,6 +1,6 @@
 "use client";
 
-import { useState, useEffect, useCallback } from "react";
+import { useState, useCallback } from "react";
 
 interface Settings {
   autoCollapseCompleted: boolean;
@@ -15,22 +15,19 @@ const DEFAULT_SETTINGS: Settings = {
 const STORAGE_KEY = "yarukoto-settings";
 
 export function useSettings() {
-  const [settings, setSettings] = useState<Settings>(DEFAULT_SETTINGS);
-  const [isLoaded, setIsLoaded] = useState(false);
-
-  // Load settings from localStorage on mount
-  useEffect(() => {
+  const [settings, setSettings] = useState<Settings>(() => {
     try {
       const stored = localStorage.getItem(STORAGE_KEY);
       if (stored) {
         const parsed = JSON.parse(stored) as Partial<Settings>;
-        setSettings({ ...DEFAULT_SETTINGS, ...parsed });
+        return { ...DEFAULT_SETTINGS, ...parsed };
       }
     } catch {
       // Use default settings if localStorage is unavailable
     }
-    setIsLoaded(true);
-  }, []);
+    return DEFAULT_SETTINGS;
+  });
+  const isLoaded = true;
 
   // Save settings to localStorage
   const updateSettings = useCallback((updates: Partial<Settings>) => {

@@ -18,25 +18,25 @@ function getResolvedTheme(theme: Theme): "light" | "dark" {
 }
 
 export function useTheme() {
-  const [theme, setTheme] = useState<Theme>("system");
-  const [resolvedTheme, setResolvedTheme] = useState<"light" | "dark">("light");
-  const [isLoaded, setIsLoaded] = useState(false);
-
-  // Load theme from localStorage on mount
-  useEffect(() => {
+  const [theme, setTheme] = useState<Theme>(() => {
     try {
       const stored = localStorage.getItem(STORAGE_KEY) as Theme | null;
-      if (stored && ["light", "dark", "system"].includes(stored)) {
-        setTheme(stored);
-        setResolvedTheme(getResolvedTheme(stored));
-      } else {
-        setResolvedTheme(getSystemTheme());
-      }
+      if (stored && ["light", "dark", "system"].includes(stored)) return stored;
     } catch {
-      setResolvedTheme(getSystemTheme());
+      // fallback
     }
-    setIsLoaded(true);
-  }, []);
+    return "system";
+  });
+  const [resolvedTheme, setResolvedTheme] = useState<"light" | "dark">(() => {
+    try {
+      const stored = localStorage.getItem(STORAGE_KEY) as Theme | null;
+      if (stored && ["light", "dark", "system"].includes(stored)) return getResolvedTheme(stored);
+    } catch {
+      // fallback
+    }
+    return getSystemTheme();
+  });
+  const isLoaded = true;
 
   // Listen to system theme changes
   useEffect(() => {

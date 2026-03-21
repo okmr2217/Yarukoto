@@ -40,7 +40,7 @@ import {
 } from "@/components/ui/dialog";
 import { signOut, useSession, changePassword } from "@/lib/auth-client";
 import { deleteAccount, changeEmail } from "@/actions";
-import { useSettings, useTheme, type Theme } from "@/hooks";
+import { useSettings, useTheme } from "@/hooks";
 
 export default function SettingsPage() {
   const router = useRouter();
