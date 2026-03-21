@@ -4,6 +4,27 @@
 
 ---
 
+## 2026-03-21（TaskCard / TaskSection スタイル変更）
+
+### やったこと
+
+- **TaskSection**: タスクリスト全体を `rounded-lg border border-border overflow-hidden bg-card` でグループ枠化（iOS Settings リスト風）
+  - 隣接タスク間に `border-t border-border` の仕切り線を挿入（最後の下には入れない）
+  - `space-y-2` を廃止（個別カードの間隔をなくして連続表示に）
+- **TaskCard**: 個別カードの枠線・shadow・rounded をすべて削除（`bg-card border rounded-lg` → `p-3` のみ）
+  - PC ホバー時アクションボタン群を完全削除
+  - `⋯` ドロップダウンを常時表示（`sm:hidden` 廃止）
+  - カテゴリ表示をカラーバッジ → カラードット（`w-2 h-2 rounded-full`）に変更。Tooltip でカテゴリ名を表示
+  - `isHovered` state・`onMouseEnter`/`onMouseLeave` を削除
+  - メモは `whitespace-pre-wrap` で改行を反映（元々対応済みだったため変更なし）
+
+### 次にやりたいこと
+
+- 繰り返しタスク実装の検討
+- タスクのコピー機能（別日への複製）
+
+---
+
 ## 2026-03-20（ナビゲーショングループ廃止・フラット表示化）
 
 ### やったこと

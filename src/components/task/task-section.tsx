@@ -173,7 +173,7 @@ export function TaskSection({
         </span>
       </button>
       {!isCollapsed && (
-        <div className="space-y-2 mt-1">
+        <div className="rounded-lg border border-border overflow-hidden bg-card">
           {enableDragAndDrop ? (
             <DndContext
               sensors={sensors}
@@ -184,29 +184,31 @@ export function TaskSection({
                 items={displayTasks.map((task) => task.id)}
                 strategy={verticalListSortingStrategy}
               >
-                <div className="space-y-2">
-                  {displayTasks.map((task, index) => (
+                {displayTasks.map((task, index) => (
+                  <div key={task.id}>
+                    {index > 0 && <div className="border-t border-border" />}
                     <SortableTaskCard
-                      key={task.id}
                       task={task}
                       handlers={handlers}
                       showScheduledDate={showScheduledDate}
                       enableDragAndDrop={enableDragAndDrop}
                       matchReasons={matchReasons?.[index]}
                     />
-                  ))}
-                </div>
+                  </div>
+                ))}
               </SortableContext>
             </DndContext>
           ) : (
             displayTasks.map((task, index) => (
-              <TaskCard
-                key={task.id}
-                task={task}
-                handlers={handlers}
-                showScheduledDate={showScheduledDate}
-                matchReasons={matchReasons?.[index]}
-              />
+              <div key={task.id}>
+                {index > 0 && <div className="border-t border-border" />}
+                <TaskCard
+                  task={task}
+                  handlers={handlers}
+                  showScheduledDate={showScheduledDate}
+                  matchReasons={matchReasons?.[index]}
+                />
+              </div>
             ))
           )}
         </div>
