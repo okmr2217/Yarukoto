@@ -169,10 +169,10 @@ export default function SettingsPage() {
       <div className="max-w-2xl w-full mx-auto">
         {/* PC Header */}
         <header className="hidden md:flex items-center h-14 px-4 border-b border-border">
-          <h1 className="text-lg font-semibold">設定</h1>
+          <h1 className="text-lg">設定</h1>
         </header>
 
-        <main className="px-4 py-6 space-y-6">
+        <main className="p-4 space-y-6">
           <p className="text-sm text-muted-foreground">
             アカウント情報の確認・変更やパスワードの更新ができます。
           </p>

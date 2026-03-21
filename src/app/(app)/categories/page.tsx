@@ -217,10 +217,10 @@ export default function CategoriesPage() {
       <div className="max-w-2xl w-full mx-auto">
         {/* PC Header */}
         <header className="hidden md:flex items-center h-14 px-4 border-b border-border">
-          <h1 className="text-lg font-semibold">カテゴリ管理</h1>
+          <h1 className="text-lg">カテゴリ管理</h1>
         </header>
 
-        <main className="px-4 py-6">
+        <main className="p-4">
           <p className="text-sm text-muted-foreground mb-6">
             タスクに設定するカテゴリを管理します。色を設定してタスクを視覚的に分類できます。ドラッグで表示順を並び替えられます。
           </p>

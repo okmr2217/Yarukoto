@@ -33,7 +33,7 @@ npm run lint
 - DB アクセスはサーバーのみ（Client から Prisma を呼ばない）
 - すべてのクエリに `userId` フィルタを必ず含める
 - ファイル 500 行以内を目安に分割
-- Prettier printWidth = 120
+- Prettier printWidth = 140
 - 詳細は @docs/coding-guidelines.md を参照
 
 ## プロダクト前提
