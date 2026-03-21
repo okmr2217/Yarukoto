@@ -2,9 +2,7 @@
 
 import { useState, useTransition } from "react";
 import { useRouter } from "next/navigation";
-import Link from "next/link";
 import {
-  ArrowLeft,
   Mail,
   LogOut,
   Trash2,
@@ -41,6 +39,7 @@ import {
 import { signOut, useSession, changePassword } from "@/lib/auth-client";
 import { deleteAccount, changeEmail } from "@/actions";
 import { useSettings, useTheme } from "@/hooks";
+import { Header } from "@/components/layout";
 
 export default function SettingsPage() {
   const router = useRouter();
@@ -156,26 +155,16 @@ export default function SettingsPage() {
 
   return (
     <div className="flex-1 bg-background">
-      {/* Header - Mobile only */}
-      <header className="sticky top-0 z-10 bg-background border-b border-border md:hidden">
-        <div className="flex items-center h-14 px-4">
-          <Link href="/" className="p-2 -ml-2 hover:bg-accent rounded-lg">
-            <ArrowLeft className="h-5 w-5" />
-          </Link>
-          <h1 className="ml-2 text-lg font-semibold">設定</h1>
-        </div>
-      </header>
+      <Header />
 
       <div className="max-w-2xl w-full mx-auto">
-        {/* PC Header */}
-        <header className="hidden md:flex items-center h-14 px-4 border-b border-border">
-          <h1 className="text-lg">設定</h1>
-        </header>
-
         <main className="p-4 space-y-6">
-          <p className="text-sm text-muted-foreground">
-            アカウント情報の確認・変更やパスワードの更新ができます。
-          </p>
+          <div>
+            <h1 className="text-xl font-semibold mb-3">設定</h1>
+            <p className="text-sm text-muted-foreground">
+              アカウント情報の確認・変更やパスワードの更新ができます。
+            </p>
+          </div>
           {/* Account Section */}
           <section>
             <h2 className="text-sm font-medium text-muted-foreground mb-3">

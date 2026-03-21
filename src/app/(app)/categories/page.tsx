@@ -1,8 +1,7 @@
 "use client";
 
 import { useState } from "react";
-import Link from "next/link";
-import { ArrowLeft, Plus, Pencil, Trash2, GripVertical } from "lucide-react";
+import { Plus, Pencil, Trash2, GripVertical } from "lucide-react";
 import {
   DndContext,
   closestCenter,
@@ -22,6 +21,7 @@ import {
 } from "@dnd-kit/sortable";
 import { CSS } from "@dnd-kit/utilities";
 import { Button } from "@/components/ui/button";
+import { Header } from "@/components/layout";
 import {
   AlertDialog,
   AlertDialogAction,
@@ -204,23 +204,11 @@ export default function CategoriesPage() {
 
   return (
     <div className="flex-1 bg-background">
-      {/* Header - Mobile only */}
-      <header className="sticky top-0 z-10 bg-background border-b border-border md:hidden">
-        <div className="flex items-center h-14 px-4">
-          <Link href="/" className="p-2 -ml-2 hover:bg-accent rounded-lg">
-            <ArrowLeft className="h-5 w-5" />
-          </Link>
-          <h1 className="ml-2 text-lg font-semibold">カテゴリ管理</h1>
-        </div>
-      </header>
+      <Header />
 
       <div className="max-w-2xl w-full mx-auto">
-        {/* PC Header */}
-        <header className="hidden md:flex items-center h-14 px-4 border-b border-border">
-          <h1 className="text-lg">カテゴリ管理</h1>
-        </header>
-
         <main className="p-4">
+          <h1 className="text-xl font-semibold mb-3">カテゴリ管理</h1>
           <p className="text-sm text-muted-foreground mb-6">
             タスクに設定するカテゴリを管理します。色を設定してタスクを視覚的に分類できます。ドラッグで表示順を並び替えられます。
           </p>

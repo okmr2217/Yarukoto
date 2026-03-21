@@ -1,10 +1,10 @@
 "use client";
 
 import { useMemo, useState } from "react";
-import Link from "next/link";
 import { useRouter } from "next/navigation";
-import { ArrowLeft, CalendarDays, CheckCheck, ChevronLeft, ChevronRight, PenLine } from "lucide-react";
+import { CalendarDays, CheckCheck, ChevronLeft, ChevronRight, PenLine } from "lucide-react";
 import { Button } from "@/components/ui/button";
+import { Header } from "@/components/layout";
 import { useMonthlyTaskStats } from "@/hooks";
 import type { DayTaskStats } from "@/types";
 import { cn } from "@/lib/utils";
@@ -165,25 +165,12 @@ export default function CalendarPage() {
 
   return (
     <div className="flex-1 bg-background flex flex-col">
-      {/* Header - Mobile only */}
-      <header className="sticky top-0 z-10 bg-background border-b border-border md:hidden">
-        <div className="flex items-center h-14 px-4">
-          <Link href="/" className="p-2 -ml-2 hover:bg-accent rounded-lg">
-            <ArrowLeft className="h-5 w-5" />
-          </Link>
-          <h1 className="ml-2 text-lg font-semibold">カレンダー</h1>
-        </div>
-      </header>
+      <Header />
 
       <div className="flex-1 overflow-auto">
         <div>
-          {/* PC Header */}
-          <header className="hidden md:flex items-center h-14 px-4 border-b border-border">
-            <h1 className="text-lg">カレンダー</h1>
-          </header>
-
           <div className="p-4">
-          {/* ページ説明 */}
+          <h1 className="text-xl font-semibold mb-3">カレンダー</h1>
           <p className="text-sm text-muted-foreground mb-4">
             月ごとのタスク集計を確認できます。日付をクリックするとその日のタスク一覧に移動します。
           </p>
