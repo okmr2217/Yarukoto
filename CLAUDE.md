@@ -78,5 +78,4 @@ npm run lint
 - @docs/project.md（プロジェクト概要・技術設計・アーキテクチャ）
 - @docs/handoff.md（現在の実装状態・積み残し・次にやること）
 - @docs/session-log.md（セッション作業記録）
-- @docs/coding-guidelines.md（コーディングガイドライン）
 - @CHANGELOG.md
