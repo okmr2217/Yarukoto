@@ -4,6 +4,30 @@
 
 ---
 
+## 2026-03-21（TaskCard メタバッジ UI 改善 / D&D ハンドル改善）
+
+### やったこと
+
+- **TaskCardMeta リデザイン（Part 2）**
+  - バッジを3分類に整理: ステータスバッジ（ピル型背景色付き）・日付バッジ（テキスト+アイコン）・カテゴリドット
+  - 絵文字をすべて Lucide アイコンに統一（Calendar / AlertCircle / CheckCircle2 / Clock / Ban）
+  - 2行レイアウト導入: 1行目=タスク固有情報（予定日・カテゴリ・スキップ理由）、2行目=文脈情報（matchReasons、opacity-70）
+  - matchReasons の「予定日」を scheduledDateStatus バッジと重複しないようフィルタリング
+  - `page.tsx` の `getMatchReasons` から絵文字を除去しプレーンな文字列に統一
+  - カテゴリ表示をタイトル行のドットからメタ行のカラードット（`w-2 h-2`）に移動し、Tooltip の title 属性でカテゴリ名を確認できるように
+- **D&D ハンドル改善**
+  - グリップアイコンをインライン配置からカード左端のグレーストライプ（`w-6 bg-muted/50`）に変更
+  - アイコンは `h-4 w-4 text-muted-foreground/50` で存在感を抑制
+  - D&D 無効時はストライプ非表示・通常の `p-3` レイアウトを維持
+
+### 技術メモ
+
+- `MATCH_REASON_CONFIG` を定数化し、reason 文字列 → `{ Icon, className }` マッピングで拡張しやすい構造に
+- カード外側を `flex` に変更したことで、D&D ストライプと本文エリアを自然に分離できた
+- 親の `overflow-hidden rounded-lg` により、先頭・末尾カードのストライプ角丸は自動クリップされる
+
+---
+
 ## 2026-03-21（TaskCard リファクタリング）
 
 ### やったこと

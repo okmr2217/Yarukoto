@@ -8,11 +8,23 @@ import {
   DropdownMenuItem,
   DropdownMenuTrigger,
 } from "@/components/ui/dropdown-menu";
-import { Tooltip, TooltipContent, TooltipTrigger } from "@/components/ui/tooltip";
 import { cn } from "@/lib/utils";
 import { LinkText } from "@/components/ui/link-text";
 import type { Task } from "@/types";
-import { Pencil, Ban, Trash2, MoreVertical, Info, GripVertical, Star, type LucideIcon } from "lucide-react";
+import {
+  Pencil,
+  Ban,
+  Trash2,
+  MoreVertical,
+  Info,
+  GripVertical,
+  Star,
+  AlertCircle,
+  Calendar,
+  CheckCircle2,
+  Clock,
+  type LucideIcon,
+} from "lucide-react";
 import type { DraggableAttributes, DraggableSyntheticListeners } from "@dnd-kit/core";
 import { getScheduledDateStatus } from "@/lib/dateUtils";
 
@@ -131,6 +143,12 @@ function TaskCardActions({ task, handlers }: TaskCardActionsProps) {
   );
 }
 
+const MATCH_REASON_CONFIG: Record<string, { Icon: LucideIcon; className: string }> = {
+  この日に完了: { Icon: CheckCircle2, className: "bg-success/10 text-success text-xs px-2 py-0.5 rounded-full" },
+  この日にやらない: { Icon: Ban, className: "bg-yellow-500/10 text-yellow-600 text-xs px-2 py-0.5 rounded-full" },
+  この日に作成: { Icon: Clock, className: "text-muted-foreground text-xs" },
+};
+
 interface TaskCardMetaProps {
   task: Task;
   showScheduledDate: boolean;
@@ -141,36 +159,69 @@ interface TaskCardMetaProps {
 
 function TaskCardMeta({ task, showScheduledDate, scheduledDateStatus, matchReasons, hasMemo }: TaskCardMetaProps) {
   const isSkipped = task.status === "SKIPPED";
-  const showMeta =
-    (showScheduledDate && task.scheduledAt) || (isSkipped && task.skipReason) || (matchReasons && matchReasons.length > 0);
 
-  if (!showMeta) return null;
+  // "予定日" は scheduledDateStatus バッジで表示するため除外
+  const contextReasons = matchReasons?.filter((r) => r !== "予定日") ?? [];
+
+  const hasRow1 = (showScheduledDate && task.scheduledAt) || (isSkipped && task.skipReason) || !!task.category;
+  const hasRow2 = contextReasons.length > 0;
+
+  if (!hasRow1 && !hasRow2) return null;
 
   return (
-    <div className={cn("flex items-center gap-2 flex-wrap", hasMemo ? "mt-2" : "mt-1")}>
-      {matchReasons && matchReasons.length > 0 &&
-        matchReasons.map((reason) => (
-          <span key={reason} className="text-xs text-muted-foreground">
-            {reason}
-          </span>
-        ))}
-      {showScheduledDate && task.scheduledAt && (
-        <>
-          {scheduledDateStatus === "today" && (
-            <span className="text-xs text-primary font-medium">📅 今日</span>
+    <div className={cn("flex flex-col gap-1", hasMemo ? "mt-2" : "mt-1")}>
+      {hasRow1 && (
+        <div className="flex items-center gap-1.5 flex-wrap">
+          {showScheduledDate && task.scheduledAt && (
+            <>
+              {scheduledDateStatus === "today" && (
+                <span className="flex items-center gap-1 text-primary text-xs font-medium">
+                  <Calendar className="h-3 w-3" />
+                  今日
+                </span>
+              )}
+              {scheduledDateStatus === "overdue" && (
+                <span className="flex items-center gap-1 bg-destructive/10 text-destructive text-xs px-2 py-0.5 rounded-full font-medium">
+                  <AlertCircle className="h-3 w-3" />
+                  {task.scheduledAt.replace(/-/g, "/")}
+                </span>
+              )}
+              {scheduledDateStatus === "future" && (
+                <span className="flex items-center gap-1 text-muted-foreground text-xs">
+                  <Calendar className="h-3 w-3" />
+                  {task.scheduledAt.replace(/-/g, "/")}
+                </span>
+              )}
+            </>
           )}
-          {scheduledDateStatus === "overdue" && (
-            <span className="text-xs text-destructive font-medium">
-              📅 期限超過 ({task.scheduledAt.replace(/-/g, "/")})
+          {task.category && task.category.color && (
+            <span
+              className="w-2 h-2 rounded-full flex-shrink-0"
+              style={{ backgroundColor: task.category.color }}
+              title={task.category.name}
+            />
+          )}
+          {isSkipped && task.skipReason && (
+            <span className="flex items-center gap-1 bg-yellow-500/10 text-yellow-600 text-xs px-2 py-0.5 rounded-full">
+              <Ban className="h-3 w-3" />
+              {task.skipReason}
             </span>
           )}
-          {scheduledDateStatus === "future" && (
-            <span className="text-xs text-muted-foreground">📅 {task.scheduledAt.replace(/-/g, "/")}</span>
-          )}
-        </>
+        </div>
       )}
-      {isSkipped && task.skipReason && (
-        <span className="text-xs text-muted-foreground">理由: {task.skipReason}</span>
+      {hasRow2 && (
+        <div className="flex items-center gap-1.5 flex-wrap opacity-70">
+          {contextReasons.map((reason) => {
+            const config = MATCH_REASON_CONFIG[reason];
+            if (!config) return <span key={reason} className="text-xs text-muted-foreground">{reason}</span>;
+            return (
+              <span key={reason} className={cn("flex items-center gap-1", config.className)}>
+                <config.Icon className="h-3 w-3" />
+                {reason}
+              </span>
+            );
+          })}
+        </div>
       )}
     </div>
   );
@@ -200,60 +251,51 @@ export function TaskCard({
   };
 
   return (
-    <div className="relative p-3">
-      <div className="flex items-start gap-3">
-        {enableDragAndDrop && (
-          <button
-            className="cursor-grab active:cursor-grabbing mt-0.5 text-muted-foreground hover:text-foreground touch-none flex-shrink-0"
-            aria-label="ドラッグして並び替え"
-            {...dragHandleListeners}
-            {...dragHandleAttributes}
-          >
-            <GripVertical className="h-4 w-4" />
-          </button>
-        )}
-        <StopPropagation>
-          <Checkbox
-            checked={isCompleted}
-            onCheckedChange={handleCheckChange}
-            disabled={isSkipped}
-            className="mt-0.5"
-          />
-        </StopPropagation>
-        <div className="flex-1 min-w-0">
-          <div className="flex items-start gap-2">
-            <div className="flex items-center gap-1.5 flex-1 min-w-0">
-              {task.category && task.category.color && (
-                <Tooltip>
-                  <TooltipTrigger asChild>
-                    <div
-                      className="w-2 h-2 rounded-full flex-shrink-0 mt-0.5"
-                      style={{ backgroundColor: task.category.color }}
-                    />
-                  </TooltipTrigger>
-                  <TooltipContent>{task.category.name}</TooltipContent>
-                </Tooltip>
-              )}
-              <p className={cn("text-sm", (isCompleted || isSkipped) && "line-through text-muted-foreground")}>
-                {task.title}
-              </p>
+    <div className="flex group">
+      {enableDragAndDrop && (
+        <div
+          className="flex items-center justify-center w-6 flex-shrink-0 bg-muted/50 cursor-grab active:cursor-grabbing touch-none text-muted-foreground/50"
+          aria-label="ドラッグして並び替え"
+          {...dragHandleListeners}
+          {...dragHandleAttributes}
+        >
+          <GripVertical className="h-4 w-4" />
+        </div>
+      )}
+      <div className="flex-1 p-3">
+        <div className="flex items-start gap-3">
+          <StopPropagation>
+            <Checkbox
+              checked={isCompleted}
+              onCheckedChange={handleCheckChange}
+              disabled={isSkipped}
+              className="mt-0.5"
+            />
+          </StopPropagation>
+          <div className="flex-1 min-w-0">
+            <div className="flex items-start gap-2">
+              <div className="flex items-center gap-1.5 flex-1 min-w-0">
+                <p className={cn("text-sm", (isCompleted || isSkipped) && "line-through text-muted-foreground")}>
+                  {task.title}
+                </p>
+              </div>
+              <TaskCardActions task={task} handlers={handlers} />
             </div>
-            <TaskCardActions task={task} handlers={handlers} />
+
+            {hasMemo && (
+              <div className="text-xs text-muted-foreground whitespace-pre-wrap pb-1.5">
+                <LinkText text={task.memo!} />
+              </div>
+            )}
+
+            <TaskCardMeta
+              task={task}
+              showScheduledDate={showScheduledDate}
+              scheduledDateStatus={scheduledDateStatus}
+              matchReasons={matchReasons}
+              hasMemo={hasMemo}
+            />
           </div>
-
-          {hasMemo && (
-            <div className="text-xs text-muted-foreground whitespace-pre-wrap pb-1.5">
-              <LinkText text={task.memo!} />
-            </div>
-          )}
-
-          <TaskCardMeta
-            task={task}
-            showScheduledDate={showScheduledDate}
-            scheduledDateStatus={scheduledDateStatus}
-            matchReasons={matchReasons}
-            hasMemo={hasMemo}
-          />
         </div>
       </div>
     </div>

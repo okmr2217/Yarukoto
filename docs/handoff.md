@@ -85,6 +85,8 @@
 
 - priority カラムは DB に残置（データ保全目的）
 - lint エラーが既存ファイルに 3 件残存（`use-media-query.ts`, `use-settings.ts`, `use-theme.ts` — `react-hooks/set-state-in-effect`）。今回の変更とは無関係
+- TaskCardMeta のカテゴリはカラードットのみ（名前は title 属性で確認）。カテゴリ名の常時表示は今後の検討事項
+- D&D ハンドルはカード左端グレーストライプ方式に変更済み（`w-6 bg-muted/50`）
 
 ---
 

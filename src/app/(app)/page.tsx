@@ -188,15 +188,15 @@ export default function HomePage() {
   const getMatchReasons = (task: Task): string[] => {
     if (!dateFilter) return [];
     const reasons: string[] = [];
-    if (task.scheduledAt === dateFilter) reasons.push("📅 予定日");
+    if (task.scheduledAt === dateFilter) reasons.push("予定日");
     if (task.completedAt && formatDateToJST(new Date(task.completedAt)) === dateFilter) {
-      reasons.push("✅ この日に完了");
+      reasons.push("この日に完了");
     }
     if (task.skippedAt && formatDateToJST(new Date(task.skippedAt)) === dateFilter) {
-      reasons.push("⏭️ この日にやらない");
+      reasons.push("この日にやらない");
     }
     if (formatDateToJST(new Date(task.createdAt)) === dateFilter && task.scheduledAt !== dateFilter) {
-      reasons.push("🆕 この日に作成");
+      reasons.push("この日に作成");
     }
     return reasons;
   };
