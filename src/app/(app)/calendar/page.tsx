@@ -1,16 +1,10 @@
 "use client";
 
-import { useState } from "react";
+import { useMemo, useState } from "react";
+import Link from "next/link";
 import { useRouter } from "next/navigation";
-import { ChevronLeft, ChevronRight } from "lucide-react";
-import { Header } from "@/components/layout";
+import { ArrowLeft, CalendarDays, CheckCheck, ChevronLeft, ChevronRight, PenLine } from "lucide-react";
 import { Button } from "@/components/ui/button";
-import {
-  Tooltip,
-  TooltipContent,
-  TooltipProvider,
-  TooltipTrigger,
-} from "@/components/ui/tooltip";
 import { useMonthlyTaskStats } from "@/hooks";
 import type { DayTaskStats } from "@/types";
 import { cn } from "@/lib/utils";
@@ -73,7 +67,7 @@ function DateCell({
     return <div className="aspect-square" />;
   }
 
-  const hasStats = stats && stats.total > 0;
+  const hasStats = stats && (stats.total > 0 || stats.completed > 0 || stats.createdCount > 0);
 
   const cellContent = (
     <button
@@ -89,14 +83,26 @@ function DateCell({
     >
       <span className="text-base mb-1">{date.getDate()}</span>
       {hasStats ? (
-        <div className="flex flex-col items-center gap-2 w-full mt-auto mb-0.5">
-          <div className="flex items-center gap-2 text-sm font-semibold">
-            <span className="text-green-600 dark:text-green-400">
-              ✓{stats.completed}
-            </span>
-            <span className="text-blue-600 dark:text-blue-400">
-              ○{stats.total}
-            </span>
+        <div className="flex flex-col items-center gap-1.5 w-full mt-auto mb-0.5">
+          <div className="flex items-center gap-1.5 text-xs font-medium flex-wrap justify-center">
+            {stats.createdCount > 0 && (
+              <span className="flex items-center gap-0.5 text-muted-foreground">
+                <PenLine className="h-3 w-3" />
+                {stats.createdCount}
+              </span>
+            )}
+            {stats.total > 0 && (
+              <span className="flex items-center gap-0.5 text-blue-600 dark:text-blue-400">
+                <CalendarDays className="h-3 w-3" />
+                {stats.total}
+              </span>
+            )}
+            {stats.completed > 0 && (
+              <span className="flex items-center gap-0.5 text-green-600 dark:text-green-400">
+                <CheckCheck className="h-3 w-3" />
+                {stats.completed}
+              </span>
+            )}
           </div>
           <div className="flex gap-1 flex-wrap justify-center max-w-full min-h-2">
             {stats.completedCategories &&
@@ -119,37 +125,7 @@ function DateCell({
     </button>
   );
 
-  if (!hasStats) {
-    return cellContent;
-  }
-
-  return (
-    <Tooltip>
-      <TooltipTrigger asChild>{cellContent}</TooltipTrigger>
-      <TooltipContent>
-        <div className="text-sm space-y-1">
-          <div>予定: {stats.total}件</div>
-          <div>完了: {stats.completed}件</div>
-          {stats.completedCategories && stats.completedCategories.length > 0 && (
-            <div className="mt-2 pt-2 border-t space-y-1">
-              <div className="text-xs text-muted-foreground">完了カテゴリ:</div>
-              {stats.completedCategories.map((category) => (
-                <div key={category.id} className="flex items-center gap-2">
-                  <div
-                    className="w-2 h-2 rounded-full shrink-0"
-                    style={{
-                      backgroundColor: category.color || "#6b7280",
-                    }}
-                  />
-                  <span>{category.name}</span>
-                </div>
-              ))}
-            </div>
-          )}
-        </div>
-      </TooltipContent>
-    </Tooltip>
-  );
+  return cellContent;
 }
 
 const WEEKDAYS = ["日", "月", "火", "水", "木", "金", "土"];
@@ -163,16 +139,23 @@ export default function CalendarPage() {
 
   const days = getDaysInMonth(viewDate.getFullYear(), viewDate.getMonth());
 
+  const uniqueCategories = useMemo(() => {
+    if (!stats) return [];
+    const map = new Map<string, { id: string; name: string; color: string | null }>();
+    for (const dayStats of Object.values(stats)) {
+      for (const cat of dayStats.completedCategories ?? []) {
+        if (!map.has(cat.id)) map.set(cat.id, cat);
+      }
+    }
+    return Array.from(map.values());
+  }, [stats]);
+
   const handlePrevMonth = () => {
     setViewDate(new Date(viewDate.getFullYear(), viewDate.getMonth() - 1, 1));
   };
 
   const handleNextMonth = () => {
     setViewDate(new Date(viewDate.getFullYear(), viewDate.getMonth() + 1, 1));
-  };
-
-  const handleToday = () => {
-    setViewDate(new Date());
   };
 
   const handleSelectDate = (date: Date) => {
@@ -182,10 +165,24 @@ export default function CalendarPage() {
 
   return (
     <div className="flex-1 bg-background flex flex-col">
-      <Header />
+      {/* Header - Mobile only */}
+      <header className="sticky top-0 z-10 bg-background border-b border-border md:hidden">
+        <div className="flex items-center h-14 px-4">
+          <Link href="/" className="p-2 -ml-2 hover:bg-accent rounded-lg">
+            <ArrowLeft className="h-5 w-5" />
+          </Link>
+          <h1 className="ml-2 text-lg font-semibold">カレンダー</h1>
+        </div>
+      </header>
 
       <div className="flex-1 overflow-auto">
-        <div className="max-w-4xl mx-auto p-4 md:p-6">
+        <div className="max-w-4xl mx-auto">
+          {/* PC Header */}
+          <header className="hidden md:flex items-center h-14 px-4 border-b border-border">
+            <h1 className="text-lg font-semibold">カレンダー</h1>
+          </header>
+
+          <div className="p-4 md:p-6">
           {/* ヘッダー */}
           <div className="flex items-center justify-between mb-6">
             <Button
@@ -209,42 +206,66 @@ export default function CalendarPage() {
             </Button>
           </div>
 
-          <TooltipProvider>
-            {/* 曜日ラベル */}
-            <div className="grid grid-cols-7 gap-0 md:gap-2 mb-2">
-              {WEEKDAYS.map((day) => (
-                <div
-                  key={day}
-                  className="text-center text-sm font-medium text-muted-foreground"
-                >
-                  {day}
-                </div>
-              ))}
-            </div>
+          {/* 曜日ラベル */}
+          <div className="grid grid-cols-7 gap-0 md:gap-2 mb-2">
+            {WEEKDAYS.map((day) => (
+              <div
+                key={day}
+                className="text-center text-sm font-medium text-muted-foreground"
+              >
+                {day}
+              </div>
+            ))}
+          </div>
 
-            {/* カレンダーグリッド */}
-            <div className="grid grid-cols-7 gap-0 md:gap-2">
-              {days.map((date, index) => {
-                const dateString = formatDateToJST(date);
-                return (
-                  <DateCell
-                    key={index}
-                    date={date}
-                    isToday={isTodayInJST(date)}
-                    isSelected={false}
-                    stats={stats?.[dateString]}
-                    onClick={() => handleSelectDate(date)}
-                  />
-                );
-              })}
-            </div>
-          </TooltipProvider>
+          {/* カレンダーグリッド */}
+          <div className="grid grid-cols-7 gap-0 md:gap-2">
+            {days.map((date, index) => {
+              const dateString = formatDateToJST(date);
+              return (
+                <DateCell
+                  key={index}
+                  date={date}
+                  isToday={isTodayInJST(date)}
+                  isSelected={false}
+                  stats={stats?.[dateString]}
+                  onClick={() => handleSelectDate(date)}
+                />
+              );
+            })}
+          </div>
 
-          {/* フッター */}
-          <div className="flex justify-center mt-4">
-            <Button variant="outline" onClick={handleToday}>
-              今日
-            </Button>
+          {/* 凡例 */}
+          <div className="mt-6 text-xs text-muted-foreground border rounded-lg p-3 space-y-2">
+            <div className="flex items-center gap-5 flex-wrap">
+              <span className="flex items-center gap-1">
+                <PenLine className="h-3.5 w-3.5" />
+                作成
+              </span>
+              <span className="flex items-center gap-1 text-blue-600 dark:text-blue-400">
+                <CalendarDays className="h-3.5 w-3.5" />
+                予定
+              </span>
+              <span className="flex items-center gap-1 text-green-600 dark:text-green-400">
+                <CheckCheck className="h-3.5 w-3.5" />
+                完了
+              </span>
+            </div>
+            {uniqueCategories.length > 0 && (
+              <div className="flex items-center gap-3 flex-wrap pt-2 border-t">
+                {uniqueCategories.map((cat) => (
+                  <span key={cat.id} className="flex items-center gap-1">
+                    <span
+                      className="w-2 h-2 rounded-full shrink-0 inline-block"
+                      style={{ backgroundColor: cat.color || "#6b7280" }}
+                    />
+                    {cat.name}
+                  </span>
+                ))}
+              </div>
+            )}
+          </div>
+
           </div>
         </div>
       </div>

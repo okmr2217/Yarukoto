@@ -1,6 +1,6 @@
 # Yarukoto — セッション引き継ぎ
 
-> 最終更新: 2026-03-21
+> 最終更新: 2026-03-22
 > バージョン: 1.0.0
 > このドキュメントは「今どこにいるか」を記録する。コンセプト・技術設計は @docs/project.md を参照。
 
@@ -47,6 +47,9 @@
 - Service Worker は未実装（manifest.json のみ）
 - Supabase 停止防止の GitHub Actions は `.github/workflows/` に配置済み
 - カレンダーページにはサイドバーなし（DateCell クリックで `/?date=YYYY-MM-DD` に遷移）
+- カレンダーの各日セルには「作成数（PenLine）・予定数（CalendarDays）・完了数（CheckCheck）」を独立表示。集計基準はそれぞれ `createdAt` / `scheduledAt` / `completedAt`
+- ページ下部の凡例でアイコン説明と当月の完了カテゴリ一覧（カラードット）を表示
+- カレンダーページのヘッダーはカテゴリ管理ページと同パターン（モバイル: ArrowLeft + タイトル / PC: タイトルのみ）
 - フィルタ結果は `displayOrder` 降順で表示（意図的な設計）
 
 ---

@@ -328,6 +328,13 @@ export async function getMonthlyTaskStats(
               lte: lastDay,
             },
           },
+          // この月に作成したタスク
+          {
+            createdAt: {
+              gte: firstDay,
+              lte: lastDay,
+            },
+          },
         ],
       },
       include: {
@@ -373,10 +380,15 @@ export async function getMonthlyTaskStats(
         dates.add(formatDateToJST(task.skippedAt));
       }
 
+      // 作成日を追加（JSTで日付を取得）
+      if (task.createdAt >= firstDay && task.createdAt <= lastDay) {
+        dates.add(formatDateToJST(task.createdAt));
+      }
+
       // 各関連日付の統計を更新
       for (const dateStr of dates) {
         if (!stats[dateStr]) {
-          stats[dateStr] = { total: 0, completed: 0, overdue: 0, skipped: 0 };
+          stats[dateStr] = { total: 0, completed: 0, createdCount: 0, overdue: 0, skipped: 0 };
         }
 
         // この日に予定されたタスクの場合、合計に加算（JSTで比較）
@@ -423,6 +435,12 @@ export async function getMonthlyTaskStats(
           : null;
         if (skippedDateStr === dateStr) {
           stats[dateStr].skipped++;
+        }
+
+        // この日に作成した場合、作成数に加算（JSTで比較）
+        const createdDateStr = formatDateToJST(task.createdAt);
+        if (createdDateStr === dateStr) {
+          stats[dateStr].createdCount++;
         }
       }
     }

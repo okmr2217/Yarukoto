@@ -53,6 +53,7 @@ export type SearchTasksResult = {
 export type DayTaskStats = {
   total: number;
   completed: number;
+  createdCount: number;
   overdue: number;
   skipped: number;
   completedCategories?: CategorySummary[];
