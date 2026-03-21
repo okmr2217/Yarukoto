@@ -114,6 +114,15 @@ function TaskCardActions({ task, handlers }: TaskCardActionsProps) {
         </button>
       </StopPropagation>
       <StopPropagation>
+        <button
+          onClick={actionHandlers.edit}
+          className="hidden sm:flex p-1 rounded transition-colors text-muted-foreground hover:text-foreground hover:bg-accent"
+          aria-label="編集"
+        >
+          <Pencil className="h-3.5 w-3.5" />
+        </button>
+      </StopPropagation>
+      <StopPropagation>
         <DropdownMenu>
           <DropdownMenuTrigger asChild>
             <button
@@ -128,7 +137,7 @@ function TaskCardActions({ task, handlers }: TaskCardActionsProps) {
               <DropdownMenuItem
                 key={action.label}
                 onClick={actionHandlers[action.key]}
-                className={action.destructive ? "text-destructive" : ""}
+                className={cn(action.destructive ? "text-destructive" : "", action.key === "edit" ? "sm:hidden" : "")}
               >
                 <span className="mr-2">
                   <action.Icon className="h-4 w-4" />
