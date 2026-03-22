@@ -4,7 +4,6 @@ import { useState } from "react";
 import { Menu, Settings, Tags, ListTodo, Calendar } from "lucide-react";
 import Link from "next/link";
 import { usePathname } from "next/navigation";
-import { Button } from "@/components/ui/button";
 import {
   Sheet,
   SheetContent,
@@ -39,9 +38,9 @@ export function Header() {
       <div className="flex items-center justify-between h-14 px-4">
         <Sheet open={open} onOpenChange={setOpen}>
           <SheetTrigger asChild>
-            <Button variant="ghost" size="icon" aria-label="メニューを開く">
+            <button className="p-2 rounded-md hover:bg-accent transition-colors" aria-label="メニューを開く">
               <Menu className="h-5 w-5" />
-            </Button>
+            </button>
           </SheetTrigger>
           <SheetContent side="left" className="w-72">
             <SheetHeader>
@@ -85,13 +84,7 @@ export function Header() {
           <h1 className="text-xl font-medium font-logo">Yarukoto</h1>
         </div>
 
-        <div className="flex items-center gap-1">
-          <Button variant="ghost" size="icon" asChild>
-            <Link href="/settings" aria-label="設定">
-              <Settings className="h-5 w-5" />
-            </Link>
-          </Button>
-        </div>
+        <div className="w-10" />
       </div>
     </header>
   );
