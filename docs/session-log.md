@@ -4,6 +4,21 @@
 
 ---
 
+## 2026-03-22（フィルターパネルのスクロール固定）
+
+### やったこと
+
+- `category-filter.tsx` から `sticky top-14 md:top-0 z-40` を削除
+- `filter-area.tsx` のラッパー `div` に `sticky top-14 md:top-0 z-40` を付与
+- これにより CategoryFilter + FilterPanel がセットで sticky 固定され、フィルターパネルを開いた状態でスクロールしてもパネルが画面上部に追従するようになった
+
+### 技術メモ
+
+- CategoryFilter 単体が sticky だったが、FilterPanel は兄弟要素のため sticky にならなかった
+- ラッパーを sticky にする方式で両者をまとめて固定
+
+---
+
 ## 2026-03-22（タスクモーダルのサイズとレイアウト統一）
 
 ### やったこと
