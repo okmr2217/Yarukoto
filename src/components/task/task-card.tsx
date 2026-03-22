@@ -278,12 +278,12 @@ export function TaskCard({
               checked={isCompleted}
               onCheckedChange={handleCheckChange}
               disabled={isSkipped}
-              className="mt-0.5"
+              className="mt-[5px]"
             />
           </StopPropagation>
           <div className="flex-1 min-w-0">
             <div className="flex items-start gap-2">
-              <p className={cn("text-sm flex-1 min-w-0 mt-0.5", (isCompleted || isSkipped) && "line-through text-muted-foreground")}>
+              <p className={cn("text-sm flex-1 min-w-0 mt-[3px]", (isCompleted || isSkipped) && "line-through text-muted-foreground")}>
                 {task.title}
               </p>
               <div className="flex items-center gap-1 self-start flex-shrink-0">
