@@ -4,6 +4,24 @@
 
 ---
 
+## 2026-03-23（カテゴリ description フィールド追加）
+
+### やったこと
+
+- `Category` モデルに `description String? @db.VarChar(200)` を追加
+- Prisma マイグレーション作成・本番 DB・ローカル DB 両方に適用
+- `CATEGORY_CONSTANTS.DESCRIPTION_MAX_LENGTH: 200` を定数に追加
+- `Category` 型・バリデーションスキーマ・Server Action・hooks に `description` を反映
+- `CategoryEditDialog` に `<Textarea>` で説明文入力欄を追加（カテゴリ名の下）
+- カテゴリ一覧（`/categories`）でカテゴリ名の下に説明文をサブテキスト表示（未設定時は非表示）
+
+### 技術メモ
+
+- `migrate dev` を本番 DB 接続状態で実行してしまったが、マイグレーション自体は正常に適用された。その後ローカルにも `migrate deploy` で反映
+- `useCreateCategory` / `useUpdateCategory` の楽観的更新部分も `description` を含めて型整合
+
+---
+
 ## 2026-03-22（フィルターパネルのスクロール固定）
 
 ### やったこと
