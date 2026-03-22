@@ -30,10 +30,10 @@ export function CategoryFilter({
 }: CategoryFilterProps) {
   return (
     <div className="bg-background border-b">
-      <div className="flex items-center max-w-2xl mx-auto">
-        {/* 横スクロール可能なカテゴリチップ */}
-        <div className="flex-1 px-4 py-2 overflow-x-auto">
-          <div className="flex gap-2 min-w-max">
+      <div className="flex items-start max-w-2xl mx-auto">
+        {/* 折り返し表示のカテゴリチップ */}
+        <div className="flex-1 px-4 py-2">
+          <div className="flex flex-wrap gap-2">
             <CategoryChip
               label="すべて"
               active={selectedCategoryId === null}
