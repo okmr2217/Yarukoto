@@ -67,116 +67,117 @@ export function TaskEditDialog({
 
   return (
     <Dialog open={open} onOpenChange={onOpenChange}>
-      <DialogContent className="sm:max-w-md max-h-[90vh] overflow-y-auto p-0 gap-0">
+      <DialogContent className="sm:max-w-lg max-h-[90vh] p-0 gap-0">
         <DialogHeader className="px-4 py-3 border-b">
           <DialogTitle>タスクを編集</DialogTitle>
         </DialogHeader>
 
-        <form onSubmit={handleSubmit} className="p-4 space-y-4">
-          {/* タスク名 */}
-          <div className="space-y-2">
-            <Label htmlFor="edit-task-title">
-              タスク名 <span className="text-destructive">*</span>
-            </Label>
-            <Input
-              id="edit-task-title"
-              value={title}
-              onChange={(e) => {
-                setTitle(e.target.value);
-                setError(null);
-              }}
-              placeholder="タスクの内容"
-              autoFocus
-            />
-            {error && <p className="text-sm text-destructive">{error}</p>}
-          </div>
-
-          {/* 予定日 */}
-          <div className="space-y-2">
-            <Label htmlFor="edit-task-date">予定日</Label>
-            <div className="flex gap-2">
+        <form onSubmit={handleSubmit} className="flex flex-col">
+          <div className="overflow-y-auto px-4 py-6 space-y-6">
+            {/* タスク名 */}
+            <div className="space-y-2">
+              <Label htmlFor="edit-task-title">タスク名</Label>
               <Input
-                id="edit-task-date"
-                type="date"
-                value={scheduledAt}
-                onChange={(e) => setScheduledAt(e.target.value)}
-                className="flex-1"
+                id="edit-task-title"
+                value={title}
+                onChange={(e) => {
+                  setTitle(e.target.value);
+                  setError(null);
+                }}
+                placeholder="タスクの内容"
+                autoFocus
+                className="text-base"
               />
-              {scheduledAt && (
-                <Button
-                  type="button"
-                  variant="outline"
-                  size="sm"
-                  onClick={() => setScheduledAt("")}
-                >
-                  クリア
-                </Button>
-              )}
+              {error && <p className="text-sm text-destructive">{error}</p>}
             </div>
-          </div>
 
-          {/* カテゴリ */}
-          <div className="space-y-2">
-            <Label>カテゴリ</Label>
-            <div className="flex flex-wrap gap-1.5">
-              <button
-                type="button"
-                onClick={() => setCategoryId("none")}
-                className={cn(
-                  "px-2.5 py-1.5 rounded-full text-xs border-2 transition-colors",
-                  categoryId === "none"
-                    ? "border-primary bg-primary text-primary-foreground"
-                    : "border-border bg-background hover:bg-accent",
+            {/* 予定日 */}
+            <div className="space-y-2">
+              <Label htmlFor="edit-task-date">予定日</Label>
+              <div className="flex gap-2">
+                <Input
+                  id="edit-task-date"
+                  type="date"
+                  value={scheduledAt}
+                  onChange={(e) => setScheduledAt(e.target.value)}
+                  className="flex-1"
+                />
+                {scheduledAt && (
+                  <Button
+                    type="button"
+                    variant="outline"
+                    size="sm"
+                    onClick={() => setScheduledAt("")}
+                  >
+                    クリア
+                  </Button>
                 )}
-              >
-                なし
-              </button>
-              {categories.map((cat) => (
+              </div>
+            </div>
+
+            {/* カテゴリ */}
+            <div className="space-y-2">
+              <Label>カテゴリ</Label>
+              <div className="flex flex-wrap gap-1.5">
                 <button
-                  key={cat.id}
                   type="button"
-                  onClick={() => setCategoryId(cat.id)}
+                  onClick={() => setCategoryId("none")}
                   className={cn(
-                    "px-2.5 py-1.5 rounded-full text-xs border-2 transition-colors flex items-center gap-1",
-                    categoryId === cat.id
-                      ? "border-primary"
-                      : "border-border hover:bg-accent",
+                    "px-2.5 py-1.5 rounded-full text-xs border-2 transition-colors",
+                    categoryId === "none"
+                      ? "border-primary bg-primary text-primary-foreground"
+                      : "border-border bg-background hover:bg-accent",
                   )}
-                  style={{
-                    backgroundColor:
-                      categoryId === cat.id && cat.color
-                        ? `${cat.color}20`
-                        : undefined,
-                    borderColor:
-                      categoryId === cat.id && cat.color
-                        ? cat.color
-                        : undefined,
-                  }}
                 >
-                  <div
-                    className="w-2.5 h-2.5 rounded-full"
-                    style={{ backgroundColor: cat.color || "#6B7280" }}
-                  />
-                  {cat.name}
+                  なし
                 </button>
-              ))}
+                {categories.map((cat) => (
+                  <button
+                    key={cat.id}
+                    type="button"
+                    onClick={() => setCategoryId(cat.id)}
+                    className={cn(
+                      "px-2.5 py-1.5 rounded-full text-xs border-2 transition-colors flex items-center gap-1",
+                      categoryId === cat.id
+                        ? "border-primary"
+                        : "border-border hover:bg-accent",
+                    )}
+                    style={{
+                      backgroundColor:
+                        categoryId === cat.id && cat.color
+                          ? `${cat.color}20`
+                          : undefined,
+                      borderColor:
+                        categoryId === cat.id && cat.color
+                          ? cat.color
+                          : undefined,
+                    }}
+                  >
+                    <div
+                      className="w-2.5 h-2.5 rounded-full"
+                      style={{ backgroundColor: cat.color || "#6B7280" }}
+                    />
+                    {cat.name}
+                  </button>
+                ))}
+              </div>
+            </div>
+
+            {/* メモ */}
+            <div className="space-y-2">
+              <Label htmlFor="edit-task-memo">メモ</Label>
+              <Textarea
+                id="edit-task-memo"
+                value={memo}
+                onChange={(e) => setMemo(e.target.value)}
+                placeholder="タスクの詳細やメモ"
+                rows={3}
+              />
             </div>
           </div>
 
-          {/* メモ */}
-          <div className="space-y-2">
-            <Label htmlFor="edit-task-memo">メモ</Label>
-            <Textarea
-              id="edit-task-memo"
-              value={memo}
-              onChange={(e) => setMemo(e.target.value)}
-              placeholder="タスクの詳細やメモ"
-              rows={3}
-            />
-          </div>
-
-          {/* ボタン */}
-          <div className="flex justify-end gap-2 pt-2">
+          {/* フッター */}
+          <div className="border-t p-4 flex justify-end gap-2">
             <Button
               type="button"
               variant="outline"
