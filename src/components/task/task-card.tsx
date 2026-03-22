@@ -100,12 +100,12 @@ function TaskCardActions({ task, handlers }: TaskCardActionsProps) {
   };
 
   return (
-    <>
+    <div className="flex items-center gap-0.5">
       <StopPropagation>
         <button
           onClick={() => handlers.onToggleFavorite(task.id)}
           className={cn(
-            "p-1 rounded transition-colors",
+            "p-1.5 rounded transition-colors hover:bg-accent",
             task.isFavorite ? "text-yellow-500 hover:text-yellow-600" : "text-muted-foreground hover:text-yellow-500",
           )}
           aria-label={task.isFavorite ? "お気に入りを解除" : "お気に入りに追加"}
@@ -116,7 +116,7 @@ function TaskCardActions({ task, handlers }: TaskCardActionsProps) {
       <StopPropagation>
         <button
           onClick={actionHandlers.edit}
-          className="hidden sm:flex p-1 rounded transition-colors text-muted-foreground hover:text-foreground hover:bg-accent"
+          className="hidden sm:flex p-1.5 rounded transition-colors text-muted-foreground hover:text-foreground hover:bg-accent"
           aria-label="編集"
         >
           <Pencil className="h-3.5 w-3.5" />
@@ -126,7 +126,7 @@ function TaskCardActions({ task, handlers }: TaskCardActionsProps) {
         <DropdownMenu>
           <DropdownMenuTrigger asChild>
             <button
-              className="p-1.5 rounded hover:bg-accent text-muted-foreground hover:text-foreground transition-colors"
+              className="p-1.5 rounded transition-colors text-muted-foreground hover:text-foreground hover:bg-accent"
               aria-label="メニュー"
             >
               <MoreVertical className="h-4 w-4" />
@@ -148,7 +148,7 @@ function TaskCardActions({ task, handlers }: TaskCardActionsProps) {
           </DropdownMenuContent>
         </DropdownMenu>
       </StopPropagation>
-    </>
+    </div>
   );
 }
 
@@ -283,13 +283,13 @@ export function TaskCard({
           </StopPropagation>
           <div className="flex-1 min-w-0">
             <div className="flex items-start gap-2">
-              <div className="flex items-center gap-1.5 flex-1 min-w-0">
-                <p className={cn("text-sm", (isCompleted || isSkipped) && "line-through text-muted-foreground")}>
-                  {task.title}
-                </p>
+              <p className={cn("text-sm flex-1 min-w-0 mt-0.5", (isCompleted || isSkipped) && "line-through text-muted-foreground")}>
+                {task.title}
+              </p>
+              <div className="flex items-center gap-1 self-start flex-shrink-0">
+                <span className="text-xs text-muted-foreground/50">{formatRelativeDate(task.createdAt)}</span>
+                <TaskCardActions task={task} handlers={handlers} />
               </div>
-              <span className="text-xs text-muted-foreground/50 flex-shrink-0 mt-0.5">{formatRelativeDate(task.createdAt)}</span>
-              <TaskCardActions task={task} handlers={handlers} />
             </div>
 
             {hasMemo && (
