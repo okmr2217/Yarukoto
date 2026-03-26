@@ -1,6 +1,6 @@
 "use client";
 
-import { useState } from "react";
+import { useState, useRef, useEffect } from "react";
 import {
   Dialog,
   DialogContent,
@@ -42,6 +42,15 @@ export function TaskEditDialog({
   const [categoryId, setCategoryId] = useState<string>(task?.categoryId ?? "none");
   const [memo, setMemo] = useState(task?.memo ?? "");
   const [error, setError] = useState<string | null>(null);
+  const titleTextareaRef = useRef<HTMLTextAreaElement>(null);
+
+  useEffect(() => {
+    const el = titleTextareaRef.current;
+    if (el) {
+      el.style.height = "auto";
+      el.style.height = `${el.scrollHeight}px`;
+    }
+  }, [open]);
 
   const handleSubmit = (e: React.FormEvent) => {
     e.preventDefault();
@@ -67,7 +76,7 @@ export function TaskEditDialog({
 
   return (
     <Dialog open={open} onOpenChange={onOpenChange}>
-      <DialogContent className="sm:max-w-lg max-h-[90vh] p-0 gap-0">
+      <DialogContent className="sm:max-w-lg max-h-[90dvh] p-0 gap-0 max-sm:top-4 max-sm:translate-y-0">
         <DialogHeader className="px-4 py-3 border-b">
           <DialogTitle>タスクを編集</DialogTitle>
         </DialogHeader>
@@ -77,16 +86,26 @@ export function TaskEditDialog({
             {/* タスク名 */}
             <div className="space-y-2">
               <Label htmlFor="edit-task-title">タスク名</Label>
-              <Input
+              <Textarea
+                ref={titleTextareaRef}
                 id="edit-task-title"
                 value={title}
                 onChange={(e) => {
                   setTitle(e.target.value);
                   setError(null);
+                  e.target.style.height = "auto";
+                  e.target.style.height = `${e.target.scrollHeight}px`;
+                }}
+                onKeyDown={(e) => {
+                  if (e.key === "Enter" && !e.shiftKey) {
+                    e.preventDefault();
+                    e.currentTarget.form?.requestSubmit();
+                  }
                 }}
                 placeholder="タスクの内容"
                 autoFocus
-                className="text-base"
+                rows={1}
+                className="text-base resize-none overflow-hidden"
               />
               {error && <p className="text-sm text-destructive">{error}</p>}
             </div>

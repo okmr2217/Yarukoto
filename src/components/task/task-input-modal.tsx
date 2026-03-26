@@ -2,7 +2,6 @@
 
 import { useState, useRef, useEffect } from "react";
 import { Calendar, StickyNote } from "lucide-react";
-import { Input } from "@/components/ui/input";
 import { Textarea } from "@/components/ui/textarea";
 import { Button } from "@/components/ui/button";
 import {
@@ -57,7 +56,7 @@ export function TaskInputModal({
   const [memo, setMemo] = useState("");
   const [showMemo, setShowMemo] = useState(false);
 
-  const titleInputRef = useRef<HTMLInputElement>(null);
+  const titleInputRef = useRef<HTMLTextAreaElement>(null);
   const dateInputRef = useRef<HTMLInputElement>(null);
 
   // モーダルが開いたときにタイトル入力にフォーカス
@@ -106,7 +105,7 @@ export function TaskInputModal({
 
   return (
     <Dialog open={open} onOpenChange={onOpenChange}>
-      <DialogContent className="sm:max-w-lg max-h-[90vh] p-0 gap-0">
+      <DialogContent className="sm:max-w-lg max-h-[90dvh] p-0 gap-0 max-sm:top-4 max-sm:translate-y-0">
         <DialogHeader className="px-4 py-3 border-b">
           <DialogTitle>タスクを追加</DialogTitle>
         </DialogHeader>
@@ -116,14 +115,24 @@ export function TaskInputModal({
             {/* タスク名 */}
             <div className="space-y-2">
               <label className="text-sm font-medium">タスク名</label>
-              <Input
+              <Textarea
                 ref={titleInputRef}
-                type="text"
                 value={title}
-                onChange={(e) => setTitle(e.target.value)}
+                onChange={(e) => {
+                  setTitle(e.target.value);
+                  e.target.style.height = "auto";
+                  e.target.style.height = `${e.target.scrollHeight}px`;
+                }}
+                onKeyDown={(e) => {
+                  if (e.key === "Enter" && !e.shiftKey) {
+                    e.preventDefault();
+                    e.currentTarget.form?.requestSubmit();
+                  }
+                }}
                 placeholder="新しいタスクを入力..."
                 disabled={isLoading}
-                className="text-base"
+                rows={1}
+                className="text-base resize-none overflow-hidden"
               />
             </div>
 
