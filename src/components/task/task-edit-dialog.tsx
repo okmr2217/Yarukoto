@@ -105,7 +105,7 @@ export function TaskEditDialog({
                 placeholder="タスクの内容"
                 autoFocus
                 rows={1}
-                className="text-base resize-none overflow-hidden"
+                className="text-base resize-none overflow-hidden min-h-0"
               />
               {error && <p className="text-sm text-destructive">{error}</p>}
             </div>

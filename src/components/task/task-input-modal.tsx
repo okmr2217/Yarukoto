@@ -132,7 +132,7 @@ export function TaskInputModal({
                 placeholder="新しいタスクを入力..."
                 disabled={isLoading}
                 rows={1}
-                className="text-base resize-none overflow-hidden"
+                className="text-base resize-none overflow-hidden min-h-0"
               />
             </div>
 
