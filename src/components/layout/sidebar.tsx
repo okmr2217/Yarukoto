@@ -8,6 +8,7 @@ import Image from "next/image";
 import { Suspense } from "react";
 import { NAV_ITEMS } from "@/lib/constants";
 import { SidebarFilterPanel } from "./sidebar-filter-panel";
+import { useAllTasks } from "@/hooks";
 
 const iconMap = {
   ListTodo,
@@ -18,6 +19,8 @@ const iconMap = {
 
 export function Sidebar() {
   const pathname = usePathname();
+  const { data: pendingTasks } = useAllTasks({ status: "pending" });
+  const pendingCount = pendingTasks?.length ?? 0;
 
   const isActive = (href: string) => {
     if (href === "/") {
@@ -42,7 +45,7 @@ export function Sidebar() {
       </div>
 
       {/* Navigation */}
-      <nav className="px-3 py-4 space-y-0.5">
+      <nav className="px-3 py-4 space-y-1">
         {NAV_ITEMS.map((item) => {
           const Icon = iconMap[item.icon as keyof typeof iconMap];
           if (!Icon) return null;
@@ -52,14 +55,19 @@ export function Sidebar() {
               key={item.href}
               href={item.href}
               className={cn(
-                "flex items-center gap-3 px-3 py-2.5 rounded-lg transition-colors",
+                "flex items-center gap-3 px-3 py-2.5 rounded-lg transition-all duration-150",
                 active
-                  ? "font-bold text-foreground"
+                  ? "bg-primary/10 text-primary font-semibold"
                   : "text-muted-foreground hover:bg-accent hover:text-foreground",
               )}
             >
               <Icon className="h-5 w-5 shrink-0 translate-y-px" />
               <span>{item.label}</span>
+              {item.href === "/" && pendingCount > 0 && (
+                <span className="ml-auto text-[11px] font-medium bg-primary/15 text-primary px-1.5 py-px rounded-full">
+                  {pendingCount}
+                </span>
+              )}
             </Link>
           );
         })}

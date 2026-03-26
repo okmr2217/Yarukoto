@@ -83,7 +83,10 @@ function SidebarFilterPanelInner() {
   };
 
   return (
-    <div className="border-t px-3 py-3 space-y-3">
+    <div className="border-t px-3 pt-2 pb-3 space-y-3">
+      {/* セクションラベル */}
+      <span className="block text-[11px] font-medium text-muted-foreground/70 tracking-wider pt-1">フィルター</span>
+
       {/* キーワード */}
       <div className="space-y-1">
         <span className="text-xs text-muted-foreground">キーワード</span>
@@ -96,7 +99,7 @@ function SidebarFilterPanelInner() {
             onChange={handleKeywordChange}
             onCompositionStart={() => { isComposingRef.current = true; }}
             onCompositionEnd={handleCompositionEnd}
-            className="pl-8 pr-7 h-7 text-xs"
+            className="pl-8 pr-7 h-7 text-xs border-0 bg-muted/60 focus-visible:ring-1"
           />
           {localKeyword && (
             <button
