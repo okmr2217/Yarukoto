@@ -140,6 +140,10 @@ export default function HomePage() {
     }
   };
 
+  const handleUnskip = (id: string) => {
+    mutations.unskipTask.mutate(id);
+  };
+
   const handleDelete = (id: string) => {
     if (confirm("このタスクを削除しますか？")) {
       mutations.deleteTask.mutate(id);
@@ -164,6 +168,7 @@ export default function HomePage() {
     onUncomplete: handleUncomplete,
     onEdit: handleEdit,
     onSkip: handleSkip,
+    onUnskip: handleUnskip,
     onDelete: handleDelete,
     onToggleFavorite: handleToggleFavorite,
   };

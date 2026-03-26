@@ -23,6 +23,7 @@ import {
   Calendar,
   CheckCircle2,
   Clock,
+  Undo2,
   type LucideIcon,
 } from "lucide-react";
 import type { DraggableAttributes, DraggableSyntheticListeners } from "@dnd-kit/core";
@@ -42,6 +43,8 @@ export interface TaskCardHandlers {
   onEdit: (task: Task) => void;
   /** タスクスキップ時のハンドラー */
   onSkip: (id: string) => void;
+  /** タスクスキップ取り消し時のハンドラー */
+  onUnskip: (id: string) => void;
   /** タスク削除時のハンドラー */
   onDelete: (id: string) => void;
   /** お気に入りトグル時のハンドラー */
@@ -73,8 +76,8 @@ function StopPropagation({ children }: { children: React.ReactNode }) {
   );
 }
 
-const ACTION_DEFINITIONS: Array<{
-  key: "edit" | "detail" | "skip" | "delete";
+const DEFAULT_ACTIONS: Array<{
+  key: "edit" | "detail" | "skip" | "unskip" | "delete";
   label: string;
   Icon: LucideIcon;
   className: string;
@@ -86,18 +89,28 @@ const ACTION_DEFINITIONS: Array<{
   { key: "delete", label: "削除", Icon: Trash2, className: "hover:text-destructive", destructive: true },
 ];
 
+const SKIPPED_ACTIONS: typeof DEFAULT_ACTIONS = [
+  { key: "edit", label: "編集", Icon: Pencil, className: "" },
+  { key: "detail", label: "詳細", Icon: Info, className: "" },
+  { key: "unskip", label: "やらないを取り消す", Icon: Undo2, className: "hover:text-foreground" },
+  { key: "delete", label: "削除", Icon: Trash2, className: "hover:text-destructive", destructive: true },
+];
+
 interface TaskCardActionsProps {
   task: Task;
   handlers: TaskCardHandlers;
 }
 
 function TaskCardActions({ task, handlers }: TaskCardActionsProps) {
-  const actionHandlers: Record<"edit" | "detail" | "skip" | "delete", () => void> = {
+  const isSkipped = task.status === "SKIPPED";
+  const actionHandlers: Record<"edit" | "detail" | "skip" | "unskip" | "delete", () => void> = {
     edit: () => handlers.onEdit(task),
     detail: () => handlers.onDetail(task.id),
     skip: () => handlers.onSkip(task.id),
+    unskip: () => handlers.onUnskip(task.id),
     delete: () => handlers.onDelete(task.id),
   };
+  const actions = isSkipped ? SKIPPED_ACTIONS : DEFAULT_ACTIONS;
 
   return (
     <div className="flex items-center gap-0.5">
@@ -133,9 +146,9 @@ function TaskCardActions({ task, handlers }: TaskCardActionsProps) {
             </button>
           </DropdownMenuTrigger>
           <DropdownMenuContent align="end">
-            {ACTION_DEFINITIONS.map((action) => (
+            {actions.map((action) => (
               <DropdownMenuItem
-                key={action.label}
+                key={action.key}
                 onClick={actionHandlers[action.key]}
                 className={cn(action.destructive ? "text-destructive" : "")}
               >
