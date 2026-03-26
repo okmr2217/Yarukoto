@@ -5,7 +5,9 @@ import { usePathname } from "next/navigation";
 import { ListTodo, Tags, Settings, Calendar } from "lucide-react";
 import { cn } from "@/lib/utils";
 import Image from "next/image";
+import { Suspense } from "react";
 import { NAV_ITEMS } from "@/lib/constants";
+import { SidebarFilterPanel } from "./sidebar-filter-panel";
 
 const iconMap = {
   ListTodo,
@@ -25,7 +27,7 @@ export function Sidebar() {
   };
 
   return (
-    <aside className="hidden md:flex md:w-64 flex-col sticky top-0 h-screen border-r">
+    <aside className="hidden md:flex md:w-64 flex-col sticky top-0 h-screen border-r overflow-y-auto">
       {/* Logo */}
       <div className="flex items-center h-14 px-4 shrink-0">
         <Link href="/" className="flex items-center gap-0.5">
@@ -40,7 +42,7 @@ export function Sidebar() {
       </div>
 
       {/* Navigation */}
-      <nav className="flex-1 px-3 py-4 space-y-0.5">
+      <nav className="px-3 py-4 space-y-0.5">
         {NAV_ITEMS.map((item) => {
           const Icon = iconMap[item.icon as keyof typeof iconMap];
           if (!Icon) return null;
@@ -62,6 +64,11 @@ export function Sidebar() {
           );
         })}
       </nav>
+
+      {/* フィルターパネル（ホームページのみ・PC表示） */}
+      <Suspense fallback={null}>
+        <SidebarFilterPanel />
+      </Suspense>
     </aside>
   );
 }

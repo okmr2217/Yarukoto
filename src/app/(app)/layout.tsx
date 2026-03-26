@@ -1,5 +1,6 @@
 import { getRequiredSession } from "@/lib/auth-server";
 import { Sidebar } from "@/components/layout";
+import { FilterPanelProvider } from "@/components/layout/filter-panel-context";
 
 export default async function AppLayout({
   children,
@@ -11,10 +12,12 @@ export default async function AppLayout({
 
   return (
     <div className="min-h-screen">
-      <div className="flex max-w-4xl mx-auto min-h-screen">
-        <Sidebar />
-        <div className="flex-1 flex flex-col min-w-0">{children}</div>
-      </div>
+      <FilterPanelProvider>
+        <div className="flex max-w-4xl mx-auto min-h-screen">
+          <Sidebar />
+          <div className="flex-1 flex flex-col min-w-0">{children}</div>
+        </div>
+      </FilterPanelProvider>
     </div>
   );
 }

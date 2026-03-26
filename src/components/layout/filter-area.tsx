@@ -1,10 +1,10 @@
 "use client";
 
-import { useState } from "react";
 import { cn } from "@/lib/utils";
 import type { Category } from "@/types";
 import { CategoryFilter } from "./category-filter";
 import { FilterPanel, type FilterValues } from "./filter-panel";
+import { useFilterPanel } from "./filter-panel-context";
 
 interface FilterAreaProps {
   categories: Category[];
@@ -27,7 +27,7 @@ export function FilterArea({
   onFilterChange,
   onClearFilters,
 }: FilterAreaProps) {
-  const [filterPanelOpen, setFilterPanelOpen] = useState(hasActiveFilters);
+  const { filterPanelOpen, toggleFilterPanel } = useFilterPanel();
 
   return (
     <div className="sticky top-14 md:top-0 z-40">
@@ -35,12 +35,13 @@ export function FilterArea({
         categories={categories}
         selectedCategoryId={selectedCategoryId}
         onSelectCategory={onSelectCategory}
-        onFilterToggle={() => setFilterPanelOpen((v) => !v)}
+        onFilterToggle={toggleFilterPanel}
         isFilterOpen={filterPanelOpen}
         hasActiveFilters={hasActiveFilters}
         isLoading={categoriesLoading}
       />
-      <div className={cn("max-w-2xl w-full mx-auto", !filterPanelOpen && "hidden")}>
+      {/* モバイルのみ表示（PC はサイドバーに表示） */}
+      <div className={cn("max-w-2xl w-full mx-auto md:hidden", !filterPanelOpen && "hidden")}>
         <FilterPanel
           values={filterValues}
           onChange={onFilterChange}
