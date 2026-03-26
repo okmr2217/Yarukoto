@@ -4,6 +4,7 @@ export type Category = {
   color: string | null;
   description: string | null;
   sortOrder: number;
+  archivedAt: string | null;
   createdAt: string;
   updatedAt: string;
 };

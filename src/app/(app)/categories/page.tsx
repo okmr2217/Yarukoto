@@ -1,7 +1,7 @@
 "use client";
 
 import { useState } from "react";
-import { Plus, Pencil, Trash2, GripVertical } from "lucide-react";
+import { Plus, Pencil, Trash2, GripVertical, Archive, ArchiveRestore } from "lucide-react";
 import {
   DndContext,
   closestCenter,
@@ -35,10 +35,13 @@ import {
 import { CategoryEditDialog } from "@/components/category";
 import {
   useCategories,
+  useArchivedCategories,
   useCreateCategory,
   useUpdateCategory,
   useUpdateCategorySortOrder,
   useDeleteCategory,
+  useArchiveCategory,
+  useUnarchiveCategory,
 } from "@/hooks";
 import { useQueryClient } from "@tanstack/react-query";
 import type { Category } from "@/types";
@@ -47,9 +50,10 @@ interface SortableCategoryRowProps {
   category: Category;
   onEdit: (category: Category) => void;
   onDelete: (category: Category) => void;
+  onArchive: (category: Category) => void;
 }
 
-function SortableCategoryRow({ category, onEdit, onDelete }: SortableCategoryRowProps) {
+function SortableCategoryRow({ category, onEdit, onDelete, onArchive }: SortableCategoryRowProps) {
   const { attributes, listeners, setNodeRef, transform, transition, isDragging } = useSortable({
     id: category.id,
   });
@@ -93,6 +97,62 @@ function SortableCategoryRow({ category, onEdit, onDelete }: SortableCategoryRow
         <Button
           variant="ghost"
           size="icon-sm"
+          onClick={() => onArchive(category)}
+          aria-label="アーカイブ"
+          className="text-muted-foreground hover:text-foreground"
+        >
+          <Archive className="h-4 w-4" />
+        </Button>
+        <Button
+          variant="ghost"
+          size="icon-sm"
+          onClick={() => onDelete(category)}
+          aria-label="削除"
+          className="text-destructive hover:text-destructive"
+        >
+          <Trash2 className="h-4 w-4" />
+        </Button>
+      </div>
+    </div>
+  );
+}
+
+interface ArchivedCategoryRowProps {
+  category: Category;
+  onUnarchive: (id: string) => void;
+  onDelete: (category: Category) => void;
+  isUnarchiving: boolean;
+}
+
+function ArchivedCategoryRow({ category, onUnarchive, onDelete, isUnarchiving }: ArchivedCategoryRowProps) {
+  return (
+    <div className="flex items-center justify-between p-4 bg-card rounded-lg border border-border opacity-60">
+      <div className="flex items-center gap-3 min-w-0 overflow-hidden">
+        <div
+          className="w-4 h-4 rounded-full shrink-0"
+          style={{ backgroundColor: category.color || "#6B7280" }}
+        />
+        <div className="min-w-0">
+          <span className="font-medium">{category.name}</span>
+          {category.description && (
+            <p className="text-xs text-muted-foreground truncate">{category.description}</p>
+          )}
+        </div>
+      </div>
+      <div className="flex items-center gap-1 shrink-0">
+        <Button
+          variant="ghost"
+          size="icon-sm"
+          onClick={() => onUnarchive(category.id)}
+          disabled={isUnarchiving}
+          aria-label="アーカイブ解除"
+          className="text-muted-foreground hover:text-foreground"
+        >
+          <ArchiveRestore className="h-4 w-4" />
+        </Button>
+        <Button
+          variant="ghost"
+          size="icon-sm"
           onClick={() => onDelete(category)}
           aria-label="削除"
           className="text-destructive hover:text-destructive"
@@ -121,11 +181,14 @@ function CategoryRowOverlay({ category }: { category: Category }) {
 
 export default function CategoriesPage() {
   const { data: categories, isLoading, error } = useCategories();
+  const { data: archivedCategories } = useArchivedCategories();
   const queryClient = useQueryClient();
   const createCategory = useCreateCategory();
   const updateCategory = useUpdateCategory();
   const updateSortOrder = useUpdateCategorySortOrder();
   const deleteCategory = useDeleteCategory();
+  const archiveCategory = useArchiveCategory();
+  const unarchiveCategory = useUnarchiveCategory();
 
   const [editingCategory, setEditingCategory] = useState<Category | null>(null);
   const [isDialogOpen, setIsDialogOpen] = useState(false);
@@ -182,6 +245,14 @@ export default function CategoriesPage() {
     } catch {
       // Error is handled by the mutation
     }
+  };
+
+  const handleArchive = (category: Category) => {
+    archiveCategory.mutate(category.id);
+  };
+
+  const handleUnarchive = (id: string) => {
+    unarchiveCategory.mutate(id);
   };
 
   const handleDragStart = (event: DragStartEvent) => {
@@ -246,6 +317,7 @@ export default function CategoriesPage() {
                           category={category}
                           onEdit={handleEdit}
                           onDelete={setDeletingCategory}
+                          onArchive={handleArchive}
                         />
                       ))
                     ) : (
@@ -270,6 +342,27 @@ export default function CategoriesPage() {
                 <Plus className="h-5 w-5 text-muted-foreground" />
                 <span className="text-muted-foreground">新しいカテゴリを追加</span>
               </button>
+
+              {/* Archived categories */}
+              {archivedCategories && archivedCategories.length > 0 && (
+                <div className="mt-8">
+                  <h2 className="text-sm font-medium text-muted-foreground mb-3 flex items-center gap-1.5">
+                    <Archive className="h-3.5 w-3.5" />
+                    アーカイブ済み
+                  </h2>
+                  <div className="space-y-2">
+                    {archivedCategories.map((category) => (
+                      <ArchivedCategoryRow
+                        key={category.id}
+                        category={category}
+                        onUnarchive={handleUnarchive}
+                        onDelete={setDeletingCategory}
+                        isUnarchiving={unarchiveCategory.isPending}
+                      />
+                    ))}
+                  </div>
+                </div>
+              )}
             </>
           )}
         </main>

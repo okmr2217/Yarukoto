@@ -22,6 +22,7 @@ function toCategory(category: PrismaCategory): Category {
     color: category.color,
     description: category.description,
     sortOrder: category.sortOrder,
+    archivedAt: category.archivedAt?.toISOString() ?? null,
     createdAt: category.createdAt.toISOString(),
     updatedAt: category.updatedAt.toISOString(),
   };
@@ -34,7 +35,7 @@ export async function getCategories(): Promise<
     const user = await getRequiredUser();
 
     const categories = await prisma.category.findMany({
-      where: { userId: user.id },
+      where: { userId: user.id, archivedAt: null },
       orderBy: [{ sortOrder: "asc" }, { createdAt: "asc" }],
     });
 
@@ -42,6 +43,86 @@ export async function getCategories(): Promise<
   } catch (error) {
     console.error("getCategories error:", error);
     return failure("カテゴリの取得に失敗しました", "INTERNAL_ERROR");
+  }
+}
+
+export async function getArchivedCategories(): Promise<
+  ActionResult<{ categories: Category[] }>
+> {
+  try {
+    const user = await getRequiredUser();
+
+    const categories = await prisma.category.findMany({
+      where: { userId: user.id, archivedAt: { not: null } },
+      orderBy: [{ archivedAt: "desc" }],
+    });
+
+    return success({ categories: categories.map(toCategory) });
+  } catch (error) {
+    console.error("getArchivedCategories error:", error);
+    return failure("カテゴリの取得に失敗しました", "INTERNAL_ERROR");
+  }
+}
+
+export async function archiveCategory(input: {
+  id: string;
+}): Promise<ActionResult<{ category: Category }>> {
+  try {
+    const parsed = categoryIdSchema.safeParse(input);
+    if (!parsed.success) {
+      return failure(parsed.error.issues[0].message, "VALIDATION_ERROR");
+    }
+
+    const user = await getRequiredUser();
+    const { id } = parsed.data;
+
+    const existing = await prisma.category.findFirst({
+      where: { id, userId: user.id },
+    });
+    if (!existing) {
+      return failure("カテゴリが見つかりません", "NOT_FOUND");
+    }
+
+    const category = await prisma.category.update({
+      where: { id },
+      data: { archivedAt: new Date() },
+    });
+
+    return success({ category: toCategory(category) });
+  } catch (error) {
+    console.error("archiveCategory error:", error);
+    return failure("カテゴリのアーカイブに失敗しました", "INTERNAL_ERROR");
+  }
+}
+
+export async function unarchiveCategory(input: {
+  id: string;
+}): Promise<ActionResult<{ category: Category }>> {
+  try {
+    const parsed = categoryIdSchema.safeParse(input);
+    if (!parsed.success) {
+      return failure(parsed.error.issues[0].message, "VALIDATION_ERROR");
+    }
+
+    const user = await getRequiredUser();
+    const { id } = parsed.data;
+
+    const existing = await prisma.category.findFirst({
+      where: { id, userId: user.id },
+    });
+    if (!existing) {
+      return failure("カテゴリが見つかりません", "NOT_FOUND");
+    }
+
+    const category = await prisma.category.update({
+      where: { id },
+      data: { archivedAt: null },
+    });
+
+    return success({ category: toCategory(category) });
+  } catch (error) {
+    console.error("unarchiveCategory error:", error);
+    return failure("カテゴリの復元に失敗しました", "INTERNAL_ERROR");
   }
 }
 

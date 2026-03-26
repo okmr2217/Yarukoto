@@ -62,6 +62,11 @@ export async function getTasksByDate(
     let completed: Task[] = [];
     let skipped: Task[] = [];
 
+    // アーカイブ済みカテゴリのタスクを除外する条件
+    const notArchivedCategory = {
+      OR: [{ categoryId: null }, { category: { archivedAt: null } }],
+    };
+
     // 過去の日付の場合、完了とスキップのタスクを取得
     // completedAtとskippedAtはTIMESTAMP型なので、範囲で検索
     if (isPast) {
@@ -71,6 +76,7 @@ export async function getTasksByDate(
             userId: user.id,
             status: "COMPLETED",
             completedAt: { gte: start, lte: end },
+            ...notArchivedCategory,
           },
           include: { category: true },
           orderBy: { completedAt: "desc" },
@@ -80,6 +86,7 @@ export async function getTasksByDate(
             userId: user.id,
             status: "SKIPPED",
             skippedAt: { gte: start, lte: end },
+            ...notArchivedCategory,
           },
           include: { category: true },
           orderBy: { skippedAt: "desc" },
@@ -95,6 +102,7 @@ export async function getTasksByDate(
       where: {
         userId: user.id,
         scheduledAt: dateObj,
+        ...notArchivedCategory,
       },
       include: { category: true },
       orderBy: { displayOrder: "desc" },
@@ -215,7 +223,10 @@ export async function getAllTasks(input?: GetAllTasksInput): Promise<ActionResul
     const { categoryIds, date, keyword, status, isFavorite } = parsed.data;
 
     // eslint-disable-next-line @typescript-eslint/no-explicit-any
-    const andConditions: any[] = [];
+    const andConditions: any[] = [
+      // アーカイブ済みカテゴリのタスクを常に除外
+      { OR: [{ categoryId: null }, { category: { archivedAt: null } }] },
+    ];
 
     // 単日フィルタ: scheduledAt 一致 OR completedAt/skippedAt/createdAt がその日の範囲内
     if (date) {

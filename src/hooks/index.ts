@@ -18,10 +18,13 @@ export { useSettings } from "./use-settings";
 
 export {
   useCategories,
+  useArchivedCategories,
   useCreateCategory,
   useUpdateCategory,
   useUpdateCategorySortOrder,
   useDeleteCategory,
+  useArchiveCategory,
+  useUnarchiveCategory,
 } from "./use-categories";
 
 export { useTheme, type Theme } from "./use-theme";

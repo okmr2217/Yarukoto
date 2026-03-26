@@ -15,10 +15,13 @@ export {
 
 export {
   getCategories,
+  getArchivedCategories,
   createCategory,
   updateCategory,
   updateCategorySortOrder,
   deleteCategory,
+  archiveCategory,
+  unarchiveCategory,
 } from "./category";
 
 export { deleteAccount, changeEmail } from "./account";
