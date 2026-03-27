@@ -487,7 +487,7 @@ export default function SettingsPage() {
 
           {/* Version */}
           <div className="text-center text-sm text-muted-foreground">
-            バージョン: 1.0.0
+            バージョン: {process.env.NEXT_PUBLIC_APP_VERSION}
           </div>
         </main>
       </div>
