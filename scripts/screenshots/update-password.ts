@@ -1,5 +1,5 @@
 import { hashPassword } from 'better-auth/crypto';
-import { PrismaClient } from '../../src/generated/prisma/client.ts';
+import { PrismaClient } from '../../src/generated/prisma/client';
 import { PrismaPg } from '@prisma/adapter-pg';
 import * as dotenv from 'dotenv';
 import { resolve } from 'path';
