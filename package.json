@@ -8,7 +8,8 @@
     "start": "next start",
     "lint": "eslint",
     "postinstall": "prisma generate",
-    "db:seed": "npx prisma db seed"
+    "db:seed": "npx prisma db seed",
+    "screenshots": "tsx scripts/screenshots/take-screenshots.ts"
   },
   "dependencies": {
     "@dnd-kit/core": "^6.3.1",
@@ -52,6 +53,7 @@
     "@types/react-dom": "^19",
     "eslint": "^9",
     "eslint-config-next": "16.1.1",
+    "playwright": "^1.58.2",
     "prisma": "^7.2.0",
     "tailwindcss": "^4",
     "tsx": "^4.21.0",
