@@ -2,23 +2,37 @@ name: Supabase Backup
 
 on:
   schedule:
-    - cron: "0 18 * * *"  # 毎日 JST 3:00
+    - cron: "0 18 * * *" # 毎日 JST 03:00
   workflow_dispatch:
 
 jobs:
   backup:
     runs-on: ubuntu-latest
+    timeout-minutes: 15
 
     steps:
       - name: Install PostgreSQL client
-        run: sudo apt-get update && sudo apt-get install -y postgresql-client
+        run: |
+          sudo apt-get update
+          sudo apt-get install -y postgresql-client
 
       - name: Create backup
         env:
           SUPABASE_DB_URL: ${{ secrets.SUPABASE_DB_URL }}
         run: |
+          set -euo pipefail
+
           mkdir -p backups
-          pg_dump "$SUPABASE_DB_URL" | gzip > backups/backup-$(date +%F).sql.gz
+
+          FILE="backups/backup-$(date +%F).sql.gz"
+
+          pg_dump "${SUPABASE_DB_URL}?sslmode=require" | gzip > "${FILE}"
+
+          # 空ファイル対策
+          test -s "${FILE}"
+
+          echo "Created: ${FILE}"
+          ls -lh backups
 
       - name: Upload artifact
         uses: actions/upload-artifact@v4
@@ -26,3 +40,4 @@ jobs:
           name: supabase-backup-${{ github.run_number }}
           path: backups/
           retention-days: 7
+          if-no-files-found: error
