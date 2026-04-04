@@ -4,7 +4,6 @@ import { useMemo, useState } from "react";
 import { useRouter } from "next/navigation";
 import { CalendarDays, CheckCheck, ChevronLeft, ChevronRight, PenLine } from "lucide-react";
 import { Button } from "@/components/ui/button";
-import { Header } from "@/components/layout";
 import { useMonthlyTaskStats } from "@/hooks";
 import type { DayTaskStats } from "@/types";
 import { cn } from "@/lib/utils";
@@ -165,8 +164,6 @@ export default function CalendarPage() {
 
   return (
     <div className="flex-1 bg-background flex flex-col">
-      <Header />
-
       <div className="flex-1 overflow-auto">
         <div>
           <div className="p-4">

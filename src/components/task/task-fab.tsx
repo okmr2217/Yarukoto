@@ -22,13 +22,13 @@ export function TaskFab({ onClick, className }: TaskFabProps) {
           onClick={onClick}
           size="icon"
           className={cn(
-            "fixed bottom-[76px] right-4 md:bottom-6 md:right-6 h-14 w-14 rounded-full shadow-lg z-40",
+            "fixed bottom-19 right-4 md:bottom-6 md:right-6 h-14 w-14 rounded-full shadow-lg z-40",
             "hover:scale-110 transition-transform",
             className,
           )}
           aria-label="タスクを追加"
         >
-          <Plus className="h-6 w-6" />
+          <Plus className="size-5" />
         </Button>
       </TooltipTrigger>
       <TooltipContent side="left" sideOffset={8}>

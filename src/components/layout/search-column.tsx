@@ -109,13 +109,20 @@ export function SearchColumn({ categories, categoriesLoading, selectedCategoryId
   const handleClearFilters = () => {
     if (debounceTimerRef.current) clearTimeout(debounceTimerRef.current);
     setLocalKeyword("");
-    onToggleCategory(null);
-    updateSearchParams({ keyword: null, status: null, favorite: null, date: null });
+    updateSearchParams({ keyword: null, status: null, favorite: null, date: null, category: null });
   };
 
-  const totalPending = allPendingTasks?.length ?? 0;
-  const noneCount = pendingCountByCategory["none"] ?? 0;
-  const noneActive = selectedCategoryIds.includes("none");
+  const allSelected = !categoriesLoading && categories.length > 0 && categories.every((c) => selectedCategoryIds.includes(c.id));
+  const noneSelected = selectedCategoryIds.length === 0;
+
+  const handleSelectAll = () => {
+    const allIds = categories.map((c) => c.id);
+    updateSearchParams({ category: allIds.length > 0 ? allIds.join(",") : null });
+  };
+
+  const handleDeselectAll = () => {
+    updateSearchParams({ category: null });
+  };
 
   return (
     <div className="px-3 py-3">
@@ -137,28 +144,33 @@ export function SearchColumn({ categories, categoriesLoading, selectedCategoryId
 
       {/* カテゴリ */}
       <section>
-        <SectionLabel>カテゴリ</SectionLabel>
+        <div className="flex items-center justify-between mb-1.5">
+          <span className="text-[11px] font-semibold text-muted-foreground/60 tracking-wider">カテゴリ</span>
+          <div className="flex items-center gap-1">
+            <button
+              type="button"
+              onClick={handleDeselectAll}
+              className={cn(
+                "text-[11px] px-1.5 py-0.5 rounded transition-colors",
+                noneSelected ? "text-foreground font-semibold bg-muted" : "text-muted-foreground hover:text-foreground hover:bg-muted",
+              )}
+            >
+              全て解除
+            </button>
+            <button
+              type="button"
+              onClick={handleSelectAll}
+              className={cn(
+                "text-[11px] px-1.5 py-0.5 rounded transition-colors",
+                allSelected ? "text-foreground font-semibold bg-muted" : "text-muted-foreground hover:text-foreground hover:bg-muted",
+              )}
+            >
+              全て選択
+            </button>
+          </div>
+        </div>
 
-        {/* すべて — ボーダー付きで「特殊なリセット行」として区別 */}
-        <button
-          type="button"
-          onClick={() => onToggleCategory(null)}
-          className={cn(
-            "w-full flex items-center justify-between px-2 py-1 rounded-md text-xs border transition-colors mb-1.5",
-            selectedCategoryIds.length === 0
-              ? "border-primary/30 bg-primary/8 text-primary font-semibold"
-              : "border-border/50 text-muted-foreground hover:bg-accent hover:text-foreground",
-          )}
-        >
-          <span>すべて</span>
-          {totalPending > 0 && (
-            <span className={cn("text-[10px] tabular-nums shrink-0", selectedCategoryIds.length === 0 ? "text-primary" : "text-muted-foreground/60")}>
-              {totalPending}
-            </span>
-          )}
-        </button>
-
-        {/* 通常カテゴリ + カテゴリなし — 2列グリッド */}
+        {/* カテゴリ一覧 — 2列グリッド */}
         <div className="grid grid-cols-2 gap-1">
           {categoriesLoading
             ? [80, 64, 96, 72].map((w, i) => (
@@ -195,29 +207,6 @@ export function SearchColumn({ categories, categoriesLoading, selectedCategoryId
                   </button>
                 );
               })}
-
-          {/* カテゴリなし — 空リングで「色なし」を示す */}
-          <button
-            type="button"
-            onClick={() => onToggleCategory("none")}
-            className={cn(
-              "flex items-center justify-between px-2 py-1 rounded-md text-xs transition-colors min-w-0 border",
-              noneActive
-                ? "border-border text-foreground font-semibold bg-accent"
-                : "border-border/40 text-muted-foreground/60 hover:text-muted-foreground hover:bg-accent",
-            )}
-          >
-            <div className="flex items-center gap-1.5 min-w-0">
-              <span
-                className={cn(
-                  "w-1.5 h-1.5 rounded-full shrink-0 border",
-                  noneActive ? "border-foreground/50" : "border-muted-foreground/30",
-                )}
-              />
-              <span className="truncate">カテゴリなし</span>
-            </div>
-            {noneCount > 0 && <span className="text-[10px] tabular-nums shrink-0 opacity-60">{noneCount}</span>}
-          </button>
         </div>
       </section>
 

@@ -67,15 +67,20 @@ export default function HomePage() {
     router.push(qs ? `/?${qs}` : "/");
   };
 
-  const handleToggleCategory = (categoryId: string | null) => {
-    if (categoryId === null) {
-      updateSearchParams({ category: null });
-      return;
-    }
+  const handleToggleCategory = (categoryId: string) => {
     const next = selectedCategoryIds.includes(categoryId)
       ? selectedCategoryIds.filter((id) => id !== categoryId)
       : [...selectedCategoryIds, categoryId];
     updateSearchParams({ category: next.length > 0 ? next.join(",") : null });
+  };
+
+  const handleSelectAllCategories = () => {
+    const allIds = categories.map((c) => c.id);
+    updateSearchParams({ category: allIds.length > 0 ? allIds.join(",") : null });
+  };
+
+  const handleDeselectAllCategories = () => {
+    updateSearchParams({ category: null });
   };
 
   const handleApplyFilters = (values: FilterValues) => {
@@ -228,6 +233,8 @@ export default function HomePage() {
             categories={categories}
             selectedCategoryIds={selectedCategoryIds}
             onToggleCategory={handleToggleCategory}
+            onSelectAll={handleSelectAllCategories}
+            onDeselectAll={handleDeselectAllCategories}
             categoriesLoading={categoriesLoading}
           />
         </div>
@@ -302,6 +309,8 @@ export default function HomePage() {
           categories={categories}
           selectedCategoryIds={selectedCategoryIds}
           onToggleCategory={handleToggleCategory}
+          onSelectAll={handleSelectAllCategories}
+          onDeselectAll={handleDeselectAllCategories}
           categoriesLoading={categoriesLoading}
         />
       </div>
