@@ -154,16 +154,16 @@ export default function SettingsPage() {
 
   return (
     <div className="flex-1 bg-background">
-      <main className="p-4 space-y-6">
+      <main className="p-4 space-y-4">
           <div>
-            <h1 className="text-xl font-semibold mb-3">設定</h1>
-            <p className="text-sm text-muted-foreground">
+            <h1 className="text-lg font-semibold mb-1.5">設定</h1>
+            <p className="text-xs text-muted-foreground">
               アカウント情報の確認・変更やパスワードの更新ができます。
             </p>
           </div>
           {/* Account Section */}
           <section>
-            <h2 className="text-sm font-medium text-muted-foreground mb-3">
+            <h2 className="text-xs font-medium text-muted-foreground mb-2">
               アカウント
             </h2>
             <div className="bg-card rounded-lg border border-border overflow-hidden">
@@ -341,7 +341,7 @@ export default function SettingsPage() {
 
           {/* Appearance Section */}
           <section>
-            <h2 className="text-sm font-medium text-muted-foreground mb-3">
+            <h2 className="text-xs font-medium text-muted-foreground mb-2">
               外観
             </h2>
             <div className="bg-card rounded-lg border border-border overflow-hidden">
@@ -388,7 +388,7 @@ export default function SettingsPage() {
 
           {/* Display Settings Section */}
           <section>
-            <h2 className="text-sm font-medium text-muted-foreground mb-3">
+            <h2 className="text-xs font-medium text-muted-foreground mb-2">
               表示設定
             </h2>
             <div className="bg-card rounded-lg border border-border overflow-hidden">
@@ -425,7 +425,7 @@ export default function SettingsPage() {
 
           {/* Other Section */}
           <section>
-            <h2 className="text-sm font-medium text-muted-foreground mb-3">
+            <h2 className="text-xs font-medium text-muted-foreground mb-2">
               その他
             </h2>
             <div className="bg-card rounded-lg border border-border overflow-hidden">

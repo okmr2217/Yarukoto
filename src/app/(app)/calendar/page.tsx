@@ -1,8 +1,8 @@
 "use client";
 
-import { useMemo, useState } from "react";
+import { useState } from "react";
 import { useRouter } from "next/navigation";
-import { CalendarDays, CheckCheck, ChevronLeft, ChevronRight, PenLine } from "lucide-react";
+import { CalendarDays, CircleCheck, ChevronLeft, ChevronRight, PlusCircle } from "lucide-react";
 import { Button } from "@/components/ui/button";
 import { useMonthlyTaskStats } from "@/hooks";
 import type { DayTaskStats } from "@/types";
@@ -84,38 +84,24 @@ function DateCell({
       {hasStats ? (
         <div className="flex flex-col items-center gap-1.5 w-full mt-auto mb-0.5">
           <div className="flex items-center gap-1.5 font-semibold flex-wrap justify-center">
+            {stats.completed > 0 && (
+              <span className="flex items-center gap-0.5 text-green-600 dark:text-green-400">
+                <CircleCheck className="h-3.5 w-3.5" />
+                <span className="text-base leading-none">{stats.completed}</span>
+              </span>
+            )}
             {stats.createdCount > 0 && (
               <span className="flex items-center gap-0.5 text-muted-foreground">
-                <PenLine className="h-2 w-2" />
+                <PlusCircle className="h-3.5 w-3.5" />
                 <span className="text-base leading-none">{stats.createdCount}</span>
               </span>
             )}
             {stats.total > 0 && (
               <span className="flex items-center gap-0.5 text-blue-600 dark:text-blue-400">
-                <CalendarDays className="h-2 w-2" />
+                <CalendarDays className="h-3.5 w-3.5" />
                 <span className="text-base leading-none">{stats.total}</span>
               </span>
             )}
-            {stats.completed > 0 && (
-              <span className="flex items-center gap-0.5 text-green-600 dark:text-green-400">
-                <CheckCheck className="h-2 w-2" />
-                <span className="text-base leading-none">{stats.completed}</span>
-              </span>
-            )}
-          </div>
-          <div className="flex gap-1 flex-wrap justify-center max-w-full min-h-2">
-            {stats.completedCategories &&
-              stats.completedCategories.length > 0 &&
-              stats.completedCategories.slice(0, 5).map((category) => (
-                <div
-                  key={category.id}
-                  className="w-2 h-2 rounded-full"
-                  style={{
-                    backgroundColor: category.color || "#6b7280",
-                  }}
-                  title={category.name}
-                />
-              ))}
           </div>
         </div>
       ) : (
@@ -138,17 +124,6 @@ export default function CalendarPage() {
 
   const days = getDaysInMonth(viewDate.getFullYear(), viewDate.getMonth());
 
-  const uniqueCategories = useMemo(() => {
-    if (!stats) return [];
-    const map = new Map<string, { id: string; name: string; color: string | null }>();
-    for (const dayStats of Object.values(stats)) {
-      for (const cat of dayStats.completedCategories ?? []) {
-        if (!map.has(cat.id)) map.set(cat.id, cat);
-      }
-    }
-    return Array.from(map.values());
-  }, [stats]);
-
   const handlePrevMonth = () => {
     setViewDate(new Date(viewDate.getFullYear(), viewDate.getMonth() - 1, 1));
   };
@@ -167,40 +142,27 @@ export default function CalendarPage() {
       <div className="flex-1 overflow-auto">
         <div>
           <div className="p-4">
-          <h1 className="text-xl font-semibold mb-3">カレンダー</h1>
-          <p className="text-sm text-muted-foreground mb-4">
+          <h1 className="text-lg font-semibold mb-1.5">カレンダー</h1>
+          <p className="text-xs text-muted-foreground mb-4">
             月ごとのタスク集計を確認できます。日付をクリックするとその日のタスク一覧に移動します。
           </p>
 
           {/* 凡例 */}
           <div className="mb-4 text-xs text-muted-foreground border rounded-lg p-3 space-y-2">
             <div className="flex items-center gap-5 flex-wrap">
+              <span className="flex items-center gap-1 text-green-600 dark:text-green-400">
+                <CircleCheck className="h-3.5 w-3.5" />
+                完了
+              </span>
               <span className="flex items-center gap-1">
-                <PenLine className="h-3.5 w-3.5" />
+                <PlusCircle className="h-3.5 w-3.5" />
                 作成
               </span>
               <span className="flex items-center gap-1 text-blue-600 dark:text-blue-400">
                 <CalendarDays className="h-3.5 w-3.5" />
                 予定
               </span>
-              <span className="flex items-center gap-1 text-green-600 dark:text-green-400">
-                <CheckCheck className="h-3.5 w-3.5" />
-                完了
-              </span>
             </div>
-            {uniqueCategories.length > 0 && (
-              <div className="flex items-center gap-3 flex-wrap pt-2 border-t">
-                {uniqueCategories.map((cat) => (
-                  <span key={cat.id} className="flex items-center gap-1">
-                    <span
-                      className="w-2 h-2 rounded-full shrink-0 inline-block"
-                      style={{ backgroundColor: cat.color || "#6b7280" }}
-                    />
-                    {cat.name}
-                  </span>
-                ))}
-              </div>
-            )}
           </div>
 
           {/* 月選択 */}
