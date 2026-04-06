@@ -226,6 +226,25 @@ export default function HomePage() {
     return () => document.removeEventListener("keydown", handleKeyDown);
   }, []);
 
+  // 数字キー（0-9）でカテゴリフィルターをトグル
+  useEffect(() => {
+    const handleKeyDown = (e: KeyboardEvent) => {
+      if (e.ctrlKey || e.metaKey || e.shiftKey || e.altKey) return;
+      if (!/^[0-9]$/.test(e.key)) return;
+      if (taskInputOpen || editingTask !== null) return;
+      const target = e.target as HTMLElement;
+      if (target.tagName === "INPUT" || target.tagName === "TEXTAREA" || target.tagName === "SELECT") return;
+      e.preventDefault();
+
+      const categoryId = e.key === "0" ? "none" : categories[parseInt(e.key, 10) - 1]?.id;
+      if (!categoryId) return;
+      handleToggleCategory(categoryId);
+    };
+
+    document.addEventListener("keydown", handleKeyDown);
+    return () => document.removeEventListener("keydown", handleKeyDown);
+  }, [categories, effectiveSelectedIds, searchParams, router, taskInputOpen, editingTask]);
+
   // 日付フィルタ時のマッチ理由を算出（クライアント側）
   const getMatchReasons = (task: Task): string[] => {
     if (!dateFilter) return [];

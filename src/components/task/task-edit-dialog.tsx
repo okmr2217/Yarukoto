@@ -43,6 +43,7 @@ export function TaskEditDialog({
   const [memo, setMemo] = useState(task?.memo ?? "");
   const [error, setError] = useState<string | null>(null);
   const titleTextareaRef = useRef<HTMLTextAreaElement>(null);
+  const memoTextareaRef = useRef<HTMLTextAreaElement>(null);
 
   useEffect(() => {
     const el = titleTextareaRef.current;
@@ -81,7 +82,16 @@ export function TaskEditDialog({
           <DialogTitle>タスクを編集</DialogTitle>
         </DialogHeader>
 
-        <form onSubmit={handleSubmit} className="flex flex-col">
+        <form
+          onSubmit={handleSubmit}
+          onKeyDown={(e) => {
+            if (e.ctrlKey && e.key === "Enter") {
+              e.preventDefault();
+              e.currentTarget.requestSubmit();
+            }
+          }}
+          className="flex flex-col"
+        >
           <div className="overflow-y-auto p-4 space-y-5">
             {/* タスク名 */}
             <div>
@@ -97,9 +107,13 @@ export function TaskEditDialog({
                   e.target.style.height = `${e.target.scrollHeight}px`;
                 }}
                 onKeyDown={(e) => {
-                  if (e.key === "Enter" && !e.shiftKey) {
+                  if (e.key === "Enter" && !e.shiftKey && !e.ctrlKey) {
                     e.preventDefault();
-                    e.currentTarget.form?.requestSubmit();
+                    if (window.matchMedia("(pointer: coarse)").matches) {
+                      e.currentTarget.form?.requestSubmit();
+                    } else {
+                      memoTextareaRef.current?.focus();
+                    }
                   }
                 }}
                 placeholder="タスクの内容"
@@ -110,10 +124,37 @@ export function TaskEditDialog({
               {error && <p className="text-sm text-destructive">{error}</p>}
             </div>
 
+            {/* メモ */}
+            <div>
+              <Label htmlFor="edit-task-memo" className="block mb-1">メモ</Label>
+              <Textarea
+                ref={memoTextareaRef}
+                id="edit-task-memo"
+                value={memo}
+                onChange={(e) => setMemo(e.target.value)}
+                placeholder="タスクの詳細やメモ"
+                rows={3}
+                className="resize-none overflow-y-auto max-h-32"
+              />
+            </div>
+
             {/* カテゴリ */}
             <div>
               <Label className="block mb-1">カテゴリ</Label>
-              <div className="flex flex-wrap gap-1">
+              <div
+                className="flex flex-wrap gap-1"
+                onKeyDown={(e) => {
+                  if (e.key === "0") {
+                    setCategoryId("none");
+                    return;
+                  }
+                  const num = parseInt(e.key);
+                  if (num >= 1 && num <= 9) {
+                    const target = categories[num - 1];
+                    if (target) setCategoryId(target.id);
+                  }
+                }}
+              >
                 <button
                   type="button"
                   onClick={() => setCategoryId("none")}
@@ -156,19 +197,6 @@ export function TaskEditDialog({
                   </button>
                 ))}
               </div>
-            </div>
-
-            {/* メモ */}
-            <div>
-              <Label htmlFor="edit-task-memo" className="block mb-1">メモ</Label>
-              <Textarea
-                id="edit-task-memo"
-                value={memo}
-                onChange={(e) => setMemo(e.target.value)}
-                placeholder="タスクの詳細やメモ"
-                rows={3}
-                className="resize-none overflow-y-auto max-h-32"
-              />
             </div>
 
             {/* 予定日 */}

@@ -56,6 +56,7 @@ export function TaskInputModal({
   const [memo, setMemo] = useState("");
 
   const titleInputRef = useRef<HTMLTextAreaElement>(null);
+  const memoInputRef = useRef<HTMLTextAreaElement>(null);
   const dateInputRef = useRef<HTMLInputElement>(null);
 
   // モーダルが開いたときにタイトル入力にフォーカス
@@ -108,7 +109,16 @@ export function TaskInputModal({
           <DialogTitle>タスクを追加</DialogTitle>
         </DialogHeader>
 
-        <form onSubmit={handleSubmit} className="flex flex-col">
+        <form
+          onSubmit={handleSubmit}
+          onKeyDown={(e) => {
+            if (e.ctrlKey && e.key === "Enter") {
+              e.preventDefault();
+              e.currentTarget.requestSubmit();
+            }
+          }}
+          className="flex flex-col"
+        >
           <div className="overflow-y-auto p-4 space-y-5">
             {/* タスク名 */}
             <div>
@@ -122,9 +132,13 @@ export function TaskInputModal({
                   e.target.style.height = `${e.target.scrollHeight}px`;
                 }}
                 onKeyDown={(e) => {
-                  if (e.key === "Enter" && !e.shiftKey) {
+                  if (e.key === "Enter" && !e.shiftKey && !e.ctrlKey) {
                     e.preventDefault();
-                    e.currentTarget.form?.requestSubmit();
+                    if (window.matchMedia("(pointer: coarse)").matches) {
+                      e.currentTarget.form?.requestSubmit();
+                    } else {
+                      memoInputRef.current?.focus();
+                    }
                   }
                 }}
                 placeholder="新しいタスクを入力..."
@@ -134,10 +148,36 @@ export function TaskInputModal({
               />
             </div>
 
+            {/* メモ */}
+            <div>
+              <label className="text-sm font-medium block mb-1">メモ</label>
+              <Textarea
+                ref={memoInputRef}
+                value={memo}
+                onChange={(e) => setMemo(e.target.value)}
+                placeholder="メモを入力..."
+                rows={3}
+                className="resize-none overflow-y-auto max-h-32"
+              />
+            </div>
+
             {/* カテゴリ */}
             <div>
               <label className="text-sm font-medium block mb-1">カテゴリ</label>
-              <div className="flex flex-wrap gap-1">
+              <div
+                className="flex flex-wrap gap-1"
+                onKeyDown={(e) => {
+                  if (e.key === "0") {
+                    setCategoryId(undefined);
+                    return;
+                  }
+                  const num = parseInt(e.key);
+                  if (num >= 1 && num <= 9) {
+                    const target = categories[num - 1];
+                    if (target) setCategoryId(target.id);
+                  }
+                }}
+              >
                 <button
                   type="button"
                   onClick={() => setCategoryId(undefined)}
@@ -180,18 +220,6 @@ export function TaskInputModal({
                   </button>
                 ))}
               </div>
-            </div>
-
-            {/* メモ */}
-            <div>
-              <label className="text-sm font-medium block mb-1">メモ</label>
-              <Textarea
-                value={memo}
-                onChange={(e) => setMemo(e.target.value)}
-                placeholder="メモを入力..."
-                rows={3}
-                className="resize-none overflow-y-auto max-h-32"
-              />
             </div>
 
             {/* 予定日 */}

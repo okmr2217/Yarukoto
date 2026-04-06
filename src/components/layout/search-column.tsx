@@ -208,7 +208,7 @@ export function SearchColumn({ categories, categoriesLoading, selectedCategoryId
                         {color && <span className="w-1.5 h-1.5 rounded-full shrink-0" style={{ backgroundColor: color }} />}
                         <span className="truncate">{category.name}</span>
                       </div>
-                      {count > 0 && <span className="text-[10px] tabular-nums shrink-0 ml-1 opacity-70">{count}</span>}
+                      {count > 0 && <span className="text-xs tabular-nums shrink-0 ml-1 opacity-70">{count}</span>}
                     </button>
                   );
                 })}
