@@ -1,6 +1,6 @@
 "use client";
 
-import { useState, useEffect } from "react";
+import { useState, useEffect, useRef, useMemo } from "react";
 import { ChevronDown, ChevronRight } from "lucide-react";
 import {
   DndContext,
@@ -25,6 +25,8 @@ import type { Task } from "@/types";
 interface TaskSectionProps {
   /** セクションタイトル */
   title: string;
+  /** タイトルの補足説明（日付フィルター時などに表示） */
+  subtitle?: string;
   /** 表示するタスクリスト */
   tasks: Task[];
   /** デフォルトで折りたたむか */
@@ -101,6 +103,7 @@ function SortableTaskCard({
 
 export function TaskSection({
   title,
+  subtitle,
   tasks,
   defaultCollapsed = false,
   variant = "default",
@@ -112,10 +115,34 @@ export function TaskSection({
 }: TaskSectionProps) {
   const [isCollapsed, setIsCollapsed] = useState(defaultCollapsed);
   const [localTasks, setLocalTasks] = useState(tasks);
+  const [exitingIds, setExitingIds] = useState<Set<string>>(new Set());
+  const prevTasksRef = useRef(tasks);
 
-  // tasksが変更されたらlocalTasksを更新
+  // matchReasons を task ID → reasons のマップに変換（DnD 並び替え・exit アニメーション時のインデックスずれを防ぐ）
+  const matchReasonsMap = useMemo(() => {
+    if (!matchReasons) return {} as Record<string, string[]>;
+    return Object.fromEntries(tasks.map((t, i) => [t.id, matchReasons[i] ?? []]));
+  }, [tasks, matchReasons]);
+
+  // tasks 変更を検知：削除されたタスクは 200ms exit アニメーション後に DOM 削除
   useEffect(() => {
-    setLocalTasks(tasks);
+    const prevTasks = prevTasksRef.current;
+    const removedIds = prevTasks.filter((pt) => !tasks.some((t) => t.id === pt.id)).map((pt) => pt.id);
+    prevTasksRef.current = tasks;
+
+    if (removedIds.length > 0) {
+      setExitingIds((prev) => new Set([...prev, ...removedIds]));
+      setTimeout(() => {
+        setLocalTasks(tasks);
+        setExitingIds((prev) => {
+          const next = new Set(prev);
+          removedIds.forEach((id) => next.delete(id));
+          return next;
+        });
+      }, 200);
+    } else {
+      setLocalTasks(tasks);
+    }
   }, [tasks]);
 
   const sensors = useSensors(
@@ -152,7 +179,7 @@ export function TaskSection({
 
   if (tasks.length === 0) return null;
 
-  const displayTasks = enableDragAndDrop ? localTasks : tasks;
+  const displayTasks = localTasks;
 
   return (
     <div className={cn("mb-4", variantStyles[variant])}>
@@ -171,6 +198,11 @@ export function TaskSection({
         <span className="text-xs text-muted-foreground ml-1">
           ({tasks.length})
         </span>
+        {subtitle && (
+          <span className="text-xs text-muted-foreground ml-1.5">
+            — {subtitle}
+          </span>
+        )}
       </button>
       {!isCollapsed && (
         <div className="rounded-lg border border-border overflow-hidden bg-card">
@@ -184,32 +216,50 @@ export function TaskSection({
                 items={displayTasks.map((task) => task.id)}
                 strategy={verticalListSortingStrategy}
               >
-                {displayTasks.map((task, index) => (
-                  <div key={task.id}>
-                    {index > 0 && <div className="border-t border-border" />}
-                    <SortableTaskCard
-                      task={task}
-                      handlers={handlers}
-                      showScheduledDate={showScheduledDate}
-                      enableDragAndDrop={enableDragAndDrop}
-                      matchReasons={matchReasons?.[index]}
-                    />
-                  </div>
-                ))}
+                {displayTasks.map((task, index) => {
+                  const isExiting = exitingIds.has(task.id);
+                  return (
+                    <div
+                      key={task.id}
+                      style={{
+                        transition: "opacity 200ms ease",
+                        opacity: isExiting ? 0 : 1,
+                      }}
+                    >
+                      {index > 0 && <div className="border-t border-border" />}
+                      <SortableTaskCard
+                        task={task}
+                        handlers={handlers}
+                        showScheduledDate={showScheduledDate}
+                        enableDragAndDrop={enableDragAndDrop}
+                        matchReasons={matchReasonsMap[task.id]}
+                      />
+                    </div>
+                  );
+                })}
               </SortableContext>
             </DndContext>
           ) : (
-            displayTasks.map((task, index) => (
-              <div key={task.id}>
-                {index > 0 && <div className="border-t border-border" />}
-                <TaskCard
-                  task={task}
-                  handlers={handlers}
-                  showScheduledDate={showScheduledDate}
-                  matchReasons={matchReasons?.[index]}
-                />
-              </div>
-            ))
+            displayTasks.map((task, index) => {
+              const isExiting = exitingIds.has(task.id);
+              return (
+                <div
+                  key={task.id}
+                  style={{
+                    transition: "opacity 200ms ease",
+                    opacity: isExiting ? 0 : 1,
+                  }}
+                >
+                  {index > 0 && <div className="border-t border-border" />}
+                  <TaskCard
+                    task={task}
+                    handlers={handlers}
+                    showScheduledDate={showScheduledDate}
+                    matchReasons={matchReasonsMap[task.id]}
+                  />
+                </div>
+              );
+            })
           )}
         </div>
       )}

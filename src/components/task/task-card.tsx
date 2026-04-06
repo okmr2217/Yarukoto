@@ -1,6 +1,6 @@
 "use client";
 
-import { useMemo } from "react";
+import { useState, useMemo } from "react";
 import { Checkbox } from "@/components/ui/checkbox";
 import {
   DropdownMenu,
@@ -253,6 +253,7 @@ export function TaskCard({
   dragHandleAttributes,
   matchReasons,
 }: TaskCardProps) {
+  const [isFlashing, setIsFlashing] = useState(false);
   const isCompleted = task.status === "COMPLETED";
   const isSkipped = task.status === "SKIPPED";
   const hasMemo = !!task.memo;
@@ -272,14 +273,16 @@ export function TaskCard({
 
   const handleCheckChange = (checked: boolean) => {
     if (checked) {
+      setIsFlashing(true);
       handlers.onComplete(task.id);
+      setTimeout(() => setIsFlashing(false), 600);
     } else {
       handlers.onUncomplete(task.id);
     }
   };
 
   return (
-    <div className="flex group">
+    <div className={cn("flex group transition-colors duration-300", isFlashing && "bg-success/10")}>
       {enableDragAndDrop && (
         <div
           className="flex items-center justify-center w-6 flex-shrink-0 bg-muted/50 cursor-grab active:cursor-grabbing touch-none text-muted-foreground/50"
@@ -297,7 +300,7 @@ export function TaskCard({
             <Checkbox
               checked={isCompleted}
               onCheckedChange={handleCheckChange}
-              disabled={isSkipped}
+              disabled={isSkipped || isFlashing}
             />
           </StopPropagation>
           <div className="flex items-center gap-2 flex-wrap">

@@ -406,6 +406,7 @@ export default function HomePage() {
                 <>
                   <TaskSection
                     title="未完了"
+                    subtitle={dateFilter ? "その日に予定・作成" : undefined}
                     tasks={pendingTasks}
                     handlers={taskHandlers}
                     showScheduledDate
@@ -416,6 +417,7 @@ export default function HomePage() {
 
                   <TaskSection
                     title="完了済み"
+                    subtitle={dateFilter ? "その日に完了" : undefined}
                     tasks={completedTasks}
                     variant="completed"
                     defaultCollapsed={settings.autoCollapseCompleted}
@@ -426,6 +428,7 @@ export default function HomePage() {
 
                   <TaskSection
                     title="やらない"
+                    subtitle={dateFilter ? "その日にやらないにした" : undefined}
                     tasks={skippedTasks}
                     variant="skipped"
                     defaultCollapsed={settings.autoCollapseSkipped}
