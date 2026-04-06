@@ -28,7 +28,7 @@ import {
   type LucideIcon,
 } from "lucide-react";
 import type { DraggableAttributes, DraggableSyntheticListeners } from "@dnd-kit/core";
-import { getScheduledDateStatus, formatRelativeDate, formatRelativeScheduledDate } from "@/lib/dateUtils";
+import { getScheduledDateStatus, formatCompactTime, formatRelativeScheduledDate } from "@/lib/dateUtils";
 
 /**
  * タスクカードのアクションハンドラー
@@ -259,6 +259,17 @@ export function TaskCard({
 
   const scheduledDateStatus = useMemo(() => getScheduledDateStatus(task.scheduledAt), [task.scheduledAt]);
 
+  const timeEntries = useMemo(() => {
+    const entries = [{ Icon: Clock, timestamp: task.createdAt, className: "text-muted-foreground/50" }];
+    if (isCompleted && task.completedAt) {
+      entries.push({ Icon: CheckCircle2, timestamp: task.completedAt, className: "text-success" });
+    }
+    if (isSkipped && task.skippedAt) {
+      entries.push({ Icon: Ban, timestamp: task.skippedAt, className: "text-yellow-600" });
+    }
+    return entries;
+  }, [isCompleted, isSkipped, task.completedAt, task.skippedAt, task.createdAt]);
+
   const handleCheckChange = (checked: boolean) => {
     if (checked) {
       handlers.onComplete(task.id);
@@ -289,7 +300,14 @@ export function TaskCard({
               disabled={isSkipped}
             />
           </StopPropagation>
-          <span className="text-xs text-muted-foreground/50">{formatRelativeDate(task.createdAt)}</span>
+          <div className="flex items-center gap-2 flex-wrap">
+            {timeEntries.map((entry, i) => (
+              <span key={i} className={cn("flex items-center gap-0.75 text-xs", entry.className)}>
+                <entry.Icon className="h-3 w-3 translate-y-[0.25px]" />
+                {formatCompactTime(entry.timestamp)}
+              </span>
+            ))}
+          </div>
           <div className="flex-1" />
           <TaskCardActions task={task} handlers={handlers} />
         </div>

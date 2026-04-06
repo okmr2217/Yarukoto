@@ -174,3 +174,27 @@ export function toJSTDate(date: Date): Date {
 export function formatDateTimeForDisplay(date: Date): string {
   return formatInTimeZone(date, JST_TIMEZONE, "yyyy年M月d日 HH:mm");
 }
+
+/**
+ * コンパクトな日時表示（タスクカード用）
+ * 60分以内 → "N分前"
+ * 今日 → "HH:mm"
+ * 昨日 → "昨日 HH:mm"
+ * それ以前 → "M/d HH:mm"
+ */
+export function formatCompactTime(date: Date | string): string {
+  const target = typeof date === "string" ? new Date(date) : date;
+  const diffSec = differenceInSeconds(new Date(), target);
+
+  if (diffSec < 3600) return `${Math.max(0, Math.floor(diffSec / 60))}分前`;
+
+  const todayStr = getTodayInJST();
+  const targetStr = formatDateToJST(target);
+
+  if (targetStr === todayStr) return formatInTimeZone(target, JST_TIMEZONE, "HH:mm");
+
+  const yesterdayStr = addDaysJST(todayStr, -1);
+  if (targetStr === yesterdayStr) return `昨日 ${formatInTimeZone(target, JST_TIMEZONE, "HH:mm")}`;
+
+  return formatInTimeZone(target, JST_TIMEZONE, "M/d HH:mm");
+}
