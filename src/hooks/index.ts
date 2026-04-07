@@ -11,6 +11,7 @@ export {
 export { useAllTasks } from "./use-all-tasks";
 
 export { useMonthlyTaskStats } from "./use-monthly-task-stats";
+export { useCategoryStats } from "./use-category-stats";
 
 export { useTaskMutations } from "./use-task-mutations";
 

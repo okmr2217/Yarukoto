@@ -1,6 +1,6 @@
 "use client";
 
-import { ChevronLeft, ChevronRight, Calendar, X } from "lucide-react";
+import { ChevronLeft, ChevronRight, BarChart2, X } from "lucide-react";
 import { Button } from "@/components/ui/button";
 import { cn } from "@/lib/utils";
 import { formatDateForDisplay, isTodayInJST } from "@/lib/dateUtils";
@@ -78,8 +78,8 @@ export function DateNavigation({
           aria-label="日付を選択"
           asChild
         >
-          <Link href="/calendar">
-            <Calendar className={cn("h-5 w-5")} />
+          <Link href="/stats?tab=daily">
+            <BarChart2 className={cn("h-5 w-5")} />
           </Link>
         </Button>
         {onClear && (

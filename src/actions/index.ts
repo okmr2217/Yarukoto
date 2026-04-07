@@ -22,6 +22,7 @@ export {
   deleteCategory,
   archiveCategory,
   unarchiveCategory,
+  getCategoryStats,
 } from "./category";
 
 export { deleteAccount, changeEmail } from "./account";

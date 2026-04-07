@@ -9,6 +9,16 @@ export type Category = {
   updatedAt: string;
 };
 
+export type CategoryStats = {
+  categoryId: string | null;
+  name: string;
+  color: string | null;
+  total: number;
+  completed: number;
+  skipped: number;
+  overdue: number;
+};
+
 export const CATEGORY_COLORS = [
   { name: "red", value: "#EF4444" },
   { name: "orange", value: "#F97316" },

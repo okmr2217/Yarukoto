@@ -1,7 +1,7 @@
 "use client";
 
 import { useState } from "react";
-import { Menu, Settings, Tags, ListTodo, Calendar } from "lucide-react";
+import { Menu, Settings, Tags, ListTodo, BarChart2 } from "lucide-react";
 import Link from "next/link";
 import { usePathname } from "next/navigation";
 import {
@@ -17,7 +17,7 @@ import { NAV_ITEMS } from "@/lib/constants";
 
 const iconMap = {
   ListTodo,
-  Calendar,
+  BarChart2,
   Tags,
   Settings,
 } as const;

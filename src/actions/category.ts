@@ -2,7 +2,8 @@
 
 import { prisma } from "@/lib/prisma";
 import { getRequiredUser } from "@/lib/auth-server";
-import { type ActionResult, success, failure, type Category } from "@/types";
+import { type ActionResult, success, failure, type Category, type CategoryStats } from "@/types";
+import { getTodayInJST, formatDateToJST } from "@/lib/dateUtils";
 import {
   createCategorySchema,
   updateCategorySchema,
@@ -260,6 +261,59 @@ export async function updateCategorySortOrder(
   } catch (error) {
     console.error("updateCategorySortOrder error:", error);
     return failure("カテゴリの並び替えに失敗しました", "INTERNAL_ERROR");
+  }
+}
+
+export async function getCategoryStats(): Promise<ActionResult<CategoryStats[]>> {
+  try {
+    const user = await getRequiredUser();
+    const today = getTodayInJST();
+
+    const [categories, tasks] = await Promise.all([
+      prisma.category.findMany({
+        where: { userId: user.id },
+        orderBy: [{ sortOrder: "asc" }, { createdAt: "asc" }],
+      }),
+      prisma.task.findMany({
+        where: { userId: user.id },
+        select: { categoryId: true, status: true, scheduledAt: true },
+      }),
+    ]);
+
+    const map = new Map<string | null, CategoryStats>();
+
+    // カテゴリの表示順で初期化（アーカイブ済み含む）
+    for (const c of categories) {
+      map.set(c.id, {
+        categoryId: c.id,
+        name: c.name,
+        color: c.color,
+        total: 0,
+        completed: 0,
+        skipped: 0,
+        overdue: 0,
+      });
+    }
+    // カテゴリなしを末尾に追加
+    map.set(null, { categoryId: null, name: "カテゴリなし", color: null, total: 0, completed: 0, skipped: 0, overdue: 0 });
+
+    for (const task of tasks) {
+      const key = task.categoryId;
+      // アーカイブ済みカテゴリのタスクはカテゴリなしに集計
+      const statsKey = map.has(key) ? key : null;
+      const stats = map.get(statsKey)!;
+      stats.total++;
+      if (task.status === "COMPLETED") stats.completed++;
+      if (task.status === "SKIPPED") stats.skipped++;
+      if (task.status === "PENDING" && task.scheduledAt && formatDateToJST(task.scheduledAt) < today) {
+        stats.overdue++;
+      }
+    }
+
+    return success(Array.from(map.values()));
+  } catch (error) {
+    console.error("getCategoryStats error:", error);
+    return failure("カテゴリ統計の取得に失敗しました", "INTERNAL_ERROR");
   }
 }
 

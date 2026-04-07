@@ -2,11 +2,11 @@
 
 import Link from "next/link";
 import { usePathname } from "next/navigation";
-import { ListTodo, Tags, Settings, Calendar } from "lucide-react";
+import { ListTodo, Tags, Settings, BarChart2 } from "lucide-react";
 import { cn } from "@/lib/utils";
 import { NAV_ITEMS } from "@/lib/constants";
 
-const iconMap = { ListTodo, Calendar, Tags, Settings } as const;
+const iconMap = { ListTodo, BarChart2, Tags, Settings } as const;
 
 export function BottomNav() {
   const pathname = usePathname();

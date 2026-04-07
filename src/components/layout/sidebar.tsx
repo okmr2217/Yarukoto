@@ -2,7 +2,7 @@
 
 import Link from "next/link";
 import { usePathname, useRouter, useSearchParams } from "next/navigation";
-import { ListTodo, Tags, Settings, Calendar } from "lucide-react";
+import { ListTodo, Tags, Settings, BarChart2 } from "lucide-react";
 import { cn } from "@/lib/utils";
 import Image from "next/image";
 import { NAV_ITEMS, CATEGORY_DESELECTED_SENTINEL } from "@/lib/constants";
@@ -11,7 +11,7 @@ import { SearchColumn } from "./search-column";
 
 const iconMap = {
   ListTodo,
-  Calendar,
+  BarChart2,
   Tags,
   Settings,
 } as const;
