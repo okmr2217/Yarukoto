@@ -29,8 +29,6 @@ interface TaskSectionProps {
   subtitle?: string;
   /** 表示するタスクリスト */
   tasks: Task[];
-  /** デフォルトで折りたたむか */
-  defaultCollapsed?: boolean;
   /** セクションのバリアント（スタイル） */
   variant?: "default" | "completed" | "skipped" | "overdue";
   /** タスク操作のハンドラー群 */
@@ -107,7 +105,6 @@ export function TaskSection({
   title,
   subtitle,
   tasks,
-  defaultCollapsed = false,
   variant = "default",
   handlers,
   showScheduledDate = false,
@@ -116,7 +113,7 @@ export function TaskSection({
   matchReasons,
   hideHeader = false,
 }: TaskSectionProps) {
-  const [isCollapsed, setIsCollapsed] = useState(defaultCollapsed && !hideHeader);
+  const [isCollapsed, setIsCollapsed] = useState(false);
   const [localTasks, setLocalTasks] = useState(tasks);
   const [exitingIds, setExitingIds] = useState<Set<string>>(new Set());
   const prevTasksRef = useRef(tasks);

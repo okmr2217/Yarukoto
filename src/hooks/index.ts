@@ -15,8 +15,6 @@ export { useCategoryStats } from "./use-category-stats";
 
 export { useTaskMutations } from "./use-task-mutations";
 
-export { useSettings } from "./use-settings";
-
 export {
   useCategories,
   useArchivedCategories,

@@ -13,7 +13,6 @@ import {
   Lock,
 } from "lucide-react";
 import { Button } from "@/components/ui/button";
-import { Switch } from "@/components/ui/switch";
 import { Label } from "@/components/ui/label";
 import { Input } from "@/components/ui/input";
 import {
@@ -38,17 +37,11 @@ import {
 } from "@/components/ui/dialog";
 import { signOut, useSession, changePassword } from "@/lib/auth-client";
 import { deleteAccount, changeEmail } from "@/actions";
-import { useSettings, useTheme } from "@/hooks";
+import { useTheme } from "@/hooks";
 
 export default function SettingsPage() {
   const router = useRouter();
   const { data: session } = useSession();
-  const {
-    settings,
-    isLoaded,
-    toggleAutoCollapseCompleted,
-    toggleAutoCollapseSkipped,
-  } = useSettings();
   const { theme, setTheme } = useTheme();
   const [isLoggingOut, setIsLoggingOut] = useState(false);
   const [isDeleting, startDeleteTransition] = useTransition();
@@ -382,43 +375,6 @@ export default function SettingsPage() {
                     <span className="text-xs font-medium">システム</span>
                   </button>
                 </div>
-              </div>
-            </div>
-          </section>
-
-          {/* Display Settings Section */}
-          <section>
-            <h2 className="text-xs font-medium text-muted-foreground mb-2">
-              表示設定
-            </h2>
-            <div className="bg-card rounded-lg border border-border overflow-hidden">
-              <div className="flex items-center justify-between p-4 border-b border-border">
-                <Label
-                  htmlFor="auto-collapse-completed"
-                  className="cursor-pointer flex-1"
-                >
-                  完了タスクを自動で折りたたむ
-                </Label>
-                <Switch
-                  id="auto-collapse-completed"
-                  checked={isLoaded ? settings.autoCollapseCompleted : true}
-                  onCheckedChange={toggleAutoCollapseCompleted}
-                  disabled={!isLoaded}
-                />
-              </div>
-              <div className="flex items-center justify-between p-4">
-                <Label
-                  htmlFor="auto-collapse-skipped"
-                  className="cursor-pointer flex-1"
-                >
-                  やらないタスクを自動で折りたたむ
-                </Label>
-                <Switch
-                  id="auto-collapse-skipped"
-                  checked={isLoaded ? settings.autoCollapseSkipped : true}
-                  onCheckedChange={toggleAutoCollapseSkipped}
-                  disabled={!isLoaded}
-                />
               </div>
             </div>
           </section>
