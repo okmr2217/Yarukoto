@@ -90,20 +90,6 @@ export default function HomePage() {
     updateSearchParams({ category: CATEGORY_DESELECTED_SENTINEL });
   };
 
-  const handleApplyFilters = (values: FilterValues) => {
-    const params = new URLSearchParams(searchParams.toString());
-    if (values.keyword) params.set("keyword", values.keyword); else params.delete("keyword");
-    if (values.status !== "pending") params.set("status", values.status); else params.delete("status");
-    if (values.date) params.set("date", values.date); else params.delete("date");
-    if (values.isFavorite) params.set("favorite", "true"); else params.delete("favorite");
-    const qs = params.toString();
-    router.push(qs ? `/?${qs}` : "/");
-  };
-
-  const handleClearFilters = () => {
-    updateSearchParams({ keyword: null, status: null, favorite: null, date: null });
-  };
-
   const filterValues: FilterValues = {
     keyword,
     status: statusFilter,
@@ -325,12 +311,8 @@ export default function HomePage() {
         />
 
         <FilterBottomSheet
-          key={filterSheetOpen ? "filter-open" : "filter-closed"}
           open={filterSheetOpen}
           onClose={() => setFilterSheetOpen(false)}
-          filterValues={filterValues}
-          onApply={handleApplyFilters}
-          onClear={handleClearFilters}
         />
 
         <TaskInputModal
@@ -419,14 +401,10 @@ export default function HomePage() {
         activeFilterCount={countActiveFilters(filterValues)}
       />
 
-      {/* モバイル: フィルター ボトムシート（開くたびに現在のフィルタ値でリセット） */}
+      {/* モバイル: フィルター ボトムシート */}
       <FilterBottomSheet
-        key={filterSheetOpen ? "filter-open" : "filter-closed"}
         open={filterSheetOpen}
         onClose={() => setFilterSheetOpen(false)}
-        filterValues={filterValues}
-        onApply={handleApplyFilters}
-        onClear={handleClearFilters}
       />
 
       <TaskInputModal

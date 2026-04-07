@@ -166,80 +166,52 @@ function TaskCardActions({ task, handlers }: TaskCardActionsProps) {
   );
 }
 
-const MATCH_REASON_CONFIG: Record<string, { Icon: LucideIcon; className: string }> = {
-  この日に完了: { Icon: CheckCircle2, className: "bg-success/10 text-success text-xs px-2 py-0.5 rounded-full" },
-  この日にやらない: { Icon: Ban, className: "bg-yellow-500/10 text-yellow-600 text-xs px-2 py-0.5 rounded-full" },
-  この日に作成: { Icon: Clock, className: "text-muted-foreground text-xs" },
-};
-
 interface TaskCardMetaProps {
   task: Task;
   showScheduledDate: boolean;
   scheduledDateStatus: "today" | "overdue" | "future" | null;
-  matchReasons?: string[];
   hasMemo: boolean;
 }
 
-function TaskCardMeta({ task, showScheduledDate, scheduledDateStatus, matchReasons, hasMemo }: TaskCardMetaProps) {
+function TaskCardMeta({ task, showScheduledDate, scheduledDateStatus, hasMemo }: TaskCardMetaProps) {
   const isSkipped = task.status === "SKIPPED";
 
-  // "予定日" は scheduledDateStatus バッジで表示するため除外
-  const contextReasons = matchReasons?.filter((r) => r !== "予定日") ?? [];
-
-  // カテゴリドットは上段に移動したためここでは除外
   const hasRow1 = (showScheduledDate && task.scheduledAt) || (isSkipped && task.skipReason);
-  const hasRow2 = contextReasons.length > 0;
 
-  if (!hasRow1 && !hasRow2) return null;
+  if (!hasRow1) return null;
 
   return (
     <div className={cn("flex flex-col gap-1", hasMemo ? "mt-2" : "mt-1")}>
-      {hasRow1 && (
-        <div className="flex items-center gap-1.5 flex-wrap">
-          {showScheduledDate && task.scheduledAt && (
-            <>
-              {scheduledDateStatus === "today" && (
-                <span className="flex items-center gap-1 text-primary text-xs font-medium">
-                  <Calendar className="h-3 w-3" />
-                  今日
-                </span>
-              )}
-              {scheduledDateStatus === "overdue" && (
-                <span className="flex items-center gap-1 bg-destructive/10 text-destructive text-xs px-2 py-0.5 rounded-full font-medium">
-                  <AlertCircle className="h-3 w-3" />
-                  {formatRelativeScheduledDate(task.scheduledAt!)}
-                </span>
-              )}
-              {scheduledDateStatus === "future" && (
-                <span className="flex items-center gap-1 text-muted-foreground text-xs">
-                  <Calendar className="h-3 w-3" />
-                  {formatRelativeScheduledDate(task.scheduledAt!)}
-                </span>
-              )}
-            </>
-          )}
-          {isSkipped && task.skipReason && (
-            <span className="flex items-center gap-1 bg-yellow-500/10 text-yellow-600 text-xs px-2 py-0.5 rounded-full">
-              <Ban className="h-3 w-3" />
-              {task.skipReason}
-            </span>
-          )}
-        </div>
-      )}
-      {hasRow2 && (
-        <div className="flex items-center gap-1.5 flex-wrap opacity-70">
-          {contextReasons.map((reason) => {
-            const config = MATCH_REASON_CONFIG[reason];
-            if (!config) return <span key={reason} className="text-xs text-muted-foreground">{reason}</span>;
-            return (
-              <span key={reason} className={cn("flex items-center gap-1", config.className)}>
-                <config.Icon className="h-3 w-3" />
-                {reason}
+      <div className="flex items-center gap-1.5 flex-wrap">
+        {showScheduledDate && task.scheduledAt && (
+          <>
+            {scheduledDateStatus === "today" && (
+              <span className="flex items-center gap-1 text-primary text-xs font-medium">
+                <Calendar className="h-3 w-3" />
+                今日
               </span>
-            );
-          })}
-        </div>
-      )}
+            )}
+            {scheduledDateStatus === "overdue" && (
+              <span className="flex items-center gap-1 bg-destructive/10 text-destructive text-xs px-2 py-0.5 rounded-full font-medium">
+                <AlertCircle className="h-3 w-3" />
+                {formatRelativeScheduledDate(task.scheduledAt!)}
+              </span>
+            )}
+            {scheduledDateStatus === "future" && (
+              <span className="flex items-center gap-1 text-muted-foreground text-xs">
+                <Calendar className="h-3 w-3" />
+                {formatRelativeScheduledDate(task.scheduledAt!)}
+              </span>
+            )}
+          </>
+        )}
+        {isSkipped && task.skipReason && (
+          <span className="flex items-center gap-1 bg-yellow-500/10 text-yellow-600 text-xs px-2 py-0.5 rounded-full">
+            <Ban className="h-3 w-3" />
+            {task.skipReason}
+          </span>
+        )}
+      </div>
     </div>
   );
 }
@@ -261,15 +233,32 @@ export function TaskCard({
   const scheduledDateStatus = useMemo(() => getScheduledDateStatus(task.scheduledAt), [task.scheduledAt]);
 
   const timeEntries = useMemo(() => {
-    const entries = [{ Icon: Clock, timestamp: task.createdAt, className: "text-muted-foreground/50" }];
+    const entries = [
+      {
+        Icon: Clock,
+        timestamp: task.createdAt,
+        className: "text-muted-foreground/50",
+        bold: matchReasons?.includes("この日に作成") ?? false,
+      },
+    ];
     if (isCompleted && task.completedAt) {
-      entries.push({ Icon: CheckCircle2, timestamp: task.completedAt, className: "text-success" });
+      entries.push({
+        Icon: CheckCircle2,
+        timestamp: task.completedAt,
+        className: "text-success",
+        bold: matchReasons?.includes("この日に完了") ?? false,
+      });
     }
     if (isSkipped && task.skippedAt) {
-      entries.push({ Icon: Ban, timestamp: task.skippedAt, className: "text-yellow-600" });
+      entries.push({
+        Icon: Ban,
+        timestamp: task.skippedAt,
+        className: "text-yellow-600",
+        bold: matchReasons?.includes("この日にやらない") ?? false,
+      });
     }
     return entries;
-  }, [isCompleted, isSkipped, task.completedAt, task.skippedAt, task.createdAt]);
+  }, [isCompleted, isSkipped, task.completedAt, task.skippedAt, task.createdAt, matchReasons]);
 
   const handleCheckChange = (checked: boolean) => {
     if (checked) {
@@ -305,7 +294,7 @@ export function TaskCard({
           </StopPropagation>
           <div className="flex items-center gap-2 flex-wrap">
             {timeEntries.map((entry, i) => (
-              <span key={i} className={cn("flex items-center gap-0.75 text-xs", entry.className)}>
+              <span key={i} className={cn("flex items-center gap-0.75 text-xs", entry.className, entry.bold && "font-bold")}>
                 <entry.Icon className="h-3 w-3 translate-y-[0.25px]" />
                 {formatCompactTime(entry.timestamp)}
               </span>
@@ -347,7 +336,6 @@ export function TaskCard({
             task={task}
             showScheduledDate={showScheduledDate}
             scheduledDateStatus={scheduledDateStatus}
-            matchReasons={matchReasons}
             hasMemo={hasMemo}
           />
         </div>

@@ -73,6 +73,25 @@ export function SearchColumn({ categories, categoriesLoading, selectedCategoryId
     return counts;
   })();
 
+  // ステータス件数: 現在のフィルター（カテゴリ・日付・キーワード・お気に入り）に連動、ステータス条件は除外
+  const { data: allFilteredTasks } = useAllTasks(
+    {
+      categoryIds: isDefaultAllSelected ? undefined : selectedCategoryIds,
+      date: dateFilter || undefined,
+      keyword: keyword || undefined,
+      isFavorite: favoriteFilter || undefined,
+    },
+    { enabled: !isAllDeselected },
+  );
+
+  const statusCounts: Record<StatusFilter, number> = (() => {
+    if (!allFilteredTasks) return { all: 0, pending: 0, completed: 0, skipped: 0 };
+    const pending = allFilteredTasks.filter((t) => t.status === "PENDING").length;
+    const completed = allFilteredTasks.filter((t) => t.status === "COMPLETED").length;
+    const skipped = allFilteredTasks.filter((t) => t.status === "SKIPPED").length;
+    return { all: allFilteredTasks.length, pending, completed, skipped };
+  })();
+
   const updateSearchParams = (updates: Record<string, string | null>) => {
     const params = new URLSearchParams(searchParams.toString());
     for (const [key, value] of Object.entries(updates)) {
@@ -264,22 +283,27 @@ export function SearchColumn({ categories, categoriesLoading, selectedCategoryId
       {/* ステータス */}
       <section>
         <SectionLabel>ステータス</SectionLabel>
-        <div className="flex h-8 rounded-md border border-input overflow-hidden divide-x divide-border text-xs bg-background">
-          {STATUS_OPTIONS.map((option) => (
-            <button
-              key={option.value}
-              type="button"
-              className={cn(
-                "flex-1 px-1 whitespace-nowrap overflow-hidden transition-colors",
-                statusFilter === option.value
-                  ? "bg-primary text-primary-foreground font-medium"
-                  : "text-muted-foreground hover:bg-muted",
-              )}
-              onClick={() => updateSearchParams({ status: option.value === "pending" ? null : option.value })}
-            >
-              {option.label}
-            </button>
-          ))}
+        <div className="flex rounded-md border border-input overflow-hidden divide-x divide-border text-xs bg-background">
+          {STATUS_OPTIONS.map((option) => {
+            const count = statusCounts[option.value];
+            const active = statusFilter === option.value;
+            return (
+              <button
+                key={option.value}
+                type="button"
+                className={cn(
+                  "flex-1 flex flex-col items-center justify-center py-1 px-0.5 min-h-[2rem] transition-colors",
+                  active ? "bg-primary text-primary-foreground font-medium" : "text-muted-foreground hover:bg-muted",
+                )}
+                onClick={() => updateSearchParams({ status: option.value === "pending" ? null : option.value })}
+              >
+                <span className="whitespace-nowrap leading-none">{option.label}</span>
+                {allFilteredTasks !== undefined && (
+                  <span className={cn("tabular-nums leading-none mt-0.5 text-[10px]", active ? "opacity-70" : "opacity-50")}>{count}</span>
+                )}
+              </button>
+            );
+          })}
         </div>
       </section>
 
@@ -353,6 +377,11 @@ export function SearchColumn({ categories, categoriesLoading, selectedCategoryId
             fill={favoriteFilter ? "currentColor" : "none"}
           />
           お気に入りのみ
+          {allFilteredTasks !== undefined && (
+            <span className={cn("ml-auto tabular-nums text-xs", favoriteFilter ? "opacity-70" : "opacity-50")}>
+              {allFilteredTasks.filter((t) => t.isFavorite).length}
+            </span>
+          )}
         </button>
       </section>
       </div>
