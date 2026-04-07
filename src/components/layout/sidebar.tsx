@@ -65,7 +65,7 @@ export function Sidebar() {
   };
 
   return (
-    <aside className="hidden md:flex md:w-[300px] flex-col sticky top-0 h-screen overflow-y-auto">
+    <aside className="hidden md:flex md:w-75 flex-col sticky top-0 h-screen overflow-y-auto">
       {/* Logo */}
       <div className="flex items-center h-12 px-4 shrink-0">
         <Link href="/" className="flex items-center gap-0.5">

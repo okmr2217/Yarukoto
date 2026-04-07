@@ -286,15 +286,15 @@ export default function HomePage() {
                   <div key={i}>
                     {i > 0 && <div className="border-t border-border" />}
                     <div className="flex p-3 gap-3">
-                      <div className="h-4 w-4 rounded bg-muted animate-pulse mt-0.5 flex-shrink-0" />
+                      <div className="h-4 w-4 rounded bg-muted animate-pulse mt-0.5 shrink-0" />
                       <div className="flex-1 min-w-0 space-y-2">
                         <div className="flex items-center gap-2">
                           <div
                             className="h-4 rounded bg-muted animate-pulse"
                             style={{ width: `${[55, 72, 40, 63][i]}%` }}
                           />
-                          <div className="h-3 w-8 rounded bg-muted animate-pulse ml-auto flex-shrink-0" />
-                          <div className="h-6 w-6 rounded bg-muted animate-pulse flex-shrink-0" />
+                          <div className="h-3 w-8 rounded bg-muted animate-pulse ml-auto shrink-0" />
+                          <div className="h-6 w-6 rounded bg-muted animate-pulse shrink-0" />
                         </div>
                         {i % 2 === 0 && (
                           <div className="h-3 w-20 rounded-full bg-muted animate-pulse" />

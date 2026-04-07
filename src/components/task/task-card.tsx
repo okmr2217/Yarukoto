@@ -274,7 +274,7 @@ export function TaskCard({
     <div className={cn("flex group hover:bg-accent/40 transition-colors duration-150", isFlashing && "bg-success/10")}>
       {enableDragAndDrop && (
         <div
-          className="flex items-center justify-center w-6 flex-shrink-0 bg-muted/50 cursor-grab active:cursor-grabbing touch-none text-muted-foreground/50"
+          className="flex items-center justify-center w-6 shrink-0 bg-muted/50 cursor-grab active:cursor-grabbing touch-none text-muted-foreground/50"
           aria-label="ドラッグして並び替え"
           {...dragHandleListeners}
           {...dragHandleAttributes}
@@ -314,7 +314,7 @@ export function TaskCard({
               <Tooltip>
                 <TooltipTrigger asChild>
                   <span
-                    className="w-2 h-2 rounded-full flex-shrink-0 mt-1.75 cursor-default"
+                    className="w-2 h-2 rounded-full shrink-0 mt-1.75 cursor-default"
                     style={{ backgroundColor: task.category.color }}
                   />
                 </TooltipTrigger>

@@ -283,7 +283,7 @@ export function SearchColumn({ categories, categoriesLoading, selectedCategoryId
                 key={option.value}
                 type="button"
                 className={cn(
-                  "flex-1 flex flex-col items-center justify-center py-1 px-0.5 min-h-[2rem] transition-colors",
+                  "flex-1 flex flex-col items-center justify-center py-1 px-0.5 min-h-8 transition-colors",
                   active ? "bg-primary text-primary-foreground font-medium" : "text-muted-foreground hover:bg-muted",
                 )}
                 onClick={() => updateSearchParams({ status: option.value === "pending" ? null : option.value })}
