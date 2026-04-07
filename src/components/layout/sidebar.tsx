@@ -6,7 +6,7 @@ import { ListTodo, Tags, Settings, BarChart2 } from "lucide-react";
 import { cn } from "@/lib/utils";
 import Image from "next/image";
 import { NAV_ITEMS, CATEGORY_DESELECTED_SENTINEL } from "@/lib/constants";
-import { useAllTasks, useCategories } from "@/hooks";
+import { useCategories } from "@/hooks";
 import { SearchColumn } from "./search-column";
 
 const iconMap = {
@@ -20,8 +20,6 @@ export function Sidebar() {
   const pathname = usePathname();
   const router = useRouter();
   const searchParams = useSearchParams();
-  const { data: pendingTasks } = useAllTasks({ status: "pending" });
-  const pendingCount = pendingTasks?.length ?? 0;
   const { data: categories = [], isLoading: categoriesLoading } = useCategories();
 
   const categoryParam = searchParams.get("category");
@@ -99,11 +97,6 @@ export function Sidebar() {
             >
               <Icon className="h-5 w-5 shrink-0 translate-y-px" />
               <span>{item.label}</span>
-              {item.href === "/" && pendingCount > 0 && (
-                <span className="ml-auto text-[11px] font-medium bg-primary/15 text-primary px-1.5 py-px rounded-full">
-                  {pendingCount}
-                </span>
-              )}
             </Link>
           );
         })}

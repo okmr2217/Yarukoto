@@ -61,12 +61,18 @@ export function SearchColumn({ categories, categoriesLoading, selectedCategoryId
     setLocalKeyword(keyword);
   }
 
-  const { data: allPendingTasks } = useAllTasks({ status: "pending" });
+  // カテゴリ件数: カテゴリ以外のフィルター（日付・キーワード・ステータス・お気に入り）に連動
+  const { data: tasksForCategoryCounts } = useAllTasks({
+    date: dateFilter || undefined,
+    keyword: keyword || undefined,
+    status: statusFilter !== "all" ? statusFilter : undefined,
+    isFavorite: favoriteFilter || undefined,
+  });
 
-  const pendingCountByCategory = (() => {
-    if (!allPendingTasks) return {} as Record<string, number>;
+  const countByCategory = (() => {
+    if (!tasksForCategoryCounts) return {} as Record<string, number>;
     const counts: Record<string, number> = {};
-    for (const task of allPendingTasks) {
+    for (const task of tasksForCategoryCounts) {
       const key = task.categoryId ?? "none";
       counts[key] = (counts[key] ?? 0) + 1;
     }
@@ -201,7 +207,7 @@ export function SearchColumn({ categories, categoriesLoading, selectedCategoryId
             : (
               <>
                 {categories.map((category) => {
-                  const count = pendingCountByCategory[category.id] ?? 0;
+                  const count = countByCategory[category.id] ?? 0;
                   const active = selectedCategoryIds.includes(category.id);
                   const color = category.color;
 
@@ -233,7 +239,7 @@ export function SearchColumn({ categories, categoriesLoading, selectedCategoryId
                 })}
                 {/* カテゴリなし */}
                 {(() => {
-                  const count = pendingCountByCategory["none"] ?? 0;
+                  const count = countByCategory["none"] ?? 0;
                   const active = selectedCategoryIds.includes("none");
                   return (
                     <button
