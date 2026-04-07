@@ -1,6 +1,6 @@
 "use client";
 
-import { useState, useEffect } from "react";
+import { useState, useEffect, useCallback, useMemo } from "react";
 import { useRouter, useSearchParams } from "next/navigation";
 import { FilterArea, FilterFab, FilterBottomSheet, type FilterValues } from "@/components/layout";
 import {
@@ -56,7 +56,7 @@ export default function HomePage() {
   const [filterSheetOpen, setFilterSheetOpen] = useState(false);
 
   // URLクエリパラメータ更新ヘルパー
-  const updateSearchParams = (updates: Record<string, string | null>) => {
+  const updateSearchParams = useCallback((updates: Record<string, string | null>) => {
     const params = new URLSearchParams(searchParams.toString());
     for (const [key, value] of Object.entries(updates)) {
       if (value === null || value === "") {
@@ -67,21 +67,7 @@ export default function HomePage() {
     }
     const qs = params.toString();
     router.push(qs ? `/?${qs}` : "/");
-  };
-
-  const handleToggleCategory = (categoryId: string) => {
-    const next = effectiveSelectedIds.includes(categoryId)
-      ? effectiveSelectedIds.filter((id) => id !== categoryId)
-      : [...effectiveSelectedIds, categoryId];
-
-    if (next.length === 0) {
-      updateSearchParams({ category: CATEGORY_DESELECTED_SENTINEL });
-    } else {
-      const allIds = [...categories.map((c) => c.id), "none"];
-      const isAllSelected = allIds.length === next.length && allIds.every((id) => next.includes(id));
-      updateSearchParams({ category: isAllSelected ? null : next.join(",") });
-    }
-  };
+  }, [searchParams, router]);
 
   const handleSelectAllCategories = () => {
     updateSearchParams({ category: null }); // null = デフォルト全選択
@@ -101,11 +87,29 @@ export default function HomePage() {
   const { data: categories = [], isLoading: categoriesLoading } = useCategories();
 
   // カテゴリの表示状態（チップのアクティブ状態に使用）
-  const effectiveSelectedIds = isDefaultAllSelected
-    ? [...categories.map((c) => c.id), "none"]
-    : isAllDeselected
-    ? []
-    : (categoryParam?.split(",") ?? []);
+  const effectiveSelectedIds = useMemo(
+    () =>
+      isDefaultAllSelected
+        ? [...categories.map((c) => c.id), "none"]
+        : isAllDeselected
+        ? []
+        : (categoryParam?.split(",") ?? []),
+    [isDefaultAllSelected, isAllDeselected, categories, categoryParam],
+  );
+
+  const handleToggleCategory = useCallback((categoryId: string) => {
+    const next = effectiveSelectedIds.includes(categoryId)
+      ? effectiveSelectedIds.filter((id) => id !== categoryId)
+      : [...effectiveSelectedIds, categoryId];
+
+    if (next.length === 0) {
+      updateSearchParams({ category: CATEGORY_DESELECTED_SENTINEL });
+    } else {
+      const allIds = [...categories.map((c) => c.id), "none"];
+      const isAllSelected = allIds.length === next.length && allIds.every((id) => next.includes(id));
+      updateSearchParams({ category: isAllSelected ? null : next.join(",") });
+    }
+  }, [effectiveSelectedIds, categories, updateSearchParams]);
 
   const { data: tasks, isLoading, error } = useAllTasks(
     {
@@ -242,7 +246,7 @@ export default function HomePage() {
 
     document.addEventListener("keydown", handleKeyDown);
     return () => document.removeEventListener("keydown", handleKeyDown);
-  }, [categories, effectiveSelectedIds, searchParams, router, taskInputOpen, editingTask]);
+  }, [categories, effectiveSelectedIds, searchParams, router, taskInputOpen, editingTask, handleToggleCategory]);
 
   // 日付フィルタ時のマッチ理由を算出（クライアント側）
   const getMatchReasons = (task: Task): string[] => {

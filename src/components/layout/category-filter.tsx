@@ -36,7 +36,7 @@ export function CategoryFilter({ categories, selectedCategoryIds, onToggleCatego
 
   return (
     <div className="bg-background border-b">
-      <div className="flex flex-wrap items-center gap-1 px-3 py-1.5">
+      <div className="flex flex-wrap items-center gap-1 px-1.5 py-1.5">
         <button
           onClick={onDeselectAll}
           className={cn(
