@@ -2,6 +2,33 @@ import { Page } from 'playwright';
 import { capture } from '../utils/capture';
 import { CONFIG } from '../config';
 
+/**
+ * スクリーンショット シナリオ一覧
+ *
+ * PC シナリオ (runPcScenarios)
+ *   home-pc              / — ホーム（タスク一覧、3カラムレイアウト）
+ *   task-add-modal-pc    / — タスク追加モーダルを開いた状態
+ *   task-drag-drop       / — ドラッグ中演出を適用したタスク一覧
+ *   stats-pc             /stats — 統計ページ
+ *   categories-list      /categories — カテゴリ一覧
+ *   category-edit-dialog /categories — カテゴリ編集ダイアログを開いた状態
+ *   category-delete-dialog /categories — カテゴリ削除ダイアログを開いた状態
+ *   settings             /settings — 設定ページ
+ *   help-pc              /help — ヘルプページ
+ *
+ * モバイル シナリオ (runMobileScenarios)
+ *   home-mobile          / — ホーム（ボトムナビ付き）
+ *   task-add-modal-mobile / — タスク追加モーダルを開いた状態
+ *   stats-mobile         /stats — 統計ページ
+ *   filter-bottom-sheet  / — フィルター FAB からボトムシートを開いた状態
+ *   menu-bottom-sheet    / — ボトムナビのメニューボタンからシートを開いた状態
+ *
+ * ログインシナリオ (runLoginScenarios) ※認証不要
+ *   login                /login — ログインページ
+ *   signup               /signup — 新規登録ページ
+ *   forgot-password      /forgot-password — パスワードリセット申請ページ
+ */
+
 const BASE_URL = CONFIG.BASE_URL;
 
 export async function runPcScenarios(page: Page): Promise<void> {
@@ -14,16 +41,18 @@ export async function runPcScenarios(page: Page): Promise<void> {
     console.error('❌ home-pc failed:', e);
   }
 
-  // task-add-inline (PC)
+  // task-add-modal (PC) — TaskFab をクリックしてモーダルを開く
   try {
     await page.goto(`${BASE_URL}/`);
     await page.waitForLoadState('networkidle');
-    const addBtn = page.locator('button:has-text("+"), button:has-text("追加"), button[aria-label*="追加"], button[aria-label*="add"]').first();
+    const addBtn = page.locator('button[aria-label="タスクを追加"]').first();
     await addBtn.click({ timeout: 5000 });
     await page.waitForTimeout(300);
-    await capture(page, 'task-add-inline-pc', 'pc');
+    await capture(page, 'task-add-modal-pc', 'pc');
+    await page.keyboard.press('Escape');
+    await page.waitForTimeout(200);
   } catch (e) {
-    console.error('❌ task-add-inline-pc failed:', e);
+    console.error('❌ task-add-modal-pc failed:', e);
   }
 
   // task-drag-drop (PC)
@@ -43,13 +72,13 @@ export async function runPcScenarios(page: Page): Promise<void> {
     console.error('❌ task-drag-drop failed:', e);
   }
 
-  // calendar-pc
+  // stats-pc — カレンダー廃止、統計ページに変更
   try {
-    await page.goto(`${BASE_URL}/calendar`);
+    await page.goto(`${BASE_URL}/stats`);
     await page.waitForLoadState('networkidle');
-    await capture(page, 'calendar-pc', 'pc');
+    await capture(page, 'stats-pc', 'pc');
   } catch (e) {
-    console.error('❌ calendar-pc failed:', e);
+    console.error('❌ stats-pc failed:', e);
   }
 
   // categories-list
@@ -97,6 +126,15 @@ export async function runPcScenarios(page: Page): Promise<void> {
   } catch (e) {
     console.error('❌ settings failed:', e);
   }
+
+  // help-pc
+  try {
+    await page.goto(`${BASE_URL}/help`);
+    await page.waitForLoadState('networkidle');
+    await capture(page, 'help-pc', 'pc');
+  } catch (e) {
+    console.error('❌ help-pc failed:', e);
+  }
 }
 
 export async function runMobileScenarios(page: Page): Promise<void> {
@@ -109,39 +147,55 @@ export async function runMobileScenarios(page: Page): Promise<void> {
     console.error('❌ home-mobile failed:', e);
   }
 
-  // task-add-inline (mobile)
+  // task-add-modal (mobile) — TaskFab をクリックしてモーダルを開く
   try {
     await page.goto(`${BASE_URL}/`);
     await page.waitForLoadState('networkidle');
-    const addBtn = page.locator('button:has-text("+"), button:has-text("追加"), button[aria-label*="追加"], button[aria-label*="add"]').first();
+    const addBtn = page.locator('button[aria-label="タスクを追加"]').first();
     await addBtn.click({ timeout: 5000 });
     await page.waitForTimeout(300);
-    await capture(page, 'task-add-inline-mobile', 'mobile');
-  } catch (e) {
-    console.error('❌ task-add-inline-mobile failed:', e);
-  }
-
-  // calendar-mobile
-  try {
-    await page.goto(`${BASE_URL}/calendar`);
-    await page.waitForLoadState('networkidle');
-    await capture(page, 'calendar-mobile', 'mobile');
-  } catch (e) {
-    console.error('❌ calendar-mobile failed:', e);
-  }
-
-  // filter-panel (mobile)
-  try {
-    await page.goto(`${BASE_URL}/`);
-    await page.waitForLoadState('networkidle');
-    const filterBtn = page.locator('button:has-text("フィルタ"), button[aria-label*="フィルタ"], button[aria-label*="filter"]').first();
-    await filterBtn.click({ timeout: 5000 });
-    await page.waitForTimeout(300);
-    await capture(page, 'filter-panel', 'mobile');
+    await capture(page, 'task-add-modal-mobile', 'mobile');
     await page.keyboard.press('Escape');
     await page.waitForTimeout(200);
   } catch (e) {
-    console.error('❌ filter-panel failed:', e);
+    console.error('❌ task-add-modal-mobile failed:', e);
+  }
+
+  // stats-mobile — カレンダー廃止、統計ページに変更
+  try {
+    await page.goto(`${BASE_URL}/stats`);
+    await page.waitForLoadState('networkidle');
+    await capture(page, 'stats-mobile', 'mobile');
+  } catch (e) {
+    console.error('❌ stats-mobile failed:', e);
+  }
+
+  // filter-bottom-sheet (mobile) — FilterFab をクリックしてボトムシートを開く
+  try {
+    await page.goto(`${BASE_URL}/`);
+    await page.waitForLoadState('networkidle');
+    const filterFab = page.locator('button[aria-label="フィルターを開く"]').first();
+    await filterFab.click({ timeout: 5000 });
+    await page.waitForTimeout(300);
+    await capture(page, 'filter-bottom-sheet', 'mobile');
+    await page.keyboard.press('Escape');
+    await page.waitForTimeout(200);
+  } catch (e) {
+    console.error('❌ filter-bottom-sheet failed:', e);
+  }
+
+  // menu-bottom-sheet (mobile) — ボトムナビのメニューボタンをクリック
+  try {
+    await page.goto(`${BASE_URL}/`);
+    await page.waitForLoadState('networkidle');
+    const menuBtn = page.locator('nav button:has-text("メニュー")').first();
+    await menuBtn.click({ timeout: 5000 });
+    await page.waitForTimeout(300);
+    await capture(page, 'menu-bottom-sheet', 'mobile');
+    await page.keyboard.press('Escape');
+    await page.waitForTimeout(200);
+  } catch (e) {
+    console.error('❌ menu-bottom-sheet failed:', e);
   }
 }
 
@@ -153,6 +207,15 @@ export async function runLoginScenarios(page: Page): Promise<void> {
     await capture(page, 'login', 'pc');
   } catch (e) {
     console.error('❌ login failed:', e);
+  }
+
+  // signup (PC, no auth)
+  try {
+    await page.goto(`${BASE_URL}/signup`);
+    await page.waitForLoadState('networkidle');
+    await capture(page, 'signup', 'pc');
+  } catch (e) {
+    console.error('❌ signup failed:', e);
   }
 
   // forgot-password (PC, no auth)
