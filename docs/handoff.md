@@ -1,6 +1,6 @@
 # Yarukoto — セッション引き継ぎ
 
-> 最終更新: 2026-04-26（タスクカードUIリニューアル）
+> 最終更新: 2026-04-26（3点メニュー復活・TaskDetailSheet廃止）
 > バージョン: 2.0.0
 > このドキュメントは「今どこにいるか」を記録する。コンセプト・技術設計は @docs/project.md を参照。
 
@@ -104,8 +104,10 @@
 - ホームページのローディング時にスケルトン UI を表示（Header・CategoryFilter は実際のコンポーネント、未完了セクション 4 枚のカードスケルトン）
 - スマホヘッダーの設定ボタンを削除済み（設定へのアクセスはハンバーガーメニュー経由のみ）
 - スマホサイドバー（Sheet）のデザインを PC サイドバーと統一済み（アクティブ: `font-bold text-foreground`、幅 `w-64`）
-- `TaskCardHandlers` は `onOpen` / `onComplete` / `onUncomplete` / `onToggleFavorite` の 4 メソッドのみ（3点メニュー廃止）
-- `TaskDetailContent` で編集・やらない・削除を一元管理（`task-detail-content.tsx`）
+- `TaskCardHandlers` は `onOpen` / `onComplete` / `onUncomplete` / `onSkip` / `onUnskip` / `onDelete` / `onToggleFavorite` の 7 メソッド
+- 3点ドロップダウンメニューあり（詳細・やらない・削除。SKIPPED 時は「やらないを取り消す」）
+- カードクリック・メニュー「詳細」ともに `TaskEditDialog` を開く（タイトルに autoFocus）
+- `TaskDetailSheet` / `TaskDetailContent` は廃止・削除済み
 - `TaskCardMeta` はメタ情報なし時に `null` を返し不要な余白を除去
 - キーワード検索の IME 対応: `filter-panel.tsx` が `localKeyword` state + compositionRef + 300ms デバウンスで管理。フィルタクリア時の外部変化同期は derived state パターン（`syncedExternalKeyword`）
 
