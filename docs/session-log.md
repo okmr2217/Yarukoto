@@ -4,6 +4,46 @@
 
 ---
 
+## 2026-04-26（タスクカードUIリニューアル）
+
+### やったこと
+
+- `TaskCard` の3点ドロップダウンメニューを完全廃止。カード全体クリックで詳細シートを開く
+- `TaskCardHandlers` を 8 メソッドから 4 メソッド（`onOpen` / `onComplete` / `onUncomplete` / `onToggleFavorite`）に簡略化
+- `src/components/task/task-detail-content.tsx` を新規作成（~250行）
+  - タイトル・メモの 800ms デバウンス自動保存（`mutateAsync` + `useRef` latest value パターン）
+  - SaveIndicator（idle / typing / saving / saved）
+  - FavoriteChip（★ トグル）
+  - CategoryBadge（インラインドロップダウン、2カラムグリッド）
+  - DateChip（インラインドロップダウン、なし/今日/明日クイックボタン + Calendar コンポーネント）
+  - `openPicker: "category" | "date" | null` で相互排他
+  - ActionRow（やらない/やらない取り消し + 削除 AlertDialog）
+  - 閉じるボタン（`flushAndClose`: 未保存変更をフラッシュしてから閉じる）
+- `src/components/task/task-detail-sheet.tsx` を刷新
+  - props を `{ task: Task | null, open: boolean, onClose: () => void }` に変更
+  - スマホ（≤767px）: Drawer（bottom）+ `TaskDetailContent`
+  - PC（≥768px）: Dialog（max-w-lg）+ `TaskDetailContent`
+- `src/app/(app)/page.tsx` を簡略化
+  - 廃止: `editingTask`, `skippingTask`, `detailTask`, `detailOpen`, `deletingTaskId` ステート
+  - 廃止: `TaskEditDialog`, `SkipReasonDialog`, 削除 `AlertDialog`
+  - 追加: `selectedTask` ステートのみ
+- `src/components/ui/calendar.tsx` を shadcn add calendar で追加（react-day-picker 使用）
+- typecheck エラーなし（lint の既存エラー 2 件はセッション前から存在）
+
+### 技術メモ
+
+- `Category.color` は `string | null` のため `style={{ backgroundColor: cat.color ?? undefined }}` で undefined に変換
+- `mutateAsync` を使うことで `doSave` を async/await で書ける
+- `flushAndClose` は `saveState === "typing"` を確認してからタイマーをキャンセルし `doSave()` を直接呼ぶ
+- pre-existing lint errors: `page.tsx` の `useEffect` 内 `setListSort` 同期呼び出し（react-hooks/set-state-in-effect）— 今回の変更とは無関係
+
+### 次にやりたいこと
+
+- 繰り返しタスクの設計（DB スキーマ検討）
+- 完了タスク折りたたみのデフォルト挙動設計
+
+---
+
 ## 2026-04-25（カテゴリグループ機能追加）
 
 ### やったこと
