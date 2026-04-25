@@ -50,6 +50,14 @@ export default function HomePage() {
   const [listSort, setListSort] = useState<"displayOrder" | "createdAt">("displayOrder");
   const [scheduledSort, setScheduledSort] = useState<"scheduledAt_asc" | "scheduledAt_desc" | "createdAt">("scheduledAt_asc");
 
+  useEffect(() => {
+    if (statusFilter === "completed") {
+      setListSort("createdAt");
+    } else {
+      setListSort("displayOrder");
+    }
+  }, [statusFilter]);
+
   const hasActiveFilters = !!(dateFilter || keyword || statusFilter !== "pending" || favoriteFilter || categoryFilter.type !== "all");
 
   const [editingTask, setEditingTask] = useState<Task | null>(null);

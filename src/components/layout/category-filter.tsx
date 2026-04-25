@@ -3,7 +3,6 @@
 import { useState } from "react";
 import { useRouter, useSearchParams } from "next/navigation";
 import type { Category } from "@/types";
-import { CategoryChip } from "./category-chip";
 import { useAllTasks, useGroups } from "@/hooks";
 import { cn } from "@/lib/utils";
 import { parseCategoryParam, categoryFilterToParam } from "@/lib/category-filter";
@@ -64,6 +63,7 @@ export function CategoryFilter({ categories, isLoading }: CategoryFilterProps) {
   const urlActiveGroupId = (() => {
     if (categoryFilter.type === "group") return categoryFilter.groupId;
     if (categoryFilter.type === "category") {
+      if (categoryFilter.categoryId === "none") return null;
       const cat = categories.find((c) => c.id === categoryFilter.categoryId);
       return cat?.groupId ?? UNGROUPED_VIRTUAL_ID;
     }
@@ -144,7 +144,7 @@ export function CategoryFilter({ categories, isLoading }: CategoryFilterProps) {
               onClick={() => handleGroupClick(group.id)}
               className={cn(
                 "h-9 rounded-full flex items-center justify-center text-lg transition-all shrink-0",
-                isActive ? "px-3 gap-1.5 shadow-sm" : "w-9 bg-muted/50 hover:bg-muted/70",
+                isActive ? "px-3 gap-0.75 shadow-sm" : "w-9 bg-muted/50 hover:bg-muted/70",
               )}
               style={
                 isActive && group.color
@@ -157,7 +157,7 @@ export function CategoryFilter({ categories, isLoading }: CategoryFilterProps) {
               title={group.name}
             >
               <span className="-translate-y-0.5">{group.emoji ?? group.name.slice(0, 1)}</span>
-              {isActive && <span className="text-sm font-medium leading-none">{group.name}</span>}
+              {isActive && <span className="text-xs font-medium leading-none">{group.name}</span>}
             </button>
           );
         })}
@@ -168,15 +168,34 @@ export function CategoryFilter({ categories, isLoading }: CategoryFilterProps) {
             onClick={() => handleGroupClick(UNGROUPED_VIRTUAL_ID)}
             className={cn(
               "h-9 rounded-full flex items-center justify-center text-lg transition-all shrink-0",
-              activeGroupId === UNGROUPED_VIRTUAL_ID ? "px-3 gap-1.5 bg-muted shadow-sm" : "w-9 bg-muted/50 hover:bg-muted/70",
+              activeGroupId === UNGROUPED_VIRTUAL_ID ? "px-3 gap-1 bg-muted shadow-sm" : "w-9 bg-muted/50 hover:bg-muted/70",
             )}
             aria-pressed={activeGroupId === UNGROUPED_VIRTUAL_ID}
             title="グループなし"
           >
             <span className="-translate-y-0.5">📂</span>
-            {activeGroupId === UNGROUPED_VIRTUAL_ID && <span className="text-sm font-medium leading-none">グループなし</span>}
+            {activeGroupId === UNGROUPED_VIRTUAL_ID && <span className="text-xs font-medium leading-none">グループなし</span>}
           </button>
         )}
+
+        {(() => {
+          const isActive = categoryFilter.type === "category" && categoryFilter.categoryId === "none";
+          return (
+            <button
+              type="button"
+              onClick={() => handleCategoryClick("none")}
+              className={cn(
+                "h-9 rounded-full flex items-center justify-center text-lg transition-all shrink-0",
+                isActive ? "px-3 gap-1 bg-muted shadow-sm" : "w-9 bg-muted/50 hover:bg-muted/70",
+              )}
+              aria-pressed={isActive}
+              title="カテゴリなし"
+            >
+              <span className="-translate-y-0.5">🏷️</span>
+              {isActive && <span className="text-xs font-medium leading-none">カテゴリなし</span>}
+            </button>
+          );
+        })()}
 
         {isFilterActive && (
           <button
@@ -191,18 +210,37 @@ export function CategoryFilter({ categories, isLoading }: CategoryFilterProps) {
 
       {/* Stage 2: Category chips for selected group */}
       {showStage2 && (
-        <div className="overflow-x-auto scrollbar-none animate-in slide-in-from-top-1 duration-200">
-          <div className="flex items-center gap-1.5 px-2 pb-2 w-max">
-            {stage2Categories.map((category) => (
-              <CategoryChip
-                key={category.id}
-                label={category.name}
-                color={category.color}
-                active={categoryFilter.type === "category" && categoryFilter.categoryId === category.id}
-                onClick={() => handleCategoryClick(category.id)}
-                count={pendingCountByCategory[category.id]}
-              />
-            ))}
+        <div className="px-2 pb-2 animate-in slide-in-from-top-1 duration-200">
+          <div className="grid grid-cols-3 gap-1">
+            {stage2Categories.map((category) => {
+              const isActive = categoryFilter.type === "category" && categoryFilter.categoryId === category.id;
+              const color = category.color;
+              const activeStyle = color
+                ? { backgroundColor: `${color}28`, color, boxShadow: `inset 0 0 0 1.5px ${color}50` }
+                : undefined;
+              const inactiveStyle = color
+                ? { backgroundColor: `${color}14`, color: `${color}aa` }
+                : undefined;
+              const count = pendingCountByCategory[category.id];
+              return (
+                <button
+                  key={category.id}
+                  type="button"
+                  onClick={() => handleCategoryClick(category.id)}
+                  aria-pressed={isActive}
+                  className={cn(
+                    "flex items-center justify-between gap-1 px-2 py-1.5 rounded text-xs transition-all min-w-0 font-medium",
+                    isActive ? "font-semibold" : color ? "" : "bg-muted/50 text-muted-foreground hover:bg-muted/70",
+                  )}
+                  style={isActive ? activeStyle : inactiveStyle}
+                >
+                  <span className="truncate leading-tight">{category.name}</span>
+                  {count !== undefined && count > 0 && (
+                    <span className="tabular-nums opacity-60 shrink-0 leading-tight">{count}</span>
+                  )}
+                </button>
+              );
+            })}
           </div>
         </div>
       )}

@@ -204,13 +204,13 @@ function CategoryChip({
       onClick={onSelect}
       aria-pressed={selected}
       className={cn(
-        "flex items-center gap-1.5 w-full px-2 py-1.5 rounded-md text-[11px] transition-colors min-w-0",
-        selected ? "bg-muted font-medium text-foreground" : "text-muted-foreground hover:bg-accent/40",
+        "flex items-center gap-1.5 w-full px-2 py-1.5 rounded-md text-[11px] transition-all min-w-0",
+        selected ? "bg-accent font-semibold text-foreground ring-1 ring-foreground/25" : "text-muted-foreground hover:bg-accent/40",
         isArchived && "opacity-60",
       )}
     >
       <span
-        className={cn("w-1.5 h-1.5 rounded-full shrink-0", !selected && "opacity-40")}
+        className={cn("w-2 h-2 rounded-full shrink-0 transition-opacity", !selected && "opacity-35")}
         style={{ backgroundColor: cat.color || "#6B7280" }}
       />
       <span className="truncate flex-1">{cat.name}</span>
@@ -226,11 +226,11 @@ function NoneChip({ selected, onSelect }: { selected: boolean; onSelect: () => v
       onClick={onSelect}
       aria-pressed={selected}
       className={cn(
-        "flex items-center gap-1.5 w-full px-2 py-1.5 rounded-md text-[11px] transition-colors min-w-0",
-        selected ? "bg-muted font-medium text-foreground" : "text-muted-foreground hover:bg-accent/40",
+        "flex items-center gap-1.5 w-full px-2 py-1.5 rounded-md text-[11px] transition-all min-w-0",
+        selected ? "bg-accent font-semibold text-foreground ring-1 ring-foreground/25" : "text-muted-foreground hover:bg-accent/40",
       )}
     >
-      <span className={cn("w-1.5 h-1.5 rounded-full shrink-0 border border-current", !selected && "opacity-40")} />
+      <span className={cn("w-2 h-2 rounded-full shrink-0 border border-current transition-opacity", !selected && "opacity-35")} />
       <span className="truncate">なし</span>
     </button>
   );
