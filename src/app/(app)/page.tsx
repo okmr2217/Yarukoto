@@ -7,14 +7,9 @@ import {
   TaskSection,
   TaskInputModal,
   TaskFab,
-  TaskEditDialog,
-  SkipReasonDialog,
   TaskDetailSheet,
-  type TaskEditData,
 } from "@/components/task";
 import { FilterSidebar } from "@/components/layout";
-import { getTaskDetail } from "@/actions/task";
-import type { TaskDetail } from "@/types";
 import {
   useAllTasks,
   useTaskMutations,
@@ -22,16 +17,6 @@ import {
   useGroups,
   useRecentCategories,
 } from "@/hooks";
-import {
-  AlertDialog,
-  AlertDialogAction,
-  AlertDialogCancel,
-  AlertDialogContent,
-  AlertDialogDescription,
-  AlertDialogFooter,
-  AlertDialogHeader,
-  AlertDialogTitle,
-} from "@/components/ui/alert-dialog";
 import { parseCategoryParam, categoryFilterToParam, type CategoryFilter, UNGROUPED_VIRTUAL_ID } from "@/lib/category-filter";
 import type { Task } from "@/types";
 import { formatDateToJST } from "@/lib/dateUtils";
@@ -49,7 +34,6 @@ export default function HomePage() {
   const router = useRouter();
   const searchParams = useSearchParams();
 
-  // URLクエリパラメータからフィルタ状態を読み取る
   const categoryParam = searchParams.get("category");
   const categoryFilter = parseCategoryParam(categoryParam);
   const dateFilter = searchParams.get("date") || "";
@@ -70,15 +54,10 @@ export default function HomePage() {
 
   const hasActiveFilters = !!(dateFilter || keyword || statusFilter !== "pending" || favoriteFilter || categoryFilter.type !== "all");
 
-  const [editingTask, setEditingTask] = useState<Task | null>(null);
-  const [skippingTask, setSkippingTask] = useState<Task | null>(null);
+  const [selectedTask, setSelectedTask] = useState<Task | null>(null);
   const [taskInputOpen, setTaskInputOpen] = useState(false);
-  const [detailTask, setDetailTask] = useState<TaskDetail | null>(null);
-  const [detailOpen, setDetailOpen] = useState(false);
   const [filterSheetOpen, setFilterSheetOpen] = useState(false);
-  const [deletingTaskId, setDeletingTaskId] = useState<string | null>(null);
 
-  // URLクエリパラメータ更新ヘルパー
   const updateSearchParams = useCallback(
     (updates: Record<string, string | null>) => {
       const params = new URLSearchParams(searchParams.toString());
@@ -172,68 +151,17 @@ export default function HomePage() {
     mutations.uncompleteTask.mutate(id);
   };
 
-  const handleEdit = (task: Task) => {
-    setEditingTask(task);
-  };
-
-  const handleEditTaskWithDetails = (data: TaskEditData) => {
-    setEditingTask(null);
-    if (data.categoryId) recordRecentCategory(data.categoryId);
-    mutations.updateTask.mutate(data);
-  };
-
-  const handleSkip = (id: string) => {
-    if (!tasks) return;
-    const task = tasks.find((t) => t.id === id);
-    if (task) setSkippingTask(task);
-  };
-
-  const handleSkipConfirm = (reason?: string) => {
-    if (skippingTask) {
-      mutations.skipTask.mutate({ id: skippingTask.id, reason });
-      setSkippingTask(null);
-    }
-  };
-
-  const handleUnskip = (id: string) => {
-    mutations.unskipTask.mutate(id);
-  };
-
-  const handleDelete = (id: string) => {
-    setDeletingTaskId(id);
-  };
-
-  const handleDeleteConfirm = () => {
-    if (deletingTaskId) {
-      mutations.deleteTask.mutate(deletingTaskId);
-      setDeletingTaskId(null);
-    }
-  };
-
-  const handleDetail = async (id: string) => {
-    const result = await getTaskDetail(id);
-    if (result.success) {
-      setDetailTask(result.data);
-      setDetailOpen(true);
-    }
-  };
-
   const handleToggleFavorite = (id: string) => {
     mutations.toggleFavorite.mutate(id);
   };
 
   const taskHandlers = {
-    onDetail: handleDetail,
+    onOpen: setSelectedTask,
     onComplete: handleComplete,
     onUncomplete: handleUncomplete,
-    onEdit: handleEdit,
-    onSkip: handleSkip,
-    onUnskip: handleUnskip,
-    onDelete: handleDelete,
     onToggleFavorite: handleToggleFavorite,
   };
 
-  // Nキーでタスク作成モーダルを開く
   useEffect(() => {
     const handleKeyDown = (e: KeyboardEvent) => {
       if (e.key === "n" && !e.ctrlKey && !e.metaKey && !e.shiftKey && !e.altKey) {
@@ -248,12 +176,11 @@ export default function HomePage() {
     return () => document.removeEventListener("keydown", handleKeyDown);
   }, []);
 
-  // 数字キー（0-9）でカテゴリフィルターを切り替え
   useEffect(() => {
     const handleKeyDown = (e: KeyboardEvent) => {
       if (e.ctrlKey || e.metaKey || e.shiftKey || e.altKey) return;
       if (!/^[0-9]$/.test(e.key)) return;
-      if (taskInputOpen || editingTask !== null) return;
+      if (taskInputOpen || selectedTask !== null) return;
       const target = e.target as HTMLElement;
       if (target.tagName === "INPUT" || target.tagName === "TEXTAREA" || target.tagName === "SELECT") return;
       e.preventDefault();
@@ -269,9 +196,8 @@ export default function HomePage() {
 
     document.addEventListener("keydown", handleKeyDown);
     return () => document.removeEventListener("keydown", handleKeyDown);
-  }, [categories, categoryFilter, taskInputOpen, editingTask, handleCategoryFilterChange]);
+  }, [categories, categoryFilter, taskInputOpen, selectedTask, handleCategoryFilterChange]);
 
-  // 日付フィルタ時のマッチ理由を算出（クライアント側）
   const getMatchReasons = (task: Task): string[] => {
     if (!dateFilter) return [];
     const reasons: string[] = [];
@@ -376,7 +302,6 @@ export default function HomePage() {
 
   return (
     <div className="flex-1 bg-background flex flex-col">
-      {/* モバイル: カテゴリフィルタエリア */}
       <div className="md:hidden sticky top-0 z-10">
         <FilterArea categories={categories} categoriesLoading={categoriesLoading} />
       </div>
@@ -429,10 +354,8 @@ export default function HomePage() {
         </div>
       </div>
 
-      {/* モバイル: フィルター FAB */}
       <FilterFab onClick={() => setFilterSheetOpen(true)} activeFilterCount={countActiveFilters(filterValues)} />
 
-      {/* モバイル: フィルター ボトムシート */}
       <FilterBottomSheet
         open={filterSheetOpen}
         onClose={() => setFilterSheetOpen(false)}
@@ -455,41 +378,11 @@ export default function HomePage() {
         isLoading={mutations.createTask.isPending}
       />
 
-      <TaskEditDialog
-        key={editingTask?.id ?? "task-edit-closed"}
-        open={editingTask !== null}
-        onOpenChange={(open) => !open && setEditingTask(null)}
-        onSave={handleEditTaskWithDetails}
-        task={editingTask}
-        categories={categories}
-        groups={groups}
+      <TaskDetailSheet
+        task={selectedTask}
+        open={!!selectedTask}
+        onClose={() => setSelectedTask(null)}
       />
-
-      <SkipReasonDialog
-        key={skippingTask?.id ?? "skip-closed"}
-        open={skippingTask !== null}
-        onOpenChange={(open) => !open && setSkippingTask(null)}
-        taskTitle={skippingTask?.title || ""}
-        onConfirm={handleSkipConfirm}
-        isLoading={mutations.skipTask.isPending}
-      />
-
-      <TaskDetailSheet task={detailTask} open={detailOpen} onOpenChange={setDetailOpen} />
-
-      <AlertDialog open={deletingTaskId !== null} onOpenChange={(open) => !open && setDeletingTaskId(null)}>
-        <AlertDialogContent>
-          <AlertDialogHeader>
-            <AlertDialogTitle>タスクを削除しますか？</AlertDialogTitle>
-            <AlertDialogDescription>この操作は元に戻せません。</AlertDialogDescription>
-          </AlertDialogHeader>
-          <AlertDialogFooter>
-            <AlertDialogCancel>キャンセル</AlertDialogCancel>
-            <AlertDialogAction onClick={handleDeleteConfirm} className="bg-destructive text-destructive-foreground hover:bg-destructive/90">
-              削除
-            </AlertDialogAction>
-          </AlertDialogFooter>
-        </AlertDialogContent>
-      </AlertDialog>
     </div>
   );
 }
