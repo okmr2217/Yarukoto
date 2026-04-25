@@ -295,7 +295,7 @@ export function FilterBottomSheet({ open, onClose, viewMode, onViewModeChange, l
                           <button
                             type="button"
                             onClick={() => toggleGroupExpanded(group.id)}
-                            className="shrink-0 flex items-center justify-center w-5 h-5 rounded-full bg-muted/60 text-muted-foreground hover:bg-muted hover:text-foreground transition-colors mr-1"
+                            className="shrink-0 flex items-center justify-center w-5 h-5 rounded-full bg-muted text-muted-foreground hover:bg-accent hover:text-foreground transition-colors mr-1"
                             aria-label={expanded ? "折りたたむ" : "展開する"}
                           >
                             <ChevronDown className={cn("size-3 transition-transform duration-150", expanded && "rotate-180")} />
@@ -319,7 +319,7 @@ export function FilterBottomSheet({ open, onClose, viewMode, onViewModeChange, l
                                   onClick={() => handleCategoryClick(cat.id)}
                                   aria-pressed={isCatSelected}
                                   className={cn(
-                                    "flex items-center gap-1.5 px-2 py-1 rounded-md text-xs transition-colors min-w-0 w-full mb-0.5",
+                                    "flex items-center gap-1.5 px-2 py-1 rounded-md text-xs transition-colors min-w-0 w-full mb-0.5 text-left",
                                     isCatSelected ? "font-semibold" : catColor ? "" : "text-muted-foreground hover:bg-accent hover:text-foreground",
                                   )}
                                   style={isCatSelected ? activeStyle : inactiveStyle}
@@ -353,7 +353,7 @@ export function FilterBottomSheet({ open, onClose, viewMode, onViewModeChange, l
                             onClick={() => handleCategoryClick(cat.id)}
                             aria-pressed={isCatSelected}
                             className={cn(
-                              "flex items-center gap-1.5 px-2 py-1 rounded-md text-xs transition-colors min-w-0",
+                              "flex items-center gap-1.5 px-2 py-1 rounded-md text-xs transition-colors min-w-0 text-left",
                               isCatSelected ? "font-semibold" : catColor ? "" : "text-muted-foreground hover:bg-accent hover:text-foreground",
                             )}
                             style={isCatSelected ? activeStyle : inactiveStyle}

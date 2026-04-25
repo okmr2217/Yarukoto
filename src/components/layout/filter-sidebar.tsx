@@ -391,7 +391,7 @@ export function FilterSidebar({
                       <button
                         type="button"
                         onClick={() => toggle(group.id)}
-                        className="shrink-0 flex items-center justify-center w-4 h-4 rounded-full bg-muted/60 text-muted-foreground hover:bg-muted hover:text-foreground transition-colors mr-0.5"
+                        className="shrink-0 flex items-center justify-center w-4 h-4 rounded-full bg-muted text-muted-foreground hover:bg-accent hover:text-foreground transition-colors mr-0.5"
                         aria-label={expanded ? "折りたたむ" : "展開する"}
                       >
                         <ChevronDown className={cn("size-2.5 transition-transform duration-150", expanded && "rotate-180")} />
@@ -411,7 +411,7 @@ export function FilterSidebar({
                               onClick={() => onCategoryFilterChange(isCatSelected ? { type: "all" } : { type: "category", categoryId: cat.id })}
                               aria-pressed={isCatSelected}
                               className={cn(
-                                "flex items-center gap-1.5 w-full py-[3px] rounded-md text-[11px] transition-colors min-w-0",
+                                "flex items-center gap-1.5 w-full py-[3px] rounded-md text-[11px] transition-colors min-w-0 text-left",
                                 isCatSelected ? "font-medium text-foreground" : "text-muted-foreground hover:bg-accent/40",
                                 !isCatSelected && "px-1.5",
                               )}
@@ -446,7 +446,7 @@ export function FilterSidebar({
                     <button
                       type="button"
                       onClick={() => toggle(UNGROUPED_VIRTUAL_ID)}
-                      className="shrink-0 flex items-center justify-center w-4 h-4 rounded-full bg-muted/60 text-muted-foreground hover:bg-muted hover:text-foreground transition-colors mr-0.5"
+                      className="shrink-0 flex items-center justify-center w-4 h-4 rounded-full bg-muted text-muted-foreground hover:bg-accent hover:text-foreground transition-colors mr-0.5"
                       aria-label={isExpanded(UNGROUPED_VIRTUAL_ID) ? "折りたたむ" : "展開する"}
                     >
                       <ChevronDown className={cn("size-2.5 transition-transform duration-150", isExpanded(UNGROUPED_VIRTUAL_ID) && "rotate-180")} />
@@ -465,7 +465,7 @@ export function FilterSidebar({
                             onClick={() => onCategoryFilterChange(isCatSelected ? { type: "all" } : { type: "category", categoryId: cat.id })}
                             aria-pressed={isCatSelected}
                             className={cn(
-                              "flex items-center gap-1.5 w-full py-[3px] rounded-md text-[11px] transition-colors min-w-0",
+                              "flex items-center gap-1.5 w-full py-[3px] rounded-md text-[11px] transition-colors min-w-0 text-left",
                               isCatSelected ? "font-medium text-foreground" : "text-muted-foreground hover:bg-accent/40",
                               !isCatSelected && "px-1.5",
                             )}
@@ -502,7 +502,7 @@ export function FilterSidebar({
                         onClick={() => onCategoryFilterChange(isCatSelected ? { type: "all" } : { type: "category", categoryId: cat.id })}
                         aria-pressed={isCatSelected}
                         className={cn(
-                          "flex items-center gap-1.5 w-full py-[3px] rounded-md text-[11px] transition-colors min-w-0",
+                          "flex items-center gap-1.5 w-full py-[3px] rounded-md text-[11px] transition-colors min-w-0 text-left",
                           isCatSelected ? "font-medium text-foreground" : "text-muted-foreground hover:bg-accent/40",
                           !isCatSelected && "px-1.5",
                         )}
