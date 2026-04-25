@@ -21,6 +21,19 @@ export type CategoryStats = {
   overdue: number;
 };
 
+export type GroupStats = {
+  id: string | null;
+  name: string;
+  emoji: string | null;
+  color: string | null;
+  sortOrder: number;
+  categories: CategoryStats[];
+  totalTasks: number;
+  totalCompleted: number;
+  totalSkipped: number;
+  avgCompletionRate: number;
+};
+
 export const CATEGORY_COLORS = [
   { name: "red", value: "#EF4444" },
   { name: "orange", value: "#F97316" },

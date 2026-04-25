@@ -2,7 +2,7 @@
 
 import { prisma } from "@/lib/prisma";
 import { getRequiredUser } from "@/lib/auth-server";
-import { type ActionResult, success, failure, type Category, type CategoryStats } from "@/types";
+import { type ActionResult, success, failure, type Category, type CategoryStats, type GroupStats } from "@/types";
 import { getTodayInJST, formatDateToJST } from "@/lib/dateUtils";
 import {
   createCategorySchema,
@@ -327,6 +327,121 @@ export async function getCategoryStats(): Promise<ActionResult<CategoryStats[]>>
   } catch (error) {
     console.error("getCategoryStats error:", error);
     return failure("カテゴリ統計の取得に失敗しました", "INTERNAL_ERROR");
+  }
+}
+
+export async function getCategoryGroupStats(): Promise<ActionResult<GroupStats[]>> {
+  try {
+    const user = await getRequiredUser();
+    const today = getTodayInJST();
+
+    const [groups, categories, tasks] = await Promise.all([
+      prisma.group.findMany({
+        where: { userId: user.id },
+        orderBy: [{ sortOrder: "asc" }, { createdAt: "asc" }],
+      }),
+      prisma.category.findMany({
+        where: { userId: user.id },
+        orderBy: [{ sortOrder: "asc" }, { createdAt: "asc" }],
+      }),
+      prisma.task.findMany({
+        where: { userId: user.id },
+        select: { categoryId: true, status: true, scheduledAt: true },
+      }),
+    ]);
+
+    // カテゴリ別の集計 map
+    const categoryStatsMap = new Map<string | null, CategoryStats>();
+    for (const c of categories) {
+      categoryStatsMap.set(c.id, {
+        categoryId: c.id,
+        name: c.name,
+        color: c.color,
+        total: 0,
+        completed: 0,
+        skipped: 0,
+        overdue: 0,
+      });
+    }
+    categoryStatsMap.set(null, { categoryId: null, name: "カテゴリなし", color: null, total: 0, completed: 0, skipped: 0, overdue: 0 });
+
+    for (const task of tasks) {
+      const statsKey = categoryStatsMap.has(task.categoryId) ? task.categoryId : null;
+      const stats = categoryStatsMap.get(statsKey)!;
+      stats.total++;
+      if (task.status === "COMPLETED") stats.completed++;
+      if (task.status === "SKIPPED") stats.skipped++;
+      if (task.status === "PENDING" && task.scheduledAt && formatDateToJST(task.scheduledAt) < today) {
+        stats.overdue++;
+      }
+    }
+
+    // カテゴリの groupId → GroupStats
+    const groupStatsMap = new Map<string | null, GroupStats>();
+    for (const g of groups) {
+      groupStatsMap.set(g.id, {
+        id: g.id,
+        name: g.name,
+        emoji: g.emoji,
+        color: g.color,
+        sortOrder: g.sortOrder,
+        categories: [],
+        totalTasks: 0,
+        totalCompleted: 0,
+        totalSkipped: 0,
+        avgCompletionRate: 0,
+      });
+    }
+    // 未分類グループを末尾に
+    groupStatsMap.set(null, {
+      id: null,
+      name: "未分類",
+      emoji: null,
+      color: null,
+      sortOrder: Number.MAX_SAFE_INTEGER,
+      categories: [],
+      totalTasks: 0,
+      totalCompleted: 0,
+      totalSkipped: 0,
+      avgCompletionRate: 0,
+    });
+
+    for (const c of categories) {
+      const catStats = categoryStatsMap.get(c.id)!;
+      const groupKey = groupStatsMap.has(c.groupId) ? c.groupId : null;
+      const groupStats = groupStatsMap.get(groupKey)!;
+      groupStats.categories.push(catStats);
+      groupStats.totalTasks += catStats.total;
+      groupStats.totalCompleted += catStats.completed;
+      groupStats.totalSkipped += catStats.skipped;
+    }
+
+    // カテゴリなしタスクを未分類グループへ
+    const noCatStats = categoryStatsMap.get(null)!;
+    if (noCatStats.total > 0) {
+      const uncategorized = groupStatsMap.get(null)!;
+      uncategorized.categories.push(noCatStats);
+      uncategorized.totalTasks += noCatStats.total;
+      uncategorized.totalCompleted += noCatStats.completed;
+      uncategorized.totalSkipped += noCatStats.skipped;
+    }
+
+    // グループの avgCompletionRate を計算
+    const result: GroupStats[] = [];
+    for (const groupStats of groupStatsMap.values()) {
+      if (groupStats.categories.length === 0) continue;
+      const ratesSum = groupStats.categories.reduce((sum, c) => {
+        const effective = c.total - c.skipped;
+        return sum + (effective > 0 ? Math.round((c.completed / effective) * 100) : 0);
+      }, 0);
+      result.push({ ...groupStats, avgCompletionRate: Math.round(ratesSum / groupStats.categories.length) });
+    }
+
+    result.sort((a, b) => a.sortOrder - b.sortOrder);
+    return success(result);
+  } catch (error) {
+    console.error("getCategoryGroupStats error:", error);
+    return failure("カテゴリグループ統計の取得に失敗しました", "INTERNAL_ERROR");
   }
 }
 

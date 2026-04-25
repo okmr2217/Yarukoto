@@ -2,11 +2,12 @@
 
 import { useState } from "react";
 import { useRouter, useSearchParams } from "next/navigation";
-import { ChevronLeft, ChevronRight, PlusCircle, CircleCheck, Ban } from "lucide-react";
+import { ChevronLeft, ChevronRight, PlusCircle, CircleCheck, Ban, ChevronDown } from "lucide-react";
 import { Button } from "@/components/ui/button";
-import { useMonthlyTaskStats, useCategoryStats } from "@/hooks";
+import { useMonthlyTaskStats, useCategoryGroupStats } from "@/hooks";
 import { cn } from "@/lib/utils";
 import { toJSTDate, formatDateToJST } from "@/lib/dateUtils";
+import type { CategoryStats, GroupStats } from "@/types";
 
 type Tab = "daily" | "category";
 
@@ -146,8 +147,78 @@ function DailyStatsTab() {
 
 // ---- Category Stats ----
 
+function CategoryCard({ s }: { s: CategoryStats }) {
+  const effective = s.total - s.skipped;
+  const completionRate = effective > 0 ? Math.round((s.completed / effective) * 100) : 0;
+  return (
+    <div className="border rounded-lg px-4 py-3 space-y-2">
+      <div className="flex items-center gap-2">
+        {s.color ? (
+          <span className="h-2.5 w-2.5 rounded-full shrink-0" style={{ backgroundColor: s.color }} />
+        ) : (
+          <span className="h-2.5 w-2.5 rounded-full shrink-0 bg-muted-foreground/30" />
+        )}
+        <span className="text-sm font-medium">{s.name}</span>
+        <span className="ml-auto text-xs text-muted-foreground">{completionRate}%</span>
+      </div>
+      <div className="h-1.5 rounded-full bg-muted overflow-hidden">
+        <div className="h-full rounded-full bg-green-500 transition-all" style={{ width: `${completionRate}%` }} />
+      </div>
+      <div className="flex items-center gap-4 text-xs text-muted-foreground flex-wrap">
+        <span>計 {s.total}</span>
+        <span className="text-green-600 dark:text-green-400">完了 {s.completed}</span>
+        <span>スキップ {s.skipped}</span>
+        {s.overdue > 0 && <span className="text-destructive">期限切れ {s.overdue}</span>}
+      </div>
+    </div>
+  );
+}
+
+function GroupSection({ group }: { group: GroupStats }) {
+  const [collapsed, setCollapsed] = useState(false);
+
+  return (
+    <div className="rounded-lg border overflow-hidden">
+      <button
+        onClick={() => setCollapsed((prev) => !prev)}
+        className={cn(
+          "w-full flex items-center gap-2 px-3 py-2.5 text-left transition-colors hover:bg-accent",
+          group.color ? "border-l-4" : "border-l-4 border-l-transparent",
+        )}
+        style={group.color ? { borderLeftColor: group.color } : undefined}
+      >
+        {group.emoji && <span className="text-base leading-none">{group.emoji}</span>}
+        <span className="text-sm font-semibold">{group.name}</span>
+        <span className="ml-auto flex items-center gap-3 text-xs text-muted-foreground">
+          <span>計 {group.totalTasks}</span>
+          <span className="text-green-600 dark:text-green-400">完了 {group.totalCompleted}</span>
+          <span>スキップ {group.totalSkipped}</span>
+          <span className="font-medium">平均 {group.avgCompletionRate}%</span>
+          <ChevronDown
+            className={cn("h-4 w-4 shrink-0 transition-transform duration-200", collapsed && "-rotate-90")}
+          />
+        </span>
+      </button>
+      <div
+        className={cn(
+          "grid transition-all duration-200",
+          collapsed ? "grid-rows-[0fr]" : "grid-rows-[1fr]",
+        )}
+      >
+        <div className="overflow-hidden">
+          <div className="p-2 space-y-2">
+            {group.categories.map((c, i) => (
+              <CategoryCard key={c.categoryId ?? i} s={c} />
+            ))}
+          </div>
+        </div>
+      </div>
+    </div>
+  );
+}
+
 function CategoryStatsTab() {
-  const { data: stats, isLoading } = useCategoryStats();
+  const { data: groups, isLoading } = useCategoryGroupStats();
 
   return (
     <div>
@@ -159,45 +230,15 @@ function CategoryStatsTab() {
         </div>
       )}
 
-      {!isLoading && (!stats || stats.length === 0) && (
+      {!isLoading && (!groups || groups.length === 0) && (
         <p className="text-sm text-muted-foreground text-center py-8">データがありません</p>
       )}
 
-      {!isLoading && stats && stats.length > 0 && (
+      {!isLoading && groups && groups.length > 0 && (
         <div className="space-y-2">
-          {stats.map((s, i) => {
-            const completionRate = s.total > 0 ? Math.round((s.completed / s.total) * 100) : 0;
-            return (
-              <div key={i} className="border rounded-lg px-4 py-3 space-y-2">
-                <div className="flex items-center gap-2">
-                  {s.color ? (
-                    <span className="h-2.5 w-2.5 rounded-full shrink-0" style={{ backgroundColor: s.color }} />
-                  ) : (
-                    <span className="h-2.5 w-2.5 rounded-full shrink-0 bg-muted-foreground/30" />
-                  )}
-                  <span className="text-sm font-medium">{s.name}</span>
-                  <span className="ml-auto text-xs text-muted-foreground">{completionRate}%</span>
-                </div>
-
-                {/* 完了率バー */}
-                <div className="h-1.5 rounded-full bg-muted overflow-hidden">
-                  <div
-                    className="h-full rounded-full bg-green-500 transition-all"
-                    style={{ width: `${completionRate}%` }}
-                  />
-                </div>
-
-                <div className="flex items-center gap-4 text-xs text-muted-foreground flex-wrap">
-                  <span>計 {s.total}</span>
-                  <span className="text-green-600 dark:text-green-400">完了 {s.completed}</span>
-                  <span>スキップ {s.skipped}</span>
-                  {s.overdue > 0 && (
-                    <span className="text-destructive">期限切れ {s.overdue}</span>
-                  )}
-                </div>
-              </div>
-            );
-          })}
+          {groups.map((g) => (
+            <GroupSection key={g.id ?? "__uncategorized__"} group={g} />
+          ))}
         </div>
       )}
     </div>
