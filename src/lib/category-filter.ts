@@ -1,3 +1,5 @@
+export const UNGROUPED_VIRTUAL_ID = "__ungrouped__";
+
 export type CategoryFilter =
   | { type: "all" }
   | { type: "group"; groupId: string }

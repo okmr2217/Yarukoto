@@ -22,7 +22,7 @@ import {
   useGroups,
   useRecentCategories,
 } from "@/hooks";
-import { parseCategoryParam, categoryFilterToParam, type CategoryFilter } from "@/lib/category-filter";
+import { parseCategoryParam, categoryFilterToParam, type CategoryFilter, UNGROUPED_VIRTUAL_ID } from "@/lib/category-filter";
 import type { Task } from "@/types";
 import { formatDateToJST } from "@/lib/dateUtils";
 
@@ -90,6 +90,9 @@ export default function HomePage() {
   const taskCategoryIds = (() => {
     if (categoryFilter.type === "all") return undefined;
     if (categoryFilter.type === "group") {
+      if (categoryFilter.groupId === UNGROUPED_VIRTUAL_ID) {
+        return categories.filter((c) => !c.groupId).map((c) => c.id);
+      }
       return categories.filter((c) => c.groupId === categoryFilter.groupId).map((c) => c.id);
     }
     return [categoryFilter.categoryId];

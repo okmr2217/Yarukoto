@@ -8,7 +8,7 @@ import { getTodayInJST, addDaysJST } from "@/lib/dateUtils";
 import { useAllTasks, useGroups, useGroupExpanded } from "@/hooks";
 import type { Category } from "@/types";
 import { cn } from "@/lib/utils";
-import type { CategoryFilter } from "@/lib/category-filter";
+import { type CategoryFilter, UNGROUPED_VIRTUAL_ID } from "@/lib/category-filter";
 import { FilterSectionInfo } from "./filter-section-info";
 
 type StatusFilter = "all" | "pending" | "completed" | "skipped";
@@ -35,7 +35,6 @@ const SCHEDULED_SORT_OPTIONS: { value: ScheduledSortOrder; label: string }[] = [
 ];
 
 const KEYWORD_DEBOUNCE_MS = 300;
-const UNGROUPED_VIRTUAL_ID = "__ungrouped__";
 
 interface FilterSidebarProps {
   categories: Category[];
@@ -139,6 +138,9 @@ export function FilterSidebar({
   const taskCategoryIds = (() => {
     if (categoryFilter.type === "all") return undefined;
     if (categoryFilter.type === "group") {
+      if (categoryFilter.groupId === UNGROUPED_VIRTUAL_ID) {
+        return categories.filter((c) => !c.groupId).map((c) => c.id);
+      }
       return categories.filter((c) => c.groupId === categoryFilter.groupId).map((c) => c.id);
     }
     return [categoryFilter.categoryId];
@@ -432,20 +434,40 @@ export function FilterSidebar({
 
               {groupedCategories.ungrouped.length > 0 && hasGroups && (
                 <div className="mb-0.5">
-                  <div className="flex items-center w-full rounded-md text-[11px]">
-                    <span className="flex items-center gap-1.5 flex-1 px-1.5 py-[3px] text-muted-foreground">
-                      <span>🗂️</span>
-                      <span>グループなし</span>
-                    </span>
-                    <button
-                      type="button"
-                      onClick={() => toggle(UNGROUPED_VIRTUAL_ID)}
-                      className="shrink-0 flex items-center justify-center w-4 h-4 rounded-full bg-muted text-muted-foreground hover:bg-accent hover:text-foreground transition-colors mr-0.5"
-                      aria-label={isExpanded(UNGROUPED_VIRTUAL_ID) ? "折りたたむ" : "展開する"}
-                    >
-                      <ChevronDown className={cn("size-2.5 transition-transform duration-150", isExpanded(UNGROUPED_VIRTUAL_ID) && "rotate-180")} />
-                    </button>
-                  </div>
+                  {(() => {
+                    const isUngroupedSelected = categoryFilter.type === "group" && categoryFilter.groupId === UNGROUPED_VIRTUAL_ID;
+                    return (
+                      <div
+                        className="flex items-center w-full rounded-md text-[11px] overflow-hidden"
+                        style={
+                          isUngroupedSelected
+                            ? { backgroundColor: "var(--muted)", borderLeft: `3px solid color-mix(in oklch, var(--muted-foreground) 40%, transparent)`, paddingLeft: "calc(0.375rem - 3px)" }
+                            : {}
+                        }
+                      >
+                        <button
+                          type="button"
+                          onClick={() => onCategoryFilterChange(isUngroupedSelected ? { type: "all" } : { type: "group", groupId: UNGROUPED_VIRTUAL_ID })}
+                          className={cn(
+                            "flex items-center gap-1.5 flex-1 py-[3px] transition-colors min-w-0",
+                            isUngroupedSelected ? "font-medium text-foreground" : "text-muted-foreground hover:bg-accent/40",
+                            !isUngroupedSelected && "px-1.5",
+                          )}
+                        >
+                          <span className="shrink-0 text-sm leading-none">🗂️</span>
+                          <span className="truncate">グループなし</span>
+                        </button>
+                        <button
+                          type="button"
+                          onClick={() => toggle(UNGROUPED_VIRTUAL_ID)}
+                          className="shrink-0 flex items-center justify-center w-4 h-4 rounded-full bg-muted text-muted-foreground hover:bg-accent hover:text-foreground transition-colors mr-0.5"
+                          aria-label={isExpanded(UNGROUPED_VIRTUAL_ID) ? "折りたたむ" : "展開する"}
+                        >
+                          <ChevronDown className={cn("size-2.5 transition-transform duration-150", isExpanded(UNGROUPED_VIRTUAL_ID) && "rotate-180")} />
+                        </button>
+                      </div>
+                    );
+                  })()}
                   {isExpanded(UNGROUPED_VIRTUAL_ID) && (
                     <div className="ml-3">
                       {groupedCategories.ungrouped.map((cat) => {
@@ -538,7 +560,7 @@ export function FilterSidebar({
                         onClick={() => onCategoryFilterChange(isNoneSelected ? { type: "all" } : { type: "category", categoryId: "none" })}
                         aria-pressed={isNoneSelected}
                         className={cn(
-                          "flex items-center gap-1.5 flex-1 py-[3px] transition-colors min-w-0",
+                          "flex items-center gap-1.5 flex-1 pr-1.5 py-[3px] transition-colors min-w-0",
                           isNoneSelected ? "font-medium text-foreground" : "text-muted-foreground hover:bg-accent/40",
                           !isNoneSelected && "px-1.5",
                         )}
