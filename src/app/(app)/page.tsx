@@ -47,7 +47,9 @@ export default function HomePage() {
   const keyword = searchParams.get("keyword") || "";
   const statusFilter = (searchParams.get("status") || "pending") as FilterValues["status"];
   const favoriteFilter = searchParams.get("favorite") === "true";
-  const sortOrder = (searchParams.get("sort") || "displayOrder") as "displayOrder" | "createdAt" | "completedAt" | "skippedAt";
+  const [viewMode, setViewMode] = useState<"list" | "scheduled">("list");
+  const [listSort, setListSort] = useState<"displayOrder" | "createdAt">("displayOrder");
+  const [scheduledSort, setScheduledSort] = useState<"scheduledAt_asc" | "scheduledAt_desc" | "createdAt">("scheduledAt_asc");
 
   const hasActiveFilters = !!(dateFilter || keyword || statusFilter !== "pending" || favoriteFilter || !isDefaultAllSelected);
 
@@ -119,19 +121,22 @@ export default function HomePage() {
     { enabled: !isAllDeselected },
   );
 
-  // 並び順に応じたクライアント側ソート
   const sortedTasks = (() => {
     if (!tasks) return [];
-    if (sortOrder === "createdAt") {
-      return [...tasks].sort((a, b) => new Date(b.createdAt).getTime() - new Date(a.createdAt).getTime());
+    const base = viewMode === "scheduled" ? tasks.filter((t) => t.scheduledAt !== null) : tasks;
+    if (viewMode === "scheduled") {
+      if (scheduledSort === "scheduledAt_asc") {
+        return [...base].sort((a, b) => (a.scheduledAt ?? "").localeCompare(b.scheduledAt ?? ""));
+      }
+      if (scheduledSort === "scheduledAt_desc") {
+        return [...base].sort((a, b) => (b.scheduledAt ?? "").localeCompare(a.scheduledAt ?? ""));
+      }
+      return [...base].sort((a, b) => new Date(b.createdAt).getTime() - new Date(a.createdAt).getTime());
     }
-    if (sortOrder === "completedAt") {
-      return [...tasks].sort((a, b) => new Date(b.completedAt || b.createdAt).getTime() - new Date(a.completedAt || a.createdAt).getTime());
+    if (listSort === "createdAt") {
+      return [...base].sort((a, b) => new Date(b.createdAt).getTime() - new Date(a.createdAt).getTime());
     }
-    if (sortOrder === "skippedAt") {
-      return [...tasks].sort((a, b) => new Date(b.skippedAt || b.createdAt).getTime() - new Date(a.skippedAt || a.createdAt).getTime());
-    }
-    return tasks; // displayOrder: サーバー側の displayOrder 降順をそのまま使用
+    return base;
   })();
   const mutations = useTaskMutations();
 
@@ -276,6 +281,12 @@ export default function HomePage() {
             categoriesLoading={categoriesLoading}
             selectedCategoryIds={effectiveSelectedIds}
             onToggleCategory={handleToggleCategory}
+            viewMode={viewMode}
+            onViewModeChange={setViewMode}
+            listSort={listSort}
+            onListSortChange={setListSort}
+            scheduledSort={scheduledSort}
+            onScheduledSortChange={setScheduledSort}
           />
           <div className="flex-1 flex flex-col min-w-0">
             <div className="flex-1 px-4 pt-2 pb-20 md:pb-4">
@@ -315,6 +326,12 @@ export default function HomePage() {
         <FilterBottomSheet
           open={filterSheetOpen}
           onClose={() => setFilterSheetOpen(false)}
+          viewMode={viewMode}
+          onViewModeChange={setViewMode}
+          listSort={listSort}
+          onListSortChange={setListSort}
+          scheduledSort={scheduledSort}
+          onScheduledSortChange={setScheduledSort}
         />
 
         <TaskInputModal
@@ -360,6 +377,12 @@ export default function HomePage() {
           categoriesLoading={categoriesLoading}
           selectedCategoryIds={effectiveSelectedIds}
           onToggleCategory={handleToggleCategory}
+          viewMode={viewMode}
+          onViewModeChange={setViewMode}
+          listSort={listSort}
+          onListSortChange={setListSort}
+          scheduledSort={scheduledSort}
+          onScheduledSortChange={setScheduledSort}
         />
         <div className="flex-1 flex flex-col min-w-0">
           <main className="flex-1">
@@ -385,7 +408,7 @@ export default function HomePage() {
                   tasks={sortedTasks}
                   handlers={taskHandlers}
                   showScheduledDate
-                  enableDragAndDrop={sortOrder === "displayOrder"}
+                  enableDragAndDrop={viewMode === "list" && listSort === "displayOrder"}
                   onReorder={handleReorder}
                   matchReasons={dateFilter ? sortedTasks.map(getMatchReasons) : undefined}
                 />
@@ -407,6 +430,12 @@ export default function HomePage() {
       <FilterBottomSheet
         open={filterSheetOpen}
         onClose={() => setFilterSheetOpen(false)}
+        viewMode={viewMode}
+        onViewModeChange={setViewMode}
+        listSort={listSort}
+        onListSortChange={setListSort}
+        scheduledSort={scheduledSort}
+        onScheduledSortChange={setScheduledSort}
       />
 
       <TaskInputModal

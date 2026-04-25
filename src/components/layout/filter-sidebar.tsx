@@ -12,7 +12,9 @@ import { CATEGORY_DESELECTED_SENTINEL } from "@/lib/constants";
 import { CategoryGroupAccordion } from "./category-group-accordion";
 
 type StatusFilter = "all" | "pending" | "completed" | "skipped";
-type SortOrder = "displayOrder" | "createdAt" | "completedAt" | "skippedAt";
+export type ViewMode = "list" | "scheduled";
+export type ListSortOrder = "displayOrder" | "createdAt";
+export type ScheduledSortOrder = "scheduledAt_asc" | "scheduledAt_desc" | "createdAt";
 
 const STATUS_OPTIONS: { value: StatusFilter; label: string }[] = [
   { value: "all", label: "すべて" },
@@ -21,11 +23,15 @@ const STATUS_OPTIONS: { value: StatusFilter; label: string }[] = [
   { value: "skipped", label: "やらない" },
 ];
 
-const SORT_OPTIONS: { value: SortOrder; label: string }[] = [
+const LIST_SORT_OPTIONS: { value: ListSortOrder; label: string }[] = [
   { value: "displayOrder", label: "表示順" },
   { value: "createdAt", label: "作成日時" },
-  { value: "completedAt", label: "完了日時" },
-  { value: "skippedAt", label: "やらない日時" },
+];
+
+const SCHEDULED_SORT_OPTIONS: { value: ScheduledSortOrder; label: string }[] = [
+  { value: "scheduledAt_asc", label: "予定日（近い順）" },
+  { value: "scheduledAt_desc", label: "予定日（遠い順）" },
+  { value: "createdAt", label: "作成日時" },
 ];
 
 const KEYWORD_DEBOUNCE_MS = 300;
@@ -36,6 +42,12 @@ interface FilterSidebarProps {
   categoriesLoading: boolean;
   selectedCategoryIds: string[];
   onToggleCategory: (categoryId: string) => void;
+  viewMode: ViewMode;
+  onViewModeChange: (mode: ViewMode) => void;
+  listSort: ListSortOrder;
+  onListSortChange: (sort: ListSortOrder) => void;
+  scheduledSort: ScheduledSortOrder;
+  onScheduledSortChange: (sort: ScheduledSortOrder) => void;
 }
 
 interface AccordionSectionProps {
@@ -65,7 +77,7 @@ function AccordionSection({ title, isActive, open, onToggle, children }: Accordi
   );
 }
 
-export function FilterSidebar({ categories, categoriesLoading, selectedCategoryIds, onToggleCategory }: FilterSidebarProps) {
+export function FilterSidebar({ categories, categoriesLoading, selectedCategoryIds, onToggleCategory, viewMode, onViewModeChange, listSort, onListSortChange, scheduledSort, onScheduledSortChange }: FilterSidebarProps) {
   const router = useRouter();
   const searchParams = useSearchParams();
   const today = getTodayInJST();
@@ -78,7 +90,6 @@ export function FilterSidebar({ categories, categoriesLoading, selectedCategoryI
   const keyword = searchParams.get("keyword") || "";
   const statusFilter = (searchParams.get("status") || "pending") as StatusFilter;
   const favoriteFilter = searchParams.get("favorite") === "true";
-  const sortOrder = (searchParams.get("sort") || "displayOrder") as SortOrder;
   const categoryParam = searchParams.get("category");
   const isDefaultAllSelected = categoryParam === null;
   const isAllDeselected = categoryParam === CATEGORY_DESELECTED_SENTINEL;
@@ -244,6 +255,33 @@ export function FilterSidebar({ categories, categoriesLoading, selectedCategoryI
               </button>
             );
           })}
+        </div>
+      </section>
+
+      {/* View — always visible */}
+      <section className="shrink-0 border-t border-border px-4 py-2">
+        <span className="block text-xs font-semibold text-muted-foreground tracking-wide mb-1">ビュー</span>
+        <div className="flex rounded-md border border-input overflow-hidden divide-x divide-border text-xs bg-background">
+          <button
+            type="button"
+            className={cn(
+              "flex-1 flex items-center justify-center py-1.5 transition-colors",
+              viewMode === "list" ? "bg-primary text-primary-foreground font-medium" : "text-muted-foreground hover:bg-muted",
+            )}
+            onClick={() => onViewModeChange("list")}
+          >
+            一覧
+          </button>
+          <button
+            type="button"
+            className={cn(
+              "flex-1 flex items-center justify-center py-1.5 transition-colors",
+              viewMode === "scheduled" ? "bg-primary text-primary-foreground font-medium" : "text-muted-foreground hover:bg-muted",
+            )}
+            onClick={() => onViewModeChange("scheduled")}
+          >
+            予定
+          </button>
         </div>
       </section>
 
@@ -491,27 +529,44 @@ export function FilterSidebar({ categories, categoriesLoading, selectedCategoryI
       {/* Sort — accordion */}
       <AccordionSection
         title="並び替え"
-        isActive={sortOrder !== "displayOrder"}
+        isActive={viewMode === "list" ? listSort !== "displayOrder" : scheduledSort !== "scheduledAt_asc"}
         open={sortOpen}
         onToggle={() => setSortOpen(!sortOpen)}
       >
         <div className="grid grid-cols-2 gap-1">
-          {SORT_OPTIONS.map((option) => {
-            const active = sortOrder === option.value;
-            return (
-              <button
-                key={option.value}
-                type="button"
-                className={cn(
-                  "flex items-center justify-center px-2 py-1.5 rounded-md text-xs transition-colors border",
-                  active ? "bg-primary text-primary-foreground font-medium border-primary" : "border-input text-muted-foreground hover:bg-muted hover:text-foreground",
-                )}
-                onClick={() => updateSearchParams({ sort: option.value === "displayOrder" ? null : option.value })}
-              >
-                {option.label}
-              </button>
-            );
-          })}
+          {viewMode === "list"
+            ? LIST_SORT_OPTIONS.map((option) => {
+                const active = listSort === option.value;
+                return (
+                  <button
+                    key={option.value}
+                    type="button"
+                    className={cn(
+                      "flex items-center justify-center px-2 py-1.5 rounded-md text-xs transition-colors border",
+                      active ? "bg-primary text-primary-foreground font-medium border-primary" : "border-input text-muted-foreground hover:bg-muted hover:text-foreground",
+                    )}
+                    onClick={() => onListSortChange(option.value)}
+                  >
+                    {option.label}
+                  </button>
+                );
+              })
+            : SCHEDULED_SORT_OPTIONS.map((option) => {
+                const active = scheduledSort === option.value;
+                return (
+                  <button
+                    key={option.value}
+                    type="button"
+                    className={cn(
+                      "flex items-center justify-center px-2 py-1.5 rounded-md text-xs transition-colors border",
+                      active ? "bg-primary text-primary-foreground font-medium border-primary" : "border-input text-muted-foreground hover:bg-muted hover:text-foreground",
+                    )}
+                    onClick={() => onScheduledSortChange(option.value)}
+                  >
+                    {option.label}
+                  </button>
+                );
+              })}
         </div>
       </AccordionSection>
     </aside>

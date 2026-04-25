@@ -11,7 +11,9 @@ import { CATEGORY_DESELECTED_SENTINEL } from "@/lib/constants";
 import { CategoryGroupAccordion } from "./category-group-accordion";
 
 type StatusFilter = "all" | "pending" | "completed" | "skipped";
-type SortOrder = "displayOrder" | "createdAt" | "completedAt" | "skippedAt";
+type ViewMode = "list" | "scheduled";
+type ListSortOrder = "displayOrder" | "createdAt";
+type ScheduledSortOrder = "scheduledAt_asc" | "scheduledAt_desc" | "createdAt";
 
 const STATUS_OPTIONS: { value: StatusFilter; label: string }[] = [
   { value: "all", label: "すべて" },
@@ -20,11 +22,15 @@ const STATUS_OPTIONS: { value: StatusFilter; label: string }[] = [
   { value: "skipped", label: "やらない" },
 ];
 
-const SORT_OPTIONS: { value: SortOrder; label: string }[] = [
+const LIST_SORT_OPTIONS: { value: ListSortOrder; label: string }[] = [
   { value: "displayOrder", label: "表示順" },
   { value: "createdAt", label: "作成日時" },
-  { value: "completedAt", label: "完了日時" },
-  { value: "skippedAt", label: "やらない日時" },
+];
+
+const SCHEDULED_SORT_OPTIONS: { value: ScheduledSortOrder; label: string }[] = [
+  { value: "scheduledAt_asc", label: "予定日（近い順）" },
+  { value: "scheduledAt_desc", label: "予定日（遠い順）" },
+  { value: "createdAt", label: "作成日時" },
 ];
 
 const KEYWORD_DEBOUNCE_MS = 300;
@@ -40,9 +46,15 @@ function SectionLabel({ children }: { children: React.ReactNode }) {
 interface FilterBottomSheetProps {
   open: boolean;
   onClose: () => void;
+  viewMode: ViewMode;
+  onViewModeChange: (mode: ViewMode) => void;
+  listSort: ListSortOrder;
+  onListSortChange: (sort: ListSortOrder) => void;
+  scheduledSort: ScheduledSortOrder;
+  onScheduledSortChange: (sort: ScheduledSortOrder) => void;
 }
 
-export function FilterBottomSheet({ open, onClose }: FilterBottomSheetProps) {
+export function FilterBottomSheet({ open, onClose, viewMode, onViewModeChange, listSort, onListSortChange, scheduledSort, onScheduledSortChange }: FilterBottomSheetProps) {
   const router = useRouter();
   const searchParams = useSearchParams();
   const today = getTodayInJST();
@@ -51,7 +63,6 @@ export function FilterBottomSheet({ open, onClose }: FilterBottomSheetProps) {
   const keyword = searchParams.get("keyword") || "";
   const statusFilter = (searchParams.get("status") || "pending") as StatusFilter;
   const favoriteFilter = searchParams.get("favorite") === "true";
-  const sortOrder = (searchParams.get("sort") || "displayOrder") as SortOrder;
   const hasActiveFilters = !!(dateFilter || keyword || statusFilter !== "pending" || favoriteFilter);
 
   const [localKeyword, setLocalKeyword] = useState(keyword);
@@ -420,6 +431,33 @@ export function FilterBottomSheet({ open, onClose }: FilterBottomSheetProps) {
               </div>
             </section>
 
+            {/* ビュー */}
+            <section>
+              <SectionLabel>ビュー</SectionLabel>
+              <div className="flex rounded-md border border-input overflow-hidden divide-x divide-border text-xs bg-background">
+                <button
+                  type="button"
+                  className={cn(
+                    "flex-1 flex items-center justify-center py-1.5 transition-colors",
+                    viewMode === "list" ? "bg-primary text-primary-foreground font-medium" : "text-muted-foreground hover:bg-muted",
+                  )}
+                  onClick={() => onViewModeChange("list")}
+                >
+                  一覧
+                </button>
+                <button
+                  type="button"
+                  className={cn(
+                    "flex-1 flex items-center justify-center py-1.5 transition-colors",
+                    viewMode === "scheduled" ? "bg-primary text-primary-foreground font-medium" : "text-muted-foreground hover:bg-muted",
+                  )}
+                  onClick={() => onViewModeChange("scheduled")}
+                >
+                  予定
+                </button>
+              </div>
+            </section>
+
             {/* 日付 */}
             <section>
               <SectionLabel>日付</SectionLabel>
@@ -502,22 +540,39 @@ export function FilterBottomSheet({ open, onClose }: FilterBottomSheetProps) {
             <section>
               <SectionLabel>並び順</SectionLabel>
               <div className="grid grid-cols-2 gap-1">
-                {SORT_OPTIONS.map((option) => {
-                  const active = sortOrder === option.value;
-                  return (
-                    <button
-                      key={option.value}
-                      type="button"
-                      className={cn(
-                        "flex items-center justify-center px-2 py-1.5 rounded-md text-xs transition-colors border",
-                        active ? "bg-primary text-primary-foreground font-medium border-primary" : "border-input text-muted-foreground hover:bg-muted hover:text-foreground",
-                      )}
-                      onClick={() => updateSearchParams({ sort: option.value === "displayOrder" ? null : option.value })}
-                    >
-                      {option.label}
-                    </button>
-                  );
-                })}
+                {viewMode === "list"
+                  ? LIST_SORT_OPTIONS.map((option) => {
+                      const active = listSort === option.value;
+                      return (
+                        <button
+                          key={option.value}
+                          type="button"
+                          className={cn(
+                            "flex items-center justify-center px-2 py-1.5 rounded-md text-xs transition-colors border",
+                            active ? "bg-primary text-primary-foreground font-medium border-primary" : "border-input text-muted-foreground hover:bg-muted hover:text-foreground",
+                          )}
+                          onClick={() => onListSortChange(option.value)}
+                        >
+                          {option.label}
+                        </button>
+                      );
+                    })
+                  : SCHEDULED_SORT_OPTIONS.map((option) => {
+                      const active = scheduledSort === option.value;
+                      return (
+                        <button
+                          key={option.value}
+                          type="button"
+                          className={cn(
+                            "flex items-center justify-center px-2 py-1.5 rounded-md text-xs transition-colors border",
+                            active ? "bg-primary text-primary-foreground font-medium border-primary" : "border-input text-muted-foreground hover:bg-muted hover:text-foreground",
+                          )}
+                          onClick={() => onScheduledSortChange(option.value)}
+                        >
+                          {option.label}
+                        </button>
+                      );
+                    })}
               </div>
             </section>
           </div>
