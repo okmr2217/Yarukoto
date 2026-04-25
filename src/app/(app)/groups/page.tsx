@@ -59,7 +59,9 @@ function SortableGroupRow({ group, onEdit, onDelete }: SortableGroupRowProps) {
         >
           <GripVertical className="h-4 w-4" />
         </button>
-        {group.color ? (
+        {group.emoji ? (
+          <span className="text-base shrink-0 leading-none">{group.emoji}</span>
+        ) : group.color ? (
           <div className="w-3.5 h-3.5 rounded-full shrink-0" style={{ backgroundColor: group.color }} />
         ) : (
           <div className="w-3.5 h-3.5 rounded-full shrink-0 border border-border bg-muted" />
@@ -92,7 +94,11 @@ function GroupRowOverlay({ group }: { group: Group }) {
     <div className="flex items-center justify-between p-4 bg-card rounded-lg border border-border shadow-lg">
       <div className="flex items-center gap-3">
         <GripVertical className="h-4 w-4 text-muted-foreground" />
-        {group.color && <div className="w-3.5 h-3.5 rounded-full shrink-0" style={{ backgroundColor: group.color }} />}
+        {group.emoji ? (
+          <span className="text-base shrink-0 leading-none">{group.emoji}</span>
+        ) : (
+          group.color && <div className="w-3.5 h-3.5 rounded-full shrink-0" style={{ backgroundColor: group.color }} />
+        )}
         <span className="font-medium">{group.name}</span>
       </div>
     </div>
@@ -127,12 +133,12 @@ export default function GroupsPage() {
     setIsDialogOpen(true);
   };
 
-  const handleSave = async (data: { name: string; color?: string }) => {
+  const handleSave = async (data: { name: string; emoji?: string | null; color?: string }) => {
     try {
       if (editingGroup) {
-        await updateGroup.mutateAsync({ id: editingGroup.id, name: data.name, color: data.color });
+        await updateGroup.mutateAsync({ id: editingGroup.id, name: data.name, emoji: data.emoji, color: data.color });
       } else {
-        await createGroup.mutateAsync({ name: data.name, color: data.color });
+        await createGroup.mutateAsync({ name: data.name, emoji: data.emoji ?? undefined, color: data.color });
       }
       setIsDialogOpen(false);
     } catch {

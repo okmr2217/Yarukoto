@@ -16,10 +16,10 @@ import {
 import type { Category as PrismaCategory } from "@/generated/prisma/client";
 
 type PrismaCategoryWithGroup = PrismaCategory & {
-  group: { id: string; name: string; color: string | null } | null;
+  group: { id: string; name: string; emoji: string | null; color: string | null } | null;
 };
 
-const groupSelect = { select: { id: true, name: true, color: true } } as const;
+const groupSelect = { select: { id: true, name: true, emoji: true, color: true } } as const;
 
 function toCategory(category: PrismaCategoryWithGroup): Category {
   return {

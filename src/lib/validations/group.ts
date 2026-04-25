@@ -5,12 +5,17 @@ const hexColorSchema = z
   .string()
   .regex(/^#[0-9A-Fa-f]{6}$/, "カラーコードは#RRGGBB形式で入力してください");
 
+const emojiSchema = z
+  .string()
+  .refine((val) => Array.from(val).length <= 2, "絵文字は2文字以内で入力してください");
+
 export const createGroupSchema = z.object({
   name: z
     .string()
     .min(1, "グループ名を入力してください")
     .max(GROUP_CONSTANTS.NAME_MAX_LENGTH, `グループ名は${GROUP_CONSTANTS.NAME_MAX_LENGTH}文字以内で入力してください`)
     .refine((val) => val.trim().length > 0, "グループ名を入力してください"),
+  emoji: emojiSchema.optional(),
   color: hexColorSchema.optional(),
 });
 
@@ -22,6 +27,7 @@ export const updateGroupSchema = z.object({
     .max(GROUP_CONSTANTS.NAME_MAX_LENGTH, `グループ名は${GROUP_CONSTANTS.NAME_MAX_LENGTH}文字以内で入力してください`)
     .refine((val) => val.trim().length > 0, "グループ名を入力してください")
     .optional(),
+  emoji: emojiSchema.nullable().optional(),
   color: hexColorSchema.nullable().optional(),
 });
 

@@ -31,3 +31,5 @@ export { useTheme, type Theme } from "./use-theme";
 export { useGroups, useCreateGroup, useUpdateGroup, useDeleteGroup, useReorderGroups } from "./use-groups";
 
 export { getGroupSelectionState, useCategoryGroupCollapsed, type GroupSelectionState } from "./use-category-group-filter";
+
+export { useRecentCategories } from "./use-recent-categories";

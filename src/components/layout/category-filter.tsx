@@ -170,12 +170,14 @@ export function CategoryFilter({ categories, isLoading }: CategoryFilterProps) {
                     )}
                     style={state !== "none" && group.color ? { backgroundColor: `${group.color}28`, color: group.color } : undefined}
                   >
-                    {group.color && (
+                    {group.emoji ? (
+                      <span className="text-sm leading-none">{group.emoji}</span>
+                    ) : group.color ? (
                       <span
                         className="w-1.5 h-1.5 rounded-full shrink-0"
                         style={{ backgroundColor: group.color, opacity: state === "none" ? 0.4 : 1 }}
                       />
-                    )}
+                    ) : null}
                     {group.name}
                     {groupCount > 0 && (
                       <span className="text-[10px] tabular-nums opacity-60">{groupCount}</span>

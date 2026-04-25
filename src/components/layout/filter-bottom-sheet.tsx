@@ -292,6 +292,7 @@ export function FilterBottomSheet({ open, onClose }: FilterBottomSheetProps) {
                         key={group.id}
                         groupId={group.id}
                         groupName={group.name}
+                        groupEmoji={group.emoji}
                         groupColor={group.color}
                         categories={groupCats}
                         selectedCategoryIds={effectiveSelectedIds}

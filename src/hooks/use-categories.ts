@@ -52,7 +52,7 @@ export function useCreateCategory() {
         sortOrder: maxSortOrder + 1,
         archivedAt: null,
         groupId: groupId ?? null,
-        group: group ? { id: group.id, name: group.name, color: group.color } : null,
+        group: group ? { id: group.id, name: group.name, emoji: group.emoji, color: group.color } : null,
         createdAt: new Date().toISOString(),
         updatedAt: new Date().toISOString(),
       };
@@ -120,7 +120,7 @@ export function useUpdateCategory() {
               color: color !== undefined ? color : cat.color,
               description: description !== undefined ? description : cat.description,
               groupId: newGroupId,
-              group: newGroup ? { id: newGroup.id, name: newGroup.name, color: newGroup.color } : null,
+              group: newGroup ? { id: newGroup.id, name: newGroup.name, emoji: newGroup.emoji, color: newGroup.color } : null,
               updatedAt: new Date().toISOString(),
             };
           }),

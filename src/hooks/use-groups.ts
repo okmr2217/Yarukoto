@@ -18,8 +18,8 @@ export function useGroups() {
 export function useCreateGroup() {
   const queryClient = useQueryClient();
   return useMutation({
-    mutationFn: async ({ name, color }: { name: string; color?: string }) => {
-      const result = await createGroup({ name, color });
+    mutationFn: async ({ name, emoji, color }: { name: string; emoji?: string; color?: string }) => {
+      const result = await createGroup({ name, emoji, color });
       if (!result.success) throw new Error(result.error);
       return result.data.group;
     },
@@ -32,12 +32,12 @@ export function useCreateGroup() {
 export function useUpdateGroup() {
   const queryClient = useQueryClient();
   return useMutation({
-    mutationFn: async ({ id, name, color }: { id: string; name?: string; color?: string | null }) => {
-      const result = await updateGroup({ id, name, color });
+    mutationFn: async ({ id, name, emoji, color }: { id: string; name?: string; emoji?: string | null; color?: string | null }) => {
+      const result = await updateGroup({ id, name, emoji, color });
       if (!result.success) throw new Error(result.error);
       return result.data.group;
     },
-    onMutate: async ({ id, name, color }) => {
+    onMutate: async ({ id, name, emoji, color }) => {
       await queryClient.cancelQueries({ queryKey: ["groups"] });
       const previous = queryClient.getQueryData<Group[]>(["groups"]);
       if (previous) {
@@ -45,7 +45,13 @@ export function useUpdateGroup() {
           ["groups"],
           previous.map((g) =>
             g.id === id
-              ? { ...g, name: name ?? g.name, color: color !== undefined ? color : g.color, updatedAt: new Date().toISOString() }
+              ? {
+                  ...g,
+                  name: name ?? g.name,
+                  emoji: emoji !== undefined ? emoji : g.emoji,
+                  color: color !== undefined ? color : g.color,
+                  updatedAt: new Date().toISOString(),
+                }
               : g,
           ),
         );

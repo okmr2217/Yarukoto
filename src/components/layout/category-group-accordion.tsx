@@ -8,6 +8,7 @@ import type { GroupSelectionState } from "@/hooks/use-category-group-filter";
 interface CategoryGroupAccordionProps {
   groupId: string;
   groupName: string;
+  groupEmoji: string | null;
   groupColor: string | null;
   categories: Category[];
   selectedCategoryIds: string[];
@@ -22,6 +23,7 @@ interface CategoryGroupAccordionProps {
 export function CategoryGroupAccordion({
   groupId,
   groupName,
+  groupEmoji,
   groupColor,
   categories,
   selectedCategoryIds,
@@ -72,7 +74,9 @@ export function CategoryGroupAccordion({
               : undefined
           }
         >
-          {groupColor && (
+          {groupEmoji ? (
+            <span className="shrink-0 text-sm leading-none">{groupEmoji}</span>
+          ) : groupColor ? (
             <span
               className={cn(
                 "w-2 h-2 rounded-full shrink-0",
@@ -80,7 +84,7 @@ export function CategoryGroupAccordion({
               )}
               style={{ backgroundColor: groupColor }}
             />
-          )}
+          ) : null}
           <span className="truncate">{groupName}</span>
           {selectionState === "partial" && (
             <span className="shrink-0 text-[9px] px-1 py-0.5 rounded bg-muted text-muted-foreground">一部</span>

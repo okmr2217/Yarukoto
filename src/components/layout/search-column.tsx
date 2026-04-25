@@ -252,6 +252,7 @@ export function SearchColumn({ categories, categoriesLoading, selectedCategoryId
                   key={group.id}
                   groupId={group.id}
                   groupName={group.name}
+                  groupEmoji={group.emoji}
                   groupColor={group.color}
                   categories={groupCats}
                   selectedCategoryIds={selectedCategoryIds}

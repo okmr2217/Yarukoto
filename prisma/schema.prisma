@@ -147,6 +147,7 @@ model Category {
 model Group {
   id        String   @id @default(cuid())
   name      String   @db.VarChar(50)
+  emoji     String?  @db.VarChar(8)
   color     String?  @db.VarChar(7)
   sortOrder Int      @default(0)
   createdAt DateTime @default(now())

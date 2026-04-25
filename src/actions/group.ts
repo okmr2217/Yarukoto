@@ -20,6 +20,7 @@ function toGroup(group: PrismaGroupWithCount): Group {
   return {
     id: group.id,
     name: group.name,
+    emoji: group.emoji,
     color: group.color,
     sortOrder: group.sortOrder,
     categoryCount: group._count.categories,
@@ -51,7 +52,7 @@ export async function createGroup(input: CreateGroupInput): Promise<ActionResult
     }
 
     const user = await getRequiredUser();
-    const { name, color } = parsed.data;
+    const { name, emoji, color } = parsed.data;
 
     const existing = await prisma.group.findFirst({
       where: { userId: user.id, name: { equals: name.trim(), mode: "insensitive" } },
@@ -67,7 +68,7 @@ export async function createGroup(input: CreateGroupInput): Promise<ActionResult
     const nextSortOrder = (maxSortOrder._max.sortOrder ?? -1) + 1;
 
     const group = await prisma.group.create({
-      data: { name: name.trim(), color: color ?? null, sortOrder: nextSortOrder, userId: user.id },
+      data: { name: name.trim(), emoji: emoji ?? null, color: color ?? null, sortOrder: nextSortOrder, userId: user.id },
       include: { _count: { select: { categories: true } } },
     });
 
@@ -86,7 +87,7 @@ export async function updateGroup(input: UpdateGroupInput): Promise<ActionResult
     }
 
     const user = await getRequiredUser();
-    const { id, name, color } = parsed.data;
+    const { id, name, emoji, color } = parsed.data;
 
     const existingGroup = await prisma.group.findFirst({ where: { id, userId: user.id } });
     if (!existingGroup) {
@@ -104,6 +105,7 @@ export async function updateGroup(input: UpdateGroupInput): Promise<ActionResult
 
     const updateData: Record<string, unknown> = {};
     if (name !== undefined) updateData.name = name.trim();
+    if (emoji !== undefined) updateData.emoji = emoji;
     if (color !== undefined) updateData.color = color;
 
     const group = await prisma.group.update({
