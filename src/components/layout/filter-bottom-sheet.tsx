@@ -6,8 +6,9 @@ import { Search, X, Star, ChevronLeft, ChevronRight } from "lucide-react";
 import { Input } from "@/components/ui/input";
 import { getTodayInJST, addDaysJST } from "@/lib/dateUtils";
 import { cn } from "@/lib/utils";
-import { useAllTasks } from "@/hooks";
+import { useAllTasks, useCategories, useGroups, getGroupSelectionState, useCategoryGroupCollapsed } from "@/hooks";
 import { CATEGORY_DESELECTED_SENTINEL } from "@/lib/constants";
+import { CategoryGroupAccordion } from "./category-group-accordion";
 
 type StatusFilter = "all" | "pending" | "completed" | "skipped";
 type SortOrder = "displayOrder" | "createdAt" | "completedAt" | "skippedAt";
@@ -66,6 +67,14 @@ export function FilterBottomSheet({ open, onClose }: FilterBottomSheetProps) {
     : isAllDeselected
     ? []
     : categoryParam?.split(",");
+
+  const { data: categories = [], isLoading: categoriesLoading } = useCategories();
+  const { data: groups = [] } = useGroups();
+  const { collapsed, toggleCollapse } = useCategoryGroupCollapsed();
+
+  const effectiveSelectedIds: string[] = isDefaultAllSelected
+    ? [...categories.map((c) => c.id), "none"]
+    : (selectedCategoryIds ?? []);
 
   if (keyword !== syncedKeyword) {
     setSyncedKeyword(keyword);
@@ -133,6 +142,76 @@ export function FilterBottomSheet({ open, onClose }: FilterBottomSheetProps) {
     updateSearchParams({ keyword: null, status: null, favorite: null, date: null });
   };
 
+  const handleToggleCategory = (categoryId: string) => {
+    const next = effectiveSelectedIds.includes(categoryId)
+      ? effectiveSelectedIds.filter((id) => id !== categoryId)
+      : [...effectiveSelectedIds, categoryId];
+
+    if (next.length === 0) {
+      updateSearchParams({ category: CATEGORY_DESELECTED_SENTINEL });
+    } else {
+      const allIds = [...categories.map((c) => c.id), "none"];
+      const isAll = allIds.length === next.length && allIds.every((id) => next.includes(id));
+      updateSearchParams({ category: isAll ? null : next.join(",") });
+    }
+  };
+
+  const handleToggleGroup = (groupId: string, shiftKey: boolean) => {
+    const groupCats = categories.filter((c) => c.groupId === groupId);
+    const groupIds = groupCats.map((c) => c.id);
+    const state = getGroupSelectionState(groupIds, effectiveSelectedIds);
+
+    if (shiftKey) {
+      if (groupIds.length === 0) return;
+      updateSearchParams({ category: groupIds.join(",") });
+      return;
+    }
+
+    if (state === "all") {
+      const next = effectiveSelectedIds.filter((id) => !groupIds.includes(id));
+      if (next.length === 0) {
+        updateSearchParams({ category: CATEGORY_DESELECTED_SENTINEL });
+      } else {
+        const allIds = [...categories.map((c) => c.id), "none"];
+        const isAll = allIds.length === next.length && allIds.every((id) => next.includes(id));
+        updateSearchParams({ category: isAll ? null : next.join(",") });
+      }
+    } else {
+      const next = [...new Set([...effectiveSelectedIds, ...groupIds])];
+      const allIds = [...categories.map((c) => c.id), "none"];
+      const isAll = allIds.length === next.length && allIds.every((id) => next.includes(id));
+      updateSearchParams({ category: isAll ? null : next.join(",") });
+    }
+  };
+
+  // カテゴリ件数: 他フィルター条件に連動
+  const { data: tasksForCounts } = useAllTasks({
+    date: dateFilter || undefined,
+    keyword: keyword || undefined,
+    status: statusFilter !== "all" ? statusFilter : undefined,
+    isFavorite: favoriteFilter || undefined,
+  });
+
+  const countByCategory = (() => {
+    if (!tasksForCounts) return {} as Record<string, number>;
+    const counts: Record<string, number> = {};
+    for (const task of tasksForCounts) {
+      const key = task.categoryId ?? "none";
+      counts[key] = (counts[key] ?? 0) + 1;
+    }
+    return counts;
+  })();
+
+  const groupedCategories: Record<string, typeof categories> = {};
+  const ungroupedCategories: typeof categories = [];
+  for (const cat of categories) {
+    if (cat.groupId) {
+      groupedCategories[cat.groupId] = [...(groupedCategories[cat.groupId] ?? []), cat];
+    } else {
+      ungroupedCategories.push(cat);
+    }
+  }
+
   if (!open) return null;
 
   return (
@@ -167,6 +246,126 @@ export function FilterBottomSheet({ open, onClose }: FilterBottomSheetProps) {
           </div>
 
           <div className="flex flex-col gap-4">
+            {/* カテゴリ */}
+            <section>
+              <div className="flex items-center justify-between mb-1">
+                <SectionLabel>カテゴリ</SectionLabel>
+                <div className="flex items-center gap-1">
+                  <button
+                    type="button"
+                    onClick={() => updateSearchParams({ category: CATEGORY_DESELECTED_SENTINEL })}
+                    className={cn(
+                      "text-[11px] px-1.5 py-0.5 rounded transition-colors",
+                      isAllDeselected ? "text-foreground font-semibold bg-muted" : "text-muted-foreground hover:text-foreground hover:bg-muted",
+                    )}
+                  >
+                    全て解除
+                  </button>
+                  <button
+                    type="button"
+                    onClick={() => updateSearchParams({ category: null })}
+                    className={cn(
+                      "text-[11px] px-1.5 py-0.5 rounded transition-colors",
+                      isDefaultAllSelected ? "text-foreground font-semibold bg-muted" : "text-muted-foreground hover:text-foreground hover:bg-muted",
+                    )}
+                  >
+                    全て選択
+                  </button>
+                </div>
+              </div>
+
+              {categoriesLoading ? (
+                <div className="grid grid-cols-2 gap-1">
+                  {[80, 64, 96, 72].map((w, i) => (
+                    <div key={i} className="h-7 rounded-md bg-muted animate-pulse" />
+                  ))}
+                </div>
+              ) : (
+                <div>
+                  {groups.map((group) => {
+                    const groupCats = groupedCategories[group.id] ?? [];
+                    if (groupCats.length === 0) return null;
+                    const groupIds = groupCats.map((c) => c.id);
+                    const selectionState = getGroupSelectionState(groupIds, effectiveSelectedIds);
+                    return (
+                      <CategoryGroupAccordion
+                        key={group.id}
+                        groupId={group.id}
+                        groupName={group.name}
+                        groupColor={group.color}
+                        categories={groupCats}
+                        selectedCategoryIds={effectiveSelectedIds}
+                        countByCategory={countByCategory}
+                        isCollapsed={!!collapsed[group.id]}
+                        onToggleCollapse={toggleCollapse}
+                        onToggleGroup={handleToggleGroup}
+                        onToggleCategory={handleToggleCategory}
+                        selectionState={selectionState}
+                      />
+                    );
+                  })}
+
+                  {ungroupedCategories.length > 0 && (
+                    <div className="grid grid-cols-2 gap-1 mt-1">
+                      {ungroupedCategories.map((category) => {
+                        const count = countByCategory[category.id] ?? 0;
+                        const active = effectiveSelectedIds.includes(category.id);
+                        const color = category.color;
+                        const activeStyle = color
+                          ? { backgroundColor: `${color}28`, color: color, boxShadow: `inset 0 0 0 1.5px ${color}50` }
+                          : undefined;
+                        const inactiveStyle = color
+                          ? { backgroundColor: `${color}14`, color: `${color}aa` }
+                          : undefined;
+                        return (
+                          <button
+                            key={category.id}
+                            type="button"
+                            onClick={() => handleToggleCategory(category.id)}
+                            aria-pressed={active}
+                            className={cn(
+                              "flex items-center justify-between px-2 py-1 rounded-md text-xs transition-colors min-w-0",
+                              active ? "font-semibold" : color ? "" : "text-muted-foreground hover:bg-accent hover:text-foreground",
+                            )}
+                            style={active ? activeStyle : inactiveStyle}
+                          >
+                            <div className="flex items-center gap-1.5 min-w-0">
+                              {color && <span className="w-1.5 h-1.5 rounded-full shrink-0" style={{ backgroundColor: color }} />}
+                              <span className="truncate">{category.name}</span>
+                            </div>
+                            {count > 0 && <span className="text-xs tabular-nums shrink-0 ml-1 opacity-70">{count}</span>}
+                          </button>
+                        );
+                      })}
+                    </div>
+                  )}
+
+                  {(groups.length > 0 || ungroupedCategories.length > 0) && (
+                    <div className="my-1 border-t border-border" />
+                  )}
+
+                  {(() => {
+                    const count = countByCategory["none"] ?? 0;
+                    const active = effectiveSelectedIds.includes("none");
+                    return (
+                      <button
+                        type="button"
+                        onClick={() => handleToggleCategory("none")}
+                        aria-pressed={active}
+                        className={cn(
+                          "flex items-center justify-between px-2 py-1 rounded-md text-xs transition-colors min-w-0 w-full",
+                          active ? "bg-muted text-foreground font-semibold" : "text-muted-foreground hover:bg-accent hover:text-foreground",
+                        )}
+                      >
+                        <span className="truncate">カテゴリなし</span>
+                        {count > 0 && <span className="text-[10px] tabular-nums shrink-0 ml-1 opacity-70">{count}</span>}
+                      </button>
+                    );
+                  })()}
+                </div>
+              )}
+            </section>
+
             {/* キーワード */}
             <section>
               <SectionLabel>キーワード</SectionLabel>

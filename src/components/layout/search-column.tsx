@@ -5,10 +5,11 @@ import { useRouter, useSearchParams } from "next/navigation";
 import { Search, X, Star, ChevronLeft, ChevronRight } from "lucide-react";
 import { Input } from "@/components/ui/input";
 import { getTodayInJST, addDaysJST } from "@/lib/dateUtils";
-import { useAllTasks } from "@/hooks";
+import { useAllTasks, useGroups, getGroupSelectionState, useCategoryGroupCollapsed } from "@/hooks";
 import type { Category } from "@/types";
 import { cn } from "@/lib/utils";
 import { CATEGORY_DESELECTED_SENTINEL } from "@/lib/constants";
+import { CategoryGroupAccordion } from "./category-group-accordion";
 
 type StatusFilter = "all" | "pending" | "completed" | "skipped";
 type SortOrder = "displayOrder" | "createdAt" | "completedAt" | "skippedAt";
@@ -59,6 +60,9 @@ export function SearchColumn({ categories, categoriesLoading, selectedCategoryId
   const isDefaultAllSelected = categoryParam === null;
   const isAllDeselected = categoryParam === CATEGORY_DESELECTED_SENTINEL;
   const [localKeyword, setLocalKeyword] = useState(keyword);
+
+  const { data: groups = [] } = useGroups();
+  const { collapsed, toggleCollapse } = useCategoryGroupCollapsed();
   const [syncedKeyword, setSyncedKeyword] = useState(keyword);
   const isComposingRef = useRef(false);
   const debounceTimerRef = useRef<ReturnType<typeof setTimeout> | null>(null);
@@ -153,6 +157,52 @@ export function SearchColumn({ categories, categoriesLoading, selectedCategoryId
     updateSearchParams({ category: CATEGORY_DESELECTED_SENTINEL });
   };
 
+  const handleToggleGroup = (groupId: string, shiftKey: boolean) => {
+    const groupCategories = categories.filter((c) => c.groupId === groupId);
+    const groupIds = groupCategories.map((c) => c.id);
+    const state = getGroupSelectionState(groupIds, selectedCategoryIds);
+
+    if (shiftKey) {
+      // Shift+クリック: このグループのみ選択（他はすべて解除）
+      if (groupIds.length === 0) return;
+      updateSearchParams({ category: groupIds.join(",") });
+      return;
+    }
+
+    // 通常クリック: 全選択 or 全解除トグル
+    if (state === "all") {
+      // 全解除
+      const next = selectedCategoryIds.filter((id) => !groupIds.includes(id));
+      if (next.length === 0) {
+        updateSearchParams({ category: CATEGORY_DESELECTED_SENTINEL });
+      } else {
+        const allIds = [...categories.map((c) => c.id), "none"];
+        const isAllSelected = allIds.length === next.length && allIds.every((id) => next.includes(id));
+        updateSearchParams({ category: isAllSelected ? null : next.join(",") });
+      }
+    } else {
+      // 全選択
+      const next = [...new Set([...selectedCategoryIds, ...groupIds])];
+      const allIds = [...categories.map((c) => c.id), "none"];
+      const isAllSelected = allIds.length === next.length && allIds.every((id) => next.includes(id));
+      updateSearchParams({ category: isAllSelected ? null : next.join(",") });
+    }
+  };
+
+  // カテゴリをグループ別に分類
+  const groupedCategories = (() => {
+    const byGroup: Record<string, Category[]> = {};
+    const ungrouped: Category[] = [];
+    for (const cat of categories) {
+      if (cat.groupId) {
+        byGroup[cat.groupId] = [...(byGroup[cat.groupId] ?? []), cat];
+      } else {
+        ungrouped.push(cat);
+      }
+    }
+    return { byGroup, ungrouped };
+  })();
+
   return (
     <div className="px-4 py-2 flex flex-col gap-4">
       {/* カテゴリ */}
@@ -183,31 +233,57 @@ export function SearchColumn({ categories, categoriesLoading, selectedCategoryId
           </div>
         </div>
 
-        {/* カテゴリ一覧 — 2列グリッド */}
-        <div className="grid grid-cols-2 gap-1">
-          {categoriesLoading
-            ? [80, 64, 96, 72].map((w, i) => (
-                <div key={i} className="h-7 rounded-md bg-muted animate-pulse" />
-              ))
-            : (
-              <>
-                {categories.map((category) => {
+        {categoriesLoading ? (
+          <div className="grid grid-cols-2 gap-1">
+            {[80, 64, 96, 72].map((w, i) => (
+              <div key={i} className="h-7 rounded-md bg-muted animate-pulse" />
+            ))}
+          </div>
+        ) : (
+          <div>
+            {/* グループ付きカテゴリ */}
+            {groups.map((group) => {
+              const groupCats = groupedCategories.byGroup[group.id] ?? [];
+              if (groupCats.length === 0) return null;
+              const groupIds = groupCats.map((c) => c.id);
+              const selectionState = getGroupSelectionState(groupIds, selectedCategoryIds);
+              return (
+                <CategoryGroupAccordion
+                  key={group.id}
+                  groupId={group.id}
+                  groupName={group.name}
+                  groupColor={group.color}
+                  categories={groupCats}
+                  selectedCategoryIds={selectedCategoryIds}
+                  countByCategory={countByCategory}
+                  isCollapsed={!!collapsed[group.id]}
+                  onToggleCollapse={toggleCollapse}
+                  onToggleGroup={handleToggleGroup}
+                  onToggleCategory={onToggleCategory}
+                  selectionState={selectionState}
+                />
+              );
+            })}
+
+            {/* グループなしカテゴリ */}
+            {groupedCategories.ungrouped.length > 0 && (
+              <div className="grid grid-cols-2 gap-1 mt-1">
+                {groupedCategories.ungrouped.map((category) => {
                   const count = countByCategory[category.id] ?? 0;
                   const active = selectedCategoryIds.includes(category.id);
                   const color = category.color;
-
                   const activeStyle = color
                     ? { backgroundColor: `${color}28`, color: color, boxShadow: `inset 0 0 0 1.5px ${color}50` }
                     : undefined;
                   const inactiveStyle = color
                     ? { backgroundColor: `${color}14`, color: `${color}aa` }
                     : undefined;
-
                   return (
                     <button
                       key={category.id}
                       type="button"
                       onClick={() => onToggleCategory(category.id)}
+                      aria-pressed={active}
                       className={cn(
                         "flex items-center justify-between px-2 py-1 rounded-md text-xs transition-colors min-w-0",
                         active ? "font-semibold" : color ? "" : "text-muted-foreground hover:bg-accent hover:text-foreground",
@@ -222,27 +298,35 @@ export function SearchColumn({ categories, categoriesLoading, selectedCategoryId
                     </button>
                   );
                 })}
-                {/* カテゴリなし */}
-                {(() => {
-                  const count = countByCategory["none"] ?? 0;
-                  const active = selectedCategoryIds.includes("none");
-                  return (
-                    <button
-                      type="button"
-                      onClick={() => onToggleCategory("none")}
-                      className={cn(
-                        "flex items-center justify-between px-2 py-1 rounded-md text-xs transition-colors min-w-0",
-                        active ? "bg-muted text-foreground font-semibold" : "text-muted-foreground hover:bg-accent hover:text-foreground",
-                      )}
-                    >
-                      <span className="truncate">カテゴリなし</span>
-                      {count > 0 && <span className="text-[10px] tabular-nums shrink-0 ml-1 opacity-70">{count}</span>}
-                    </button>
-                  );
-                })()}
-              </>
+              </div>
             )}
-        </div>
+
+            {/* 区切り線 */}
+            {(groups.length > 0 || groupedCategories.ungrouped.length > 0) && (
+              <div className="my-1 border-t border-border" />
+            )}
+
+            {/* カテゴリなし */}
+            {(() => {
+              const count = countByCategory["none"] ?? 0;
+              const active = selectedCategoryIds.includes("none");
+              return (
+                <button
+                  type="button"
+                  onClick={() => onToggleCategory("none")}
+                  aria-pressed={active}
+                  className={cn(
+                    "flex items-center justify-between px-2 py-1 rounded-md text-xs transition-colors min-w-0 w-full",
+                    active ? "bg-muted text-foreground font-semibold" : "text-muted-foreground hover:bg-accent hover:text-foreground",
+                  )}
+                >
+                  <span className="truncate">カテゴリなし</span>
+                  {count > 0 && <span className="text-[10px] tabular-nums shrink-0 ml-1 opacity-70">{count}</span>}
+                </button>
+              );
+            })()}
+          </div>
+        )}
       </section>
 
       {/* キーワード */}

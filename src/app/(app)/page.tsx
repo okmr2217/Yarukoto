@@ -69,14 +69,6 @@ export default function HomePage() {
     router.push(qs ? `/?${qs}` : "/");
   }, [searchParams, router]);
 
-  const handleSelectAllCategories = () => {
-    updateSearchParams({ category: null }); // null = デフォルト全選択
-  };
-
-  const handleDeselectAllCategories = () => {
-    updateSearchParams({ category: CATEGORY_DESELECTED_SENTINEL });
-  };
-
   const filterValues: FilterValues = {
     keyword,
     status: statusFilter,
@@ -269,14 +261,7 @@ export default function HomePage() {
     return (
       <div className="flex-1 bg-background flex flex-col">
         <div className="md:hidden sticky top-0 z-10">
-          <FilterArea
-            categories={categories}
-            selectedCategoryIds={effectiveSelectedIds}
-            onToggleCategory={handleToggleCategory}
-            onSelectAll={handleSelectAllCategories}
-            onDeselectAll={handleDeselectAllCategories}
-            categoriesLoading={categoriesLoading}
-          />
+          <FilterArea categories={categories} categoriesLoading={categoriesLoading} />
         </div>
         <div className="flex flex-1 min-h-0">
           <div className="flex-1 flex flex-col min-w-0">
@@ -352,14 +337,7 @@ export default function HomePage() {
     <div className="flex-1 bg-background flex flex-col">
       {/* モバイル: カテゴリフィルタエリア */}
       <div className="md:hidden sticky top-0 z-10">
-        <FilterArea
-          categories={categories}
-          selectedCategoryIds={effectiveSelectedIds}
-          onToggleCategory={handleToggleCategory}
-          onSelectAll={handleSelectAllCategories}
-          onDeselectAll={handleDeselectAllCategories}
-          categoriesLoading={categoriesLoading}
-        />
+        <FilterArea categories={categories} categoriesLoading={categoriesLoading} />
       </div>
 
       <div className="flex flex-1 min-h-0">
