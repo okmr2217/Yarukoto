@@ -3,6 +3,7 @@
 import { useState } from "react";
 import { cn } from "@/lib/utils";
 import { getGroupEmoji } from "@/utils/categoryGroup";
+import { Tooltip, TooltipTrigger, TooltipContent } from "@/components/ui/tooltip";
 import type { Category, Group } from "@/types";
 
 const UNGROUPED_ID = "__ungrouped__";
@@ -112,7 +113,7 @@ export function CategorySelector({
 
   if (tabGroups.length === 0) {
     return (
-      <div className="flex flex-wrap gap-1">
+      <div className="grid grid-cols-4 gap-1">
         <NoneChip selected={!selectedCategoryId} onSelect={() => onChange(null)} />
         {visibleCats.map((cat) => (
           <CategoryChip key={cat.id} cat={cat} selected={selectedCategoryId === cat.id} onSelect={() => onChange(cat.id)} />
@@ -133,23 +134,27 @@ export function CategorySelector({
           const isActive = activeGroupId === group.id;
           const emoji = group.id === UNGROUPED_ID ? "📂" : getGroupEmoji(group.emoji);
           return (
-            <button
-              key={group.id}
-              type="button"
-              role="tab"
-              aria-selected={isActive}
-              tabIndex={isActive ? 0 : -1}
-              onClick={() => setActiveGroupId(group.id)}
-              onKeyDown={(e) => handleTabKeyDown(e, idx)}
-              className={cn(
-                "shrink-0 flex items-center gap-1 px-2.5 py-1.5 text-xs font-medium transition-colors whitespace-nowrap border-b-2 -mb-px",
-                isActive
-                  ? "border-foreground text-foreground"
-                  : "border-transparent text-muted-foreground hover:text-foreground",
-              )}
-            >
-              <span className="text-sm leading-none">{emoji}</span>
-            </button>
+            <Tooltip key={group.id}>
+              <TooltipTrigger asChild>
+                <button
+                  type="button"
+                  role="tab"
+                  aria-selected={isActive}
+                  tabIndex={isActive ? 0 : -1}
+                  onClick={() => setActiveGroupId(group.id)}
+                  onKeyDown={(e) => handleTabKeyDown(e, idx)}
+                  className={cn(
+                    "shrink-0 flex items-center gap-1 px-2.5 py-1.5 text-xs font-medium transition-colors whitespace-nowrap border-b-2 -mb-px",
+                    isActive
+                      ? "border-foreground text-foreground"
+                      : "border-transparent text-muted-foreground hover:text-foreground",
+                  )}
+                >
+                  <span className="text-sm leading-none">{emoji}</span>
+                </button>
+              </TooltipTrigger>
+              <TooltipContent side="bottom">{group.name}</TooltipContent>
+            </Tooltip>
           );
         })}
 
@@ -164,10 +169,10 @@ export function CategorySelector({
         </button>
       </div>
 
-      {/* カテゴリチップ */}
-      <div className="flex flex-wrap gap-1.5 min-h-[2rem]">
+      {/* カテゴリ */}
+      <div className="grid grid-cols-4 gap-1 min-h-[2rem]">
         {activeCats.length === 0 ? (
-          <p className="text-xs text-muted-foreground py-1">カテゴリがありません</p>
+          <p className="text-xs text-muted-foreground py-1 col-span-4">カテゴリがありません</p>
         ) : (
           activeCats.map((cat) => (
             <CategoryChip
@@ -199,18 +204,17 @@ function CategoryChip({
       onClick={onSelect}
       aria-pressed={selected}
       className={cn(
-        "px-2.5 py-1 rounded-full text-xs border-2 transition-colors flex items-center gap-1",
-        selected ? "border-primary" : "border-border hover:bg-accent",
+        "flex items-center gap-1.5 w-full px-2 py-1.5 rounded-md text-[11px] transition-colors min-w-0",
+        selected ? "bg-muted font-medium text-foreground" : "text-muted-foreground hover:bg-accent/40",
         isArchived && "opacity-60",
       )}
-      style={{
-        backgroundColor: selected && cat.color ? `${cat.color}20` : undefined,
-        borderColor: selected && cat.color ? cat.color : undefined,
-      }}
     >
-      <div className="w-2 h-2 rounded-full shrink-0" style={{ backgroundColor: cat.color || "#6B7280" }} />
-      {cat.name}
-      {isArchived && <span className="text-[10px] opacity-60">（アーカイブ）</span>}
+      <span
+        className={cn("w-1.5 h-1.5 rounded-full shrink-0", !selected && "opacity-40")}
+        style={{ backgroundColor: cat.color || "#6B7280" }}
+      />
+      <span className="truncate flex-1">{cat.name}</span>
+      {isArchived && <span className="text-[10px] opacity-60 shrink-0">A</span>}
     </button>
   );
 }
@@ -220,12 +224,14 @@ function NoneChip({ selected, onSelect }: { selected: boolean; onSelect: () => v
     <button
       type="button"
       onClick={onSelect}
+      aria-pressed={selected}
       className={cn(
-        "px-2.5 py-1 rounded-full text-xs border-2 transition-colors",
-        selected ? "border-primary bg-primary text-primary-foreground" : "border-border bg-background hover:bg-accent",
+        "flex items-center gap-1.5 w-full px-2 py-1.5 rounded-md text-[11px] transition-colors min-w-0",
+        selected ? "bg-muted font-medium text-foreground" : "text-muted-foreground hover:bg-accent/40",
       )}
     >
-      なし
+      <span className={cn("w-1.5 h-1.5 rounded-full shrink-0 border border-current", !selected && "opacity-40")} />
+      <span className="truncate">なし</span>
     </button>
   );
 }
