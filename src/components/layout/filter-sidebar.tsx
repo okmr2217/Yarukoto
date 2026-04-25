@@ -5,7 +5,7 @@ import { useRouter, useSearchParams } from "next/navigation";
 import { Search, X, Star, ChevronLeft, ChevronRight, ChevronDown } from "lucide-react";
 import { Input } from "@/components/ui/input";
 import { getTodayInJST, addDaysJST } from "@/lib/dateUtils";
-import { useAllTasks, useGroups, getGroupSelectionState, useCategoryGroupCollapsed } from "@/hooks";
+import { useAllTasks, useGroups, getGroupSelectionState, useGroupExpanded } from "@/hooks";
 import type { Category } from "@/types";
 import { cn } from "@/lib/utils";
 import { CATEGORY_DESELECTED_SENTINEL } from "@/lib/constants";
@@ -94,7 +94,7 @@ export function FilterSidebar({ categories, categoriesLoading, selectedCategoryI
   }
 
   const { data: groups = [] } = useGroups();
-  const { collapsed, toggleCollapse } = useCategoryGroupCollapsed();
+  const { isExpanded, toggle } = useGroupExpanded();
 
   const { data: tasksForCategoryCounts } = useAllTasks({
     date: dateFilter || undefined,
@@ -175,9 +175,8 @@ export function FilterSidebar({ categories, categoriesLoading, selectedCategoryI
   const handleDeselectAll = () => updateSearchParams({ category: CATEGORY_DESELECTED_SENTINEL });
 
   const handleToggleGroup = (groupId: string, shiftKey: boolean) => {
-    const groupCategories = groupId === UNGROUPED_VIRTUAL_ID
-      ? categories.filter((c) => !c.groupId)
-      : categories.filter((c) => c.groupId === groupId);
+    const groupCategories =
+      groupId === UNGROUPED_VIRTUAL_ID ? categories.filter((c) => !c.groupId) : categories.filter((c) => c.groupId === groupId);
     const groupIds = groupCategories.map((c) => c.id);
     const state = getGroupSelectionState(groupIds, selectedCategoryIds);
 
@@ -221,148 +220,8 @@ export function FilterSidebar({ categories, categoriesLoading, selectedCategoryI
 
   return (
     <aside className="hidden md:flex flex-col w-75 border-r shrink-0 sticky top-12 h-[calc(100vh-3rem)] overflow-hidden">
-      {/* Category section — fills remaining height with internal scroll */}
-      <div className="flex flex-col flex-1 min-h-0 px-4 py-2">
-        <div className="flex items-center justify-between mb-1 shrink-0">
-          <span className="text-xs font-semibold text-muted-foreground tracking-wide">カテゴリ</span>
-          <div className="flex items-center gap-1">
-            <button
-              type="button"
-              onClick={handleDeselectAll}
-              className={cn(
-                "text-[11px] px-1.5 py-0.5 rounded transition-colors",
-                noneSelected ? "text-foreground font-semibold bg-muted" : "text-muted-foreground hover:text-foreground hover:bg-muted",
-              )}
-            >
-              全て解除
-            </button>
-            <button
-              type="button"
-              onClick={handleSelectAll}
-              className={cn(
-                "text-[11px] px-1.5 py-0.5 rounded transition-colors",
-                allSelected ? "text-foreground font-semibold bg-muted" : "text-muted-foreground hover:text-foreground hover:bg-muted",
-              )}
-            >
-              全て選択
-            </button>
-          </div>
-        </div>
-
-        <div className="flex-1 min-h-0 overflow-y-auto">
-          {categoriesLoading ? (
-            <div className="grid grid-cols-2 gap-1">
-              {[0, 1, 2, 3].map((i) => (
-                <div key={i} className="h-7 rounded-md bg-muted animate-pulse" />
-              ))}
-            </div>
-          ) : (
-            <div>
-              {groups.map((group) => {
-                const groupCats = groupedCategories.byGroup[group.id] ?? [];
-                if (groupCats.length === 0) return null;
-                const groupIds = groupCats.map((c) => c.id);
-                const selectionState = getGroupSelectionState(groupIds, selectedCategoryIds);
-                return (
-                  <CategoryGroupAccordion
-                    key={group.id}
-                    groupId={group.id}
-                    groupName={group.name}
-                    groupEmoji={group.emoji}
-                    groupColor={group.color}
-                    categories={groupCats}
-                    selectedCategoryIds={selectedCategoryIds}
-                    countByCategory={countByCategory}
-                    isCollapsed={!!collapsed[group.id]}
-                    onToggleCollapse={toggleCollapse}
-                    onToggleGroup={handleToggleGroup}
-                    onToggleCategory={onToggleCategory}
-                    selectionState={selectionState}
-                  />
-                );
-              })}
-
-              {groupedCategories.ungrouped.length > 0 && (
-                hasGroups ? (
-                  <CategoryGroupAccordion
-                    groupId={UNGROUPED_VIRTUAL_ID}
-                    groupName="グループなし"
-                    groupEmoji="📂"
-                    groupColor={null}
-                    categories={groupedCategories.ungrouped}
-                    selectedCategoryIds={selectedCategoryIds}
-                    countByCategory={countByCategory}
-                    isCollapsed={!!collapsed[UNGROUPED_VIRTUAL_ID]}
-                    onToggleCollapse={toggleCollapse}
-                    onToggleGroup={handleToggleGroup}
-                    onToggleCategory={onToggleCategory}
-                    selectionState={getGroupSelectionState(groupedCategories.ungrouped.map((c) => c.id), selectedCategoryIds)}
-                  />
-                ) : (
-                  <div className="grid grid-cols-2 gap-1 mt-1">
-                    {groupedCategories.ungrouped.map((category) => {
-                      const count = countByCategory[category.id] ?? 0;
-                      const active = selectedCategoryIds.includes(category.id);
-                      const color = category.color;
-                      const activeStyle = color
-                        ? { backgroundColor: `${color}28`, color, boxShadow: `inset 0 0 0 1.5px ${color}50` }
-                        : undefined;
-                      const inactiveStyle = color
-                        ? { backgroundColor: `${color}14`, color: `${color}aa` }
-                        : undefined;
-                      return (
-                        <button
-                          key={category.id}
-                          type="button"
-                          onClick={() => onToggleCategory(category.id)}
-                          aria-pressed={active}
-                          className={cn(
-                            "flex items-center justify-between px-2 py-1 rounded-md text-xs transition-colors min-w-0",
-                            active ? "font-semibold" : color ? "" : "text-muted-foreground hover:bg-accent hover:text-foreground",
-                          )}
-                          style={active ? activeStyle : inactiveStyle}
-                        >
-                          <div className="flex items-center gap-1.5 min-w-0">
-                            {color && <span className="w-1.5 h-1.5 rounded-full shrink-0" style={{ backgroundColor: color }} />}
-                            <span className="truncate">{category.name}</span>
-                          </div>
-                          {count > 0 && <span className="text-xs tabular-nums shrink-0 ml-1 opacity-70">{count}</span>}
-                        </button>
-                      );
-                    })}
-                  </div>
-                )
-              )}
-
-              {(groups.length > 0 || groupedCategories.ungrouped.length > 0) && (
-                <div className="my-1 border-t border-border" />
-              )}
-
-              {(() => {
-                const count = countByCategory["none"] ?? 0;
-                const active = selectedCategoryIds.includes("none");
-                return (
-                  <button
-                    type="button"
-                    onClick={() => onToggleCategory("none")}
-                    aria-pressed={active}
-                    className={cn(
-                      "flex items-center justify-between pl-7 pr-2 py-1 rounded-md text-xs transition-colors min-w-0 w-full",
-                      active ? "bg-muted text-foreground font-semibold" : "text-muted-foreground hover:bg-accent hover:text-foreground",
-                    )}
-                  >
-                    <span className="truncate">カテゴリなし</span>
-                    {count > 0 && <span className="text-[10px] tabular-nums shrink-0 ml-1 opacity-70">{count}</span>}
-                  </button>
-                );
-              })()}
-            </div>
-          )}
-        </div>
-      </div>
-
       {/* Status — always visible */}
-      <section className="shrink-0 border-t border-border px-4 py-2">
+      <section className="shrink-0 px-4 py-2">
         <span className="block text-xs font-semibold text-muted-foreground tracking-wide mb-1">ステータス</span>
         <div className="flex rounded-md border border-input overflow-hidden divide-x divide-border text-xs bg-background">
           {STATUS_OPTIONS.map((option) => {
@@ -418,9 +277,7 @@ export function FilterSidebar({ categories, categoriesLoading, selectedCategoryI
             type="button"
             className={cn(
               "shrink-0 h-8 px-2 text-xs rounded-md border border-input bg-background transition-colors",
-              dateFilter === today
-                ? "text-muted-foreground/40 cursor-default"
-                : "text-muted-foreground hover:bg-muted hover:text-foreground",
+              dateFilter === today ? "text-muted-foreground/40 cursor-default" : "text-muted-foreground hover:bg-muted hover:text-foreground",
             )}
             onClick={() => updateSearchParams({ date: today })}
             disabled={dateFilter === today}
@@ -440,13 +297,142 @@ export function FilterSidebar({ categories, categoriesLoading, selectedCategoryI
         </div>
       </section>
 
+      {/* Category section — fills remaining height with internal scroll */}
+      <div className="flex flex-col flex-1 min-h-0 border-t border-border px-4 py-2">
+        <div className="flex items-center justify-between mb-1 shrink-0">
+          <span className="text-xs font-semibold text-muted-foreground tracking-wide">カテゴリ</span>
+          <div className="flex items-center gap-1">
+            <button
+              type="button"
+              onClick={handleDeselectAll}
+              className={cn(
+                "text-[11px] px-1.5 py-0.5 rounded transition-colors",
+                noneSelected ? "text-foreground font-semibold bg-muted" : "text-muted-foreground hover:text-foreground hover:bg-muted",
+              )}
+            >
+              全て解除
+            </button>
+            <button
+              type="button"
+              onClick={handleSelectAll}
+              className={cn(
+                "text-[11px] px-1.5 py-0.5 rounded transition-colors",
+                allSelected ? "text-foreground font-semibold bg-muted" : "text-muted-foreground hover:text-foreground hover:bg-muted",
+              )}
+            >
+              全て選択
+            </button>
+          </div>
+        </div>
+
+        <div className="flex-1 min-h-0 overflow-y-auto">
+          {categoriesLoading ? (
+            <div className="space-y-1">
+              {[0, 1, 2, 3].map((i) => (
+                <div key={i} className="h-6 rounded-md bg-muted animate-pulse" />
+              ))}
+            </div>
+          ) : (
+            <div>
+              {groups.map((group) => {
+                const groupCats = groupedCategories.byGroup[group.id] ?? [];
+                if (groupCats.length === 0) return null;
+                const groupIds = groupCats.map((c) => c.id);
+                const selectionState = getGroupSelectionState(groupIds, selectedCategoryIds);
+                return (
+                  <CategoryGroupAccordion
+                    key={group.id}
+                    groupId={group.id}
+                    groupName={group.name}
+                    groupEmoji={group.emoji}
+                    groupColor={group.color}
+                    categories={groupCats}
+                    selectedCategoryIds={selectedCategoryIds}
+                    countByCategory={countByCategory}
+                    isCollapsed={!isExpanded(group.id)}
+                    onToggleCollapse={toggle}
+                    onToggleGroup={handleToggleGroup}
+                    onToggleCategory={onToggleCategory}
+                    selectionState={selectionState}
+                  />
+                );
+              })}
+
+              {groupedCategories.ungrouped.length > 0 &&
+                (hasGroups ? (
+                  <CategoryGroupAccordion
+                    groupId={UNGROUPED_VIRTUAL_ID}
+                    groupName="グループなし"
+                    groupEmoji="📂"
+                    groupColor={null}
+                    categories={groupedCategories.ungrouped}
+                    selectedCategoryIds={selectedCategoryIds}
+                    countByCategory={countByCategory}
+                    isCollapsed={!isExpanded(UNGROUPED_VIRTUAL_ID)}
+                    onToggleCollapse={toggle}
+                    onToggleGroup={handleToggleGroup}
+                    onToggleCategory={onToggleCategory}
+                    selectionState={getGroupSelectionState(
+                      groupedCategories.ungrouped.map((c) => c.id),
+                      selectedCategoryIds,
+                    )}
+                  />
+                ) : (
+                  <div className="mt-0.5">
+                    {groupedCategories.ungrouped.map((category) => {
+                      const count = countByCategory[category.id] ?? 0;
+                      const active = selectedCategoryIds.includes(category.id);
+                      const color = category.color;
+                      return (
+                        <button
+                          key={category.id}
+                          type="button"
+                          onClick={() => onToggleCategory(category.id)}
+                          aria-pressed={active}
+                          className={cn(
+                            "flex items-center gap-1.5 w-full px-2 py-[3px] rounded-md text-[11px] transition-colors min-w-0",
+                            active ? "bg-muted font-medium text-foreground" : "text-muted-foreground hover:bg-accent/40",
+                          )}
+                        >
+                          <span
+                            className={cn("w-1.5 h-1.5 rounded-full shrink-0", !active && "opacity-40")}
+                            style={color ? { backgroundColor: color } : {}}
+                          />
+                          <span className="truncate flex-1">{category.name}</span>
+                          {count > 0 && <span className="text-[10px] tabular-nums shrink-0 opacity-70">{count}</span>}
+                        </button>
+                      );
+                    })}
+                  </div>
+                ))}
+
+              {(groups.length > 0 || groupedCategories.ungrouped.length > 0) && <div className="my-1 border-t border-border" />}
+
+              {(() => {
+                const count = countByCategory["none"] ?? 0;
+                const active = selectedCategoryIds.includes("none");
+                return (
+                  <button
+                    type="button"
+                    onClick={() => onToggleCategory("none")}
+                    aria-pressed={active}
+                    className={cn(
+                      "flex items-center w-full px-2 py-[3px] rounded-md text-[11px] transition-colors min-w-0",
+                      active ? "bg-muted font-medium text-foreground" : "text-muted-foreground hover:bg-accent/40",
+                    )}
+                  >
+                    <span className="truncate flex-1">カテゴリなし</span>
+                    {count > 0 && <span className="text-[10px] tabular-nums shrink-0 ml-1 opacity-70">{count}</span>}
+                  </button>
+                );
+              })()}
+            </div>
+          )}
+        </div>
+      </div>
+
       {/* Keyword — accordion */}
-      <AccordionSection
-        title="キーワード"
-        isActive={!!keyword}
-        open={keywordOpen}
-        onToggle={() => setKeywordOpen(!keywordOpen)}
-      >
+      <AccordionSection title="キーワード" isActive={!!keyword} open={keywordOpen} onToggle={() => setKeywordOpen(!keywordOpen)}>
         <div className="relative">
           <Search className="absolute left-2.5 top-1/2 -translate-y-1/2 size-3 text-muted-foreground" />
           <Input
@@ -473,12 +459,7 @@ export function FilterSidebar({ categories, categoriesLoading, selectedCategoryI
       </AccordionSection>
 
       {/* Favorite — accordion */}
-      <AccordionSection
-        title="お気に入り"
-        isActive={favoriteFilter}
-        open={favoriteOpen}
-        onToggle={() => setFavoriteOpen(!favoriteOpen)}
-      >
+      <AccordionSection title="お気に入り" isActive={favoriteFilter} open={favoriteOpen} onToggle={() => setFavoriteOpen(!favoriteOpen)}>
         <button
           type="button"
           onClick={() => updateSearchParams({ favorite: favoriteFilter ? null : "true" })}

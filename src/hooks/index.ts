@@ -32,4 +32,6 @@ export { useGroups, useCreateGroup, useUpdateGroup, useDeleteGroup, useReorderGr
 
 export { getGroupSelectionState, useCategoryGroupCollapsed, type GroupSelectionState } from "./use-category-group-filter";
 
+export { useGroupExpanded } from "./use-group-expanded";
+
 export { useRecentCategories } from "./use-recent-categories";

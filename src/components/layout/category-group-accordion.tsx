@@ -20,11 +20,24 @@ interface CategoryGroupAccordionProps {
   selectionState: GroupSelectionState;
 }
 
+function SelectionIndicator({ state }: { state: GroupSelectionState }) {
+  if (state === "all") {
+    return <span className="shrink-0 w-2 h-2 rounded-full bg-foreground" />;
+  }
+  if (state === "partial") {
+    return (
+      <span className="shrink-0 w-2 h-2 rounded-full border border-foreground/40 overflow-hidden flex items-center">
+        <span className="block w-1 h-2 bg-foreground" />
+      </span>
+    );
+  }
+  return <span className="shrink-0 w-2 h-2 rounded-full border border-foreground/30" />;
+}
+
 export function CategoryGroupAccordion({
   groupId,
   groupName,
   groupEmoji,
-  groupColor,
   categories,
   selectedCategoryIds,
   countByCategory,
@@ -37,10 +50,10 @@ export function CategoryGroupAccordion({
   const totalCount = categories.reduce((sum, c) => sum + (countByCategory[c.id] ?? 0), 0);
 
   return (
-    <div className="mb-1">
+    <div className="mb-0.5">
       {/* グループヘッダー行 */}
       <div className="flex items-center gap-0.5">
-        {/* 折りたたみトグルボタン */}
+        {/* chevronクリック→開閉のみ */}
         <button
           type="button"
           onClick={(e) => {
@@ -55,63 +68,35 @@ export function CategoryGroupAccordion({
           {isCollapsed ? <ChevronRight className="size-3.5" /> : <ChevronDown className="size-3.5" />}
         </button>
 
-        {/* グループ名ボタン（クリック=一括トグル、Shift+クリック=このグループのみ選択） */}
+        {/* 絵文字〜件数クリック→グループ一括トグル（開閉は変わらない） */}
         <button
           type="button"
           onClick={(e) => onToggleGroup(groupId, e.shiftKey)}
           aria-pressed={selectionState === "all"}
+          aria-label="グループのカテゴリを全選択"
           className={cn(
             "flex-1 flex items-center gap-1.5 px-1.5 py-1 rounded text-xs font-semibold transition-colors min-w-0",
             selectionState === "none"
               ? "text-muted-foreground hover:text-foreground hover:bg-accent"
-              : selectionState === "all"
-              ? "text-foreground"
-              : "text-foreground/70",
+              : "text-foreground",
           )}
-          style={
-            selectionState !== "none" && groupColor
-              ? { color: groupColor }
-              : undefined
-          }
         >
-          {groupEmoji ? (
-            <span className="shrink-0 text-sm leading-none">{groupEmoji}</span>
-          ) : groupColor ? (
-            <span
-              className={cn(
-                "w-2 h-2 rounded-full shrink-0",
-                selectionState === "none" ? "opacity-40" : "",
-              )}
-              style={{ backgroundColor: groupColor }}
-            />
-          ) : null}
+          <SelectionIndicator state={selectionState} />
+          {groupEmoji && <span className="shrink-0 text-sm leading-none">{groupEmoji}</span>}
           <span className="truncate">{groupName}</span>
-          {selectionState === "partial" && (
-            <span className="shrink-0 text-[9px] px-1 py-0.5 rounded bg-muted text-muted-foreground">一部</span>
-          )}
           {totalCount > 0 && (
             <span className="ml-auto shrink-0 text-[10px] tabular-nums opacity-50">{totalCount}</span>
           )}
         </button>
       </div>
 
-      {/* カテゴリグリッド */}
+      {/* カテゴリ縦リスト */}
       {!isCollapsed && (
-        <div
-          id={`group-accordion-${groupId}`}
-          className="grid grid-cols-2 gap-1 pl-5 mt-0.5"
-        >
+        <div id={`group-accordion-${groupId}`} className="mt-0.5">
           {categories.map((category) => {
             const count = countByCategory[category.id] ?? 0;
             const active = selectedCategoryIds.includes(category.id);
             const color = category.color;
-            const activeStyle = color
-              ? { backgroundColor: `${color}28`, color: color, boxShadow: `inset 0 0 0 1.5px ${color}50` }
-              : undefined;
-            const inactiveStyle = color
-              ? { backgroundColor: `${color}14`, color: `${color}aa` }
-              : undefined;
-
             return (
               <button
                 key={category.id}
@@ -119,16 +104,16 @@ export function CategoryGroupAccordion({
                 onClick={() => onToggleCategory(category.id)}
                 aria-pressed={active}
                 className={cn(
-                  "flex items-center justify-between px-2 py-1 rounded-md text-xs transition-colors min-w-0",
-                  active ? "font-semibold" : color ? "" : "text-muted-foreground hover:bg-accent hover:text-foreground",
+                  "flex items-center gap-1.5 w-full pl-[22px] pr-2 py-[3px] rounded-md text-[11px] transition-colors min-w-0",
+                  active ? "bg-muted font-medium text-foreground" : "text-muted-foreground hover:bg-accent/40",
                 )}
-                style={active ? activeStyle : inactiveStyle}
               >
-                <div className="flex items-center gap-1.5 min-w-0">
-                  {color && <span className="w-1.5 h-1.5 rounded-full shrink-0" style={{ backgroundColor: color }} />}
-                  <span className="truncate">{category.name}</span>
-                </div>
-                {count > 0 && <span className="text-xs tabular-nums shrink-0 ml-1 opacity-70">{count}</span>}
+                <span
+                  className={cn("w-1.5 h-1.5 rounded-full shrink-0", !active && "opacity-40")}
+                  style={color ? { backgroundColor: color } : {}}
+                />
+                <span className="truncate flex-1">{category.name}</span>
+                {count > 0 && <span className="text-[10px] tabular-nums shrink-0 opacity-70">{count}</span>}
               </button>
             );
           })}
