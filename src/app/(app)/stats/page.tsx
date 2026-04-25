@@ -182,22 +182,30 @@ function GroupSection({ group }: { group: GroupStats }) {
       <button
         onClick={() => setCollapsed((prev) => !prev)}
         className={cn(
-          "w-full flex items-center gap-2 px-3 py-2.5 text-left transition-colors hover:bg-accent",
+          "w-full flex items-start gap-2 px-3 py-2.5 text-left transition-colors hover:bg-accent",
           group.color ? "border-l-4" : "border-l-4 border-l-transparent",
         )}
         style={group.color ? { borderLeftColor: group.color } : undefined}
       >
-        {group.emoji && <span className="text-base leading-none">{group.emoji}</span>}
-        <span className="text-sm font-semibold">{group.name}</span>
-        <span className="ml-auto flex items-center gap-3 text-xs text-muted-foreground">
+        {group.emoji && <span className="text-base leading-none mt-0.5">{group.emoji}</span>}
+        <div className="flex-1 min-w-0">
+          <span className="text-sm font-semibold">{group.name}</span>
+          <div className="flex flex-wrap gap-x-3 gap-y-0.5 text-xs text-muted-foreground mt-1 md:hidden">
+            <span>計 {group.totalTasks}</span>
+            <span className="text-green-600 dark:text-green-400">完了 {group.totalCompleted}</span>
+            <span>スキップ {group.totalSkipped}</span>
+            <span className="font-medium">平均 {group.avgCompletionRate}%</span>
+          </div>
+        </div>
+        <span className="hidden md:flex items-center gap-3 text-xs text-muted-foreground">
           <span>計 {group.totalTasks}</span>
           <span className="text-green-600 dark:text-green-400">完了 {group.totalCompleted}</span>
           <span>スキップ {group.totalSkipped}</span>
           <span className="font-medium">平均 {group.avgCompletionRate}%</span>
-          <ChevronDown
-            className={cn("h-4 w-4 shrink-0 transition-transform duration-200", collapsed && "-rotate-90")}
-          />
         </span>
+        <ChevronDown
+          className={cn("h-4 w-4 shrink-0 transition-transform duration-200 mt-0.5", collapsed && "-rotate-90")}
+        />
       </button>
       <div
         className={cn(
@@ -235,7 +243,7 @@ function CategoryStatsTab() {
       )}
 
       {!isLoading && groups && groups.length > 0 && (
-        <div className="space-y-2">
+        <div className="space-y-4">
           {groups.map((g) => (
             <GroupSection key={g.id ?? "__uncategorized__"} group={g} />
           ))}
