@@ -29,6 +29,7 @@ const SORT_OPTIONS: { value: SortOrder; label: string }[] = [
 ];
 
 const KEYWORD_DEBOUNCE_MS = 300;
+const UNGROUPED_VIRTUAL_ID = "__ungrouped__";
 
 interface FilterSidebarProps {
   categories: Category[];
@@ -174,7 +175,9 @@ export function FilterSidebar({ categories, categoriesLoading, selectedCategoryI
   const handleDeselectAll = () => updateSearchParams({ category: CATEGORY_DESELECTED_SENTINEL });
 
   const handleToggleGroup = (groupId: string, shiftKey: boolean) => {
-    const groupCategories = categories.filter((c) => c.groupId === groupId);
+    const groupCategories = groupId === UNGROUPED_VIRTUAL_ID
+      ? categories.filter((c) => !c.groupId)
+      : categories.filter((c) => c.groupId === groupId);
     const groupIds = groupCategories.map((c) => c.id);
     const state = getGroupSelectionState(groupIds, selectedCategoryIds);
 
@@ -214,8 +217,10 @@ export function FilterSidebar({ categories, categoriesLoading, selectedCategoryI
     return { byGroup, ungrouped };
   })();
 
+  const hasGroups = groups.length > 0 && categories.some((c) => c.groupId);
+
   return (
-    <aside className="hidden md:flex flex-col w-75 border-r shrink-0 sticky top-10 h-[calc(100vh-2.5rem)] overflow-hidden">
+    <aside className="hidden md:flex flex-col w-75 border-r shrink-0 sticky top-12 h-[calc(100vh-3rem)] overflow-hidden">
       {/* Category section — fills remaining height with internal scroll */}
       <div className="flex flex-col flex-1 min-h-0 px-4 py-2">
         <div className="flex items-center justify-between mb-1 shrink-0">
@@ -278,38 +283,55 @@ export function FilterSidebar({ categories, categoriesLoading, selectedCategoryI
               })}
 
               {groupedCategories.ungrouped.length > 0 && (
-                <div className="grid grid-cols-2 gap-1 mt-1">
-                  {groupedCategories.ungrouped.map((category) => {
-                    const count = countByCategory[category.id] ?? 0;
-                    const active = selectedCategoryIds.includes(category.id);
-                    const color = category.color;
-                    const activeStyle = color
-                      ? { backgroundColor: `${color}28`, color, boxShadow: `inset 0 0 0 1.5px ${color}50` }
-                      : undefined;
-                    const inactiveStyle = color
-                      ? { backgroundColor: `${color}14`, color: `${color}aa` }
-                      : undefined;
-                    return (
-                      <button
-                        key={category.id}
-                        type="button"
-                        onClick={() => onToggleCategory(category.id)}
-                        aria-pressed={active}
-                        className={cn(
-                          "flex items-center justify-between px-2 py-1 rounded-md text-xs transition-colors min-w-0",
-                          active ? "font-semibold" : color ? "" : "text-muted-foreground hover:bg-accent hover:text-foreground",
-                        )}
-                        style={active ? activeStyle : inactiveStyle}
-                      >
-                        <div className="flex items-center gap-1.5 min-w-0">
-                          {color && <span className="w-1.5 h-1.5 rounded-full shrink-0" style={{ backgroundColor: color }} />}
-                          <span className="truncate">{category.name}</span>
-                        </div>
-                        {count > 0 && <span className="text-xs tabular-nums shrink-0 ml-1 opacity-70">{count}</span>}
-                      </button>
-                    );
-                  })}
-                </div>
+                hasGroups ? (
+                  <CategoryGroupAccordion
+                    groupId={UNGROUPED_VIRTUAL_ID}
+                    groupName="グループなし"
+                    groupEmoji="📂"
+                    groupColor={null}
+                    categories={groupedCategories.ungrouped}
+                    selectedCategoryIds={selectedCategoryIds}
+                    countByCategory={countByCategory}
+                    isCollapsed={!!collapsed[UNGROUPED_VIRTUAL_ID]}
+                    onToggleCollapse={toggleCollapse}
+                    onToggleGroup={handleToggleGroup}
+                    onToggleCategory={onToggleCategory}
+                    selectionState={getGroupSelectionState(groupedCategories.ungrouped.map((c) => c.id), selectedCategoryIds)}
+                  />
+                ) : (
+                  <div className="grid grid-cols-2 gap-1 mt-1">
+                    {groupedCategories.ungrouped.map((category) => {
+                      const count = countByCategory[category.id] ?? 0;
+                      const active = selectedCategoryIds.includes(category.id);
+                      const color = category.color;
+                      const activeStyle = color
+                        ? { backgroundColor: `${color}28`, color, boxShadow: `inset 0 0 0 1.5px ${color}50` }
+                        : undefined;
+                      const inactiveStyle = color
+                        ? { backgroundColor: `${color}14`, color: `${color}aa` }
+                        : undefined;
+                      return (
+                        <button
+                          key={category.id}
+                          type="button"
+                          onClick={() => onToggleCategory(category.id)}
+                          aria-pressed={active}
+                          className={cn(
+                            "flex items-center justify-between px-2 py-1 rounded-md text-xs transition-colors min-w-0",
+                            active ? "font-semibold" : color ? "" : "text-muted-foreground hover:bg-accent hover:text-foreground",
+                          )}
+                          style={active ? activeStyle : inactiveStyle}
+                        >
+                          <div className="flex items-center gap-1.5 min-w-0">
+                            {color && <span className="w-1.5 h-1.5 rounded-full shrink-0" style={{ backgroundColor: color }} />}
+                            <span className="truncate">{category.name}</span>
+                          </div>
+                          {count > 0 && <span className="text-xs tabular-nums shrink-0 ml-1 opacity-70">{count}</span>}
+                        </button>
+                      );
+                    })}
+                  </div>
+                )
               )}
 
               {(groups.length > 0 || groupedCategories.ungrouped.length > 0) && (
@@ -325,7 +347,7 @@ export function FilterSidebar({ categories, categoriesLoading, selectedCategoryI
                     onClick={() => onToggleCategory("none")}
                     aria-pressed={active}
                     className={cn(
-                      "flex items-center justify-between px-2 py-1 rounded-md text-xs transition-colors min-w-0 w-full",
+                      "flex items-center justify-between pl-7 pr-2 py-1 rounded-md text-xs transition-colors min-w-0 w-full",
                       active ? "bg-muted text-foreground font-semibold" : "text-muted-foreground hover:bg-accent hover:text-foreground",
                     )}
                   >
