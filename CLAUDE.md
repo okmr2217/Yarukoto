@@ -62,15 +62,6 @@ npm run lint
 - 1 つの論理的変更 = 1 コミット
 - コミット前に typecheck && lint を実行
 
-## セッション管理
-
-- **開始時**: `docs/handoff.md` を読んで現状を把握する
-- **終了時**: 以下を実行する
-  1. typecheck && lint を実行して問題なければコミット
-  2. `docs/session-log.md` の先頭にセッション記録を追記（やったこと・改善案・失敗・技術メモ・次にやりたいこと）
-  3. `docs/handoff.md` を更新する（実装状態・積み残し・次回相談事項）
-- **コンテキスト 60% 到達時**: session-log.md と handoff.md を更新してから `/compact`
-
 ---
 
 ## 参照ドキュメント

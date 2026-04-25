@@ -417,12 +417,17 @@ export function FilterSidebar({ categories, categoriesLoading, selectedCategoryI
                     onClick={() => onToggleCategory("none")}
                     aria-pressed={active}
                     className={cn(
-                      "flex items-center w-full px-2 py-[3px] rounded-md text-[11px] transition-colors min-w-0",
-                      active ? "bg-muted font-medium text-foreground" : "text-muted-foreground hover:bg-accent/40",
+                      "w-full flex items-center gap-1.5 px-1.5 py-1 rounded text-xs font-semibold transition-colors min-w-0",
+                      !active ? "text-muted-foreground hover:text-foreground hover:bg-accent" : "text-foreground",
                     )}
                   >
-                    <span className="truncate flex-1">カテゴリなし</span>
-                    {count > 0 && <span className="text-[10px] tabular-nums shrink-0 ml-1 opacity-70">{count}</span>}
+                    {active ? (
+                      <span className="shrink-0 w-2 h-2 rounded-full bg-foreground" />
+                    ) : (
+                      <span className="shrink-0 w-2 h-2 rounded-full border border-foreground/30" />
+                    )}
+                    <span className="truncate">カテゴリなし</span>
+                    {count > 0 && <span className="ml-auto shrink-0 text-[10px] tabular-nums opacity-50">{count}</span>}
                   </button>
                 );
               })()}
