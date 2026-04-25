@@ -16,7 +16,6 @@ import {
   Ban,
   Trash2,
   MoreVertical,
-  Info,
   GripVertical,
   Star,
   AlertCircle,
@@ -58,19 +57,17 @@ function StopPropagation({ children }: { children: React.ReactNode }) {
 }
 
 const DEFAULT_ACTIONS: Array<{
-  key: "open" | "skip" | "unskip" | "delete";
+  key: "skip" | "unskip" | "delete";
   label: string;
   Icon: LucideIcon;
   className: string;
   destructive?: boolean;
 }> = [
-  { key: "open", label: "詳細", Icon: Info, className: "" },
   { key: "skip", label: "やらない", Icon: Ban, className: "hover:text-yellow-600" },
   { key: "delete", label: "削除", Icon: Trash2, className: "hover:text-destructive", destructive: true },
 ];
 
 const SKIPPED_ACTIONS: typeof DEFAULT_ACTIONS = [
-  { key: "open", label: "詳細", Icon: Info, className: "" },
   { key: "unskip", label: "やらないを取り消す", Icon: Undo2, className: "hover:text-foreground" },
   { key: "delete", label: "削除", Icon: Trash2, className: "hover:text-destructive", destructive: true },
 ];
@@ -82,8 +79,7 @@ interface TaskCardActionsProps {
 
 function TaskCardActions({ task, handlers }: TaskCardActionsProps) {
   const isSkipped = task.status === "SKIPPED";
-  const actionHandlers: Record<"open" | "skip" | "unskip" | "delete", () => void> = {
-    open: () => handlers.onOpen(task),
+  const actionHandlers: Record<"skip" | "unskip" | "delete", () => void> = {
     skip: () => handlers.onSkip(task.id),
     unskip: () => handlers.onUnskip(task.id),
     delete: () => handlers.onDelete(task.id),

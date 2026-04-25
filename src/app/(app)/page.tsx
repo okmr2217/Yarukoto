@@ -438,6 +438,7 @@ export default function HomePage() {
         open={editingTask !== null}
         onOpenChange={(open) => !open && setEditingTask(null)}
         onSave={handleEditTaskWithDetails}
+        onToggleFavorite={handleToggleFavorite}
         task={editingTask}
         categories={categories}
         groups={groups}
