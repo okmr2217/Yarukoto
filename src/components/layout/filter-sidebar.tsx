@@ -62,10 +62,12 @@ interface AccordionSectionProps {
 function AccordionSection({ title, isActive, open, onToggle, children, tooltip }: AccordionSectionProps) {
   return (
     <div className="shrink-0 border-t border-border">
-      <button
-        type="button"
-        className="w-full flex items-center justify-between px-4 py-2 text-xs font-semibold text-muted-foreground hover:text-foreground transition-colors"
+      <div
+        role="button"
+        tabIndex={0}
+        className="w-full flex items-center justify-between px-4 py-2 text-xs font-semibold text-muted-foreground hover:text-foreground transition-colors cursor-pointer"
         onClick={onToggle}
+        onKeyDown={(e) => (e.key === "Enter" || e.key === " ") && onToggle()}
       >
         <span className="flex items-center gap-1.5">
           {title}
@@ -73,7 +75,7 @@ function AccordionSection({ title, isActive, open, onToggle, children, tooltip }
           {isActive && <span className="w-1.5 h-1.5 rounded-full bg-primary shrink-0" />}
         </span>
         <ChevronDown className={cn("size-3.5 transition-transform duration-150", open && "rotate-180")} />
-      </button>
+      </div>
       {open && <div className="px-4 pb-3">{children}</div>}
     </div>
   );
