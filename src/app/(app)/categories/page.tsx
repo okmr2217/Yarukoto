@@ -297,7 +297,7 @@ export default function CategoriesPage() {
 
   return (
     <div className="flex-1 bg-background">
-      <main className="px-4 pt-4 pb-20 md:pb-4">
+      <main className="px-4 pt-4 pb-20 md:pb-4 md:max-w-190">
           <div className="flex items-start justify-between mb-1.5">
             <h1 className="text-lg font-semibold">カテゴリ</h1>
             <Link href="/groups" className="flex items-center gap-1 text-xs text-muted-foreground hover:text-foreground transition-colors">

@@ -182,7 +182,7 @@ export default function GroupsPage() {
 
   return (
     <div className="flex-1 bg-background">
-      <main className="px-4 pt-4 pb-20 md:pb-4">
+      <main className="px-4 pt-4 pb-20 md:pb-4 md:max-w-190">
         <div className="flex items-center gap-2 mb-1.5">
           <Link href="/categories" className="text-muted-foreground hover:text-foreground transition-colors">
             <ChevronLeft className="h-5 w-5" />

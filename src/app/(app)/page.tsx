@@ -12,6 +12,7 @@ import {
   TaskDetailSheet,
   type TaskEditData,
 } from "@/components/task";
+import { FilterSidebar } from "@/components/layout";
 import { getTaskDetail } from "@/actions/task";
 import type { TaskDetail } from "@/types";
 import {
@@ -270,6 +271,12 @@ export default function HomePage() {
           <FilterArea categories={categories} categoriesLoading={categoriesLoading} />
         </div>
         <div className="flex flex-1 min-h-0">
+          <FilterSidebar
+            categories={categories}
+            categoriesLoading={categoriesLoading}
+            selectedCategoryIds={effectiveSelectedIds}
+            onToggleCategory={handleToggleCategory}
+          />
           <div className="flex-1 flex flex-col min-w-0">
             <div className="flex-1 px-4 pt-2 pb-20 md:pb-4">
               <div className="rounded-lg border border-border overflow-hidden bg-card">
@@ -348,6 +355,12 @@ export default function HomePage() {
       </div>
 
       <div className="flex flex-1 min-h-0">
+        <FilterSidebar
+          categories={categories}
+          categoriesLoading={categoriesLoading}
+          selectedCategoryIds={effectiveSelectedIds}
+          onToggleCategory={handleToggleCategory}
+        />
         <div className="flex-1 flex flex-col min-w-0">
           <main className="flex-1">
             <div className="px-4 pt-2 pb-20 md:pb-4">

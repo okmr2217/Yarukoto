@@ -1,6 +1,7 @@
 export { Header } from "./header";
 export { DateNavigation } from "./date-navigation";
-export { Sidebar } from "./sidebar";
+export { PCHeader } from "./pc-header";
+export { FilterSidebar } from "./filter-sidebar";
 export { CategoryFilter } from "./category-filter";
 export { CategoryChip } from "./category-chip";
 export { FilterPanel, type FilterValues } from "./filter-panel";
