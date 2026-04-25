@@ -4,6 +4,7 @@ import { useState } from "react";
 import { Menu, Settings, Tags, ListTodo, BarChart2, HelpCircle } from "lucide-react";
 import Link from "next/link";
 import { usePathname } from "next/navigation";
+import { DueDateAlertChip } from "./due-date-alert-chip";
 import {
   Sheet,
   SheetContent,
@@ -89,7 +90,7 @@ export function Header() {
           <h1 className="text-xl font-medium font-logo">Yarukoto</h1>
         </div>
 
-        <div className="w-10" />
+        <DueDateAlertChip />
       </div>
     </header>
   );

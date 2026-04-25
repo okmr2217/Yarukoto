@@ -12,7 +12,7 @@ import { CATEGORY_DESELECTED_SENTINEL } from "@/lib/constants";
 import { CategoryGroupAccordion } from "./category-group-accordion";
 
 type StatusFilter = "all" | "pending" | "completed" | "skipped";
-export type ViewMode = "list" | "scheduled";
+export type ViewMode = "list" | "schedule";
 export type ListSortOrder = "displayOrder" | "createdAt";
 export type ScheduledSortOrder = "scheduledAt_asc" | "scheduledAt_desc" | "createdAt";
 
@@ -276,9 +276,9 @@ export function FilterSidebar({ categories, categoriesLoading, selectedCategoryI
             type="button"
             className={cn(
               "flex-1 flex items-center justify-center py-1.5 transition-colors",
-              viewMode === "scheduled" ? "bg-primary text-primary-foreground font-medium" : "text-muted-foreground hover:bg-muted",
+              viewMode === "schedule" ? "bg-primary text-primary-foreground font-medium" : "text-muted-foreground hover:bg-muted",
             )}
-            onClick={() => onViewModeChange("scheduled")}
+            onClick={() => onViewModeChange("schedule")}
           >
             予定
           </button>

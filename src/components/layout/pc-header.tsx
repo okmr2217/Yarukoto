@@ -6,6 +6,7 @@ import { ListTodo, Tags, Settings, BarChart2, HelpCircle, X } from "lucide-react
 import Image from "next/image";
 import { NAV_ITEMS } from "@/lib/constants";
 import { cn } from "@/lib/utils";
+import { DueDateAlertChip } from "./due-date-alert-chip";
 
 const iconMap = {
   ListTodo,
@@ -86,6 +87,8 @@ export function PCHeader() {
             <X className="size-3" />
           </button>
         )}
+
+        <DueDateAlertChip className="shrink-0 self-center" />
       </div>
     </header>
   );

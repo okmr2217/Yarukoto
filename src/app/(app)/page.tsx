@@ -47,7 +47,7 @@ export default function HomePage() {
   const keyword = searchParams.get("keyword") || "";
   const statusFilter = (searchParams.get("status") || "pending") as FilterValues["status"];
   const favoriteFilter = searchParams.get("favorite") === "true";
-  const [viewMode, setViewMode] = useState<"list" | "scheduled">("list");
+  const viewMode = (searchParams.get("view") || "list") as "list" | "schedule";
   const [listSort, setListSort] = useState<"displayOrder" | "createdAt">("displayOrder");
   const [scheduledSort, setScheduledSort] = useState<"scheduledAt_asc" | "scheduledAt_desc" | "createdAt">("scheduledAt_asc");
 
@@ -123,21 +123,25 @@ export default function HomePage() {
 
   const sortedTasks = (() => {
     if (!tasks) return [];
-    const base = viewMode === "scheduled" ? tasks.filter((t) => t.scheduledAt !== null) : tasks;
-    if (viewMode === "scheduled") {
-      if (scheduledSort === "scheduledAt_asc") {
-        return [...base].sort((a, b) => (a.scheduledAt ?? "").localeCompare(b.scheduledAt ?? ""));
+    if (viewMode === "schedule") {
+      const sorted = [...tasks];
+      if (scheduledSort === "createdAt") {
+        return sorted.sort((a, b) => new Date(b.createdAt).getTime() - new Date(a.createdAt).getTime());
       }
-      if (scheduledSort === "scheduledAt_desc") {
-        return [...base].sort((a, b) => (b.scheduledAt ?? "").localeCompare(a.scheduledAt ?? ""));
-      }
-      return [...base].sort((a, b) => new Date(b.createdAt).getTime() - new Date(a.createdAt).getTime());
+      const asc = scheduledSort !== "scheduledAt_desc";
+      return sorted.sort((a, b) => {
+        if (!a.scheduledAt && !b.scheduledAt) return 0;
+        if (!a.scheduledAt) return 1;
+        if (!b.scheduledAt) return -1;
+        return asc ? a.scheduledAt.localeCompare(b.scheduledAt) : b.scheduledAt.localeCompare(a.scheduledAt);
+      });
     }
     if (listSort === "createdAt") {
-      return [...base].sort((a, b) => new Date(b.createdAt).getTime() - new Date(a.createdAt).getTime());
+      return [...tasks].sort((a, b) => new Date(b.createdAt).getTime() - new Date(a.createdAt).getTime());
     }
-    return base;
+    return tasks;
   })();
+
   const mutations = useTaskMutations();
 
   const handleCreateTask = (data: {
@@ -282,7 +286,7 @@ export default function HomePage() {
             selectedCategoryIds={effectiveSelectedIds}
             onToggleCategory={handleToggleCategory}
             viewMode={viewMode}
-            onViewModeChange={setViewMode}
+            onViewModeChange={(mode) => updateSearchParams({ view: mode === "list" ? null : mode })}
             listSort={listSort}
             onListSortChange={setListSort}
             scheduledSort={scheduledSort}
@@ -327,7 +331,7 @@ export default function HomePage() {
           open={filterSheetOpen}
           onClose={() => setFilterSheetOpen(false)}
           viewMode={viewMode}
-          onViewModeChange={setViewMode}
+          onViewModeChange={(mode) => updateSearchParams({ view: mode === "list" ? null : mode })}
           listSort={listSort}
           onListSortChange={setListSort}
           scheduledSort={scheduledSort}
@@ -378,7 +382,7 @@ export default function HomePage() {
           selectedCategoryIds={effectiveSelectedIds}
           onToggleCategory={handleToggleCategory}
           viewMode={viewMode}
-          onViewModeChange={setViewMode}
+          onViewModeChange={(mode) => updateSearchParams({ view: mode === "list" ? null : mode })}
           listSort={listSort}
           onListSortChange={setListSort}
           scheduledSort={scheduledSort}
@@ -431,7 +435,7 @@ export default function HomePage() {
         open={filterSheetOpen}
         onClose={() => setFilterSheetOpen(false)}
         viewMode={viewMode}
-        onViewModeChange={setViewMode}
+        onViewModeChange={(mode) => updateSearchParams({ view: mode === "list" ? null : mode })}
         listSort={listSort}
         onListSortChange={setListSort}
         scheduledSort={scheduledSort}

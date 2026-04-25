@@ -9,3 +9,4 @@ export { FilterArea } from "./filter-area";
 export { BottomNav } from "./bottom-nav";
 export { FilterFab } from "./filter-fab";
 export { FilterBottomSheet } from "./filter-bottom-sheet";
+export { DueDateAlertChip } from "./due-date-alert-chip";

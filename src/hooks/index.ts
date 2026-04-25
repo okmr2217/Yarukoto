@@ -35,3 +35,5 @@ export { getGroupSelectionState, useCategoryGroupCollapsed, type GroupSelectionS
 export { useGroupExpanded } from "./use-group-expanded";
 
 export { useRecentCategories } from "./use-recent-categories";
+
+export { useDueDateAlerts } from "./use-due-date-alerts";
