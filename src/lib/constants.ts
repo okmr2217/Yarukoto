@@ -34,6 +34,11 @@ export const CATEGORY_CONSTANTS = {
   DESCRIPTION_MAX_LENGTH: 200,
 } as const;
 
+export const GROUP_CONSTANTS = {
+  /** グループ名の最大文字数 */
+  NAME_MAX_LENGTH: 50,
+} as const;
+
 /**
  * エラーメッセージ
  */

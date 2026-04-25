@@ -16,6 +16,7 @@ export const createCategorySchema = z.object({
     .refine((val) => val.trim().length > 0, "カテゴリ名を入力してください"),
   color: hexColorSchema,
   description: z.string().max(CATEGORY_CONSTANTS.DESCRIPTION_MAX_LENGTH, `説明文は${CATEGORY_CONSTANTS.DESCRIPTION_MAX_LENGTH}文字以内で入力してください`).optional(),
+  groupId: z.string().min(1).nullable().optional(),
 });
 
 export const updateCategorySchema = z.object({
@@ -31,6 +32,7 @@ export const updateCategorySchema = z.object({
     .optional(),
   color: hexColorSchema.optional(),
   description: z.string().max(CATEGORY_CONSTANTS.DESCRIPTION_MAX_LENGTH, `説明文は${CATEGORY_CONSTANTS.DESCRIPTION_MAX_LENGTH}文字以内で入力してください`).optional(),
+  groupId: z.string().min(1).nullable().optional(),
 });
 
 export const categoryIdSchema = z.object({

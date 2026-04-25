@@ -15,8 +15,13 @@ import {
 } from "@/lib/validations";
 import type { Category as PrismaCategory } from "@/generated/prisma/client";
 
-// Helper: Convert Prisma category to API category type
-function toCategory(category: PrismaCategory): Category {
+type PrismaCategoryWithGroup = PrismaCategory & {
+  group: { id: string; name: string; color: string | null } | null;
+};
+
+const groupSelect = { select: { id: true, name: true, color: true } } as const;
+
+function toCategory(category: PrismaCategoryWithGroup): Category {
   return {
     id: category.id,
     name: category.name,
@@ -24,6 +29,8 @@ function toCategory(category: PrismaCategory): Category {
     description: category.description,
     sortOrder: category.sortOrder,
     archivedAt: category.archivedAt?.toISOString() ?? null,
+    groupId: category.groupId,
+    group: category.group ?? null,
     createdAt: category.createdAt.toISOString(),
     updatedAt: category.updatedAt.toISOString(),
   };
@@ -38,6 +45,7 @@ export async function getCategories(): Promise<
     const categories = await prisma.category.findMany({
       where: { userId: user.id, archivedAt: null },
       orderBy: [{ sortOrder: "asc" }, { createdAt: "asc" }],
+      include: { group: groupSelect },
     });
 
     return success({ categories: categories.map(toCategory) });
@@ -56,6 +64,7 @@ export async function getArchivedCategories(): Promise<
     const categories = await prisma.category.findMany({
       where: { userId: user.id, archivedAt: { not: null } },
       orderBy: [{ archivedAt: "desc" }],
+      include: { group: groupSelect },
     });
 
     return success({ categories: categories.map(toCategory) });
@@ -87,6 +96,7 @@ export async function archiveCategory(input: {
     const category = await prisma.category.update({
       where: { id },
       data: { archivedAt: new Date() },
+      include: { group: groupSelect },
     });
 
     return success({ category: toCategory(category) });
@@ -118,6 +128,7 @@ export async function unarchiveCategory(input: {
     const category = await prisma.category.update({
       where: { id },
       data: { archivedAt: null },
+      include: { group: groupSelect },
     });
 
     return success({ category: toCategory(category) });
@@ -137,7 +148,7 @@ export async function createCategory(
     }
 
     const user = await getRequiredUser();
-    const { name, color, description } = parsed.data;
+    const { name, color, description, groupId } = parsed.data;
 
     // Check for duplicate name
     const existing = await prisma.category.findFirst({
@@ -161,9 +172,11 @@ export async function createCategory(
         name: name.trim(),
         color,
         description: description ?? null,
+        groupId: groupId ?? null,
         sortOrder: nextSortOrder,
         userId: user.id,
       },
+      include: { group: groupSelect },
     });
 
     return success({ category: toCategory(category) });
@@ -183,7 +196,7 @@ export async function updateCategory(
     }
 
     const user = await getRequiredUser();
-    const { id, name, color, description } = parsed.data;
+    const { id, name, color, description, groupId } = parsed.data;
 
     // Verify category belongs to user
     const existingCategory = await prisma.category.findFirst({
@@ -210,16 +223,16 @@ export async function updateCategory(
       }
     }
 
-    // Build update data
-    // eslint-disable-next-line @typescript-eslint/no-explicit-any
-    const updateData: any = {};
+    const updateData: Record<string, unknown> = {};
     if (name !== undefined) updateData.name = name.trim();
     if (color !== undefined) updateData.color = color;
     if (description !== undefined) updateData.description = description;
+    if (groupId !== undefined) updateData.groupId = groupId;
 
     const category = await prisma.category.update({
       where: { id },
       data: updateData,
+      include: { group: groupSelect },
     });
 
     return success({ category: toCategory(category) });

@@ -4,6 +4,39 @@
 
 ---
 
+## 2026-04-25（カテゴリグループ機能追加）
+
+### やったこと
+
+- `Group` モデルを Prisma スキーマに追加（id, userId, name, color?, sortOrder, timestamps）。`@@unique([userId, name])` で同一ユーザー内の名前重複を防止
+- `Category` モデルに nullable `groupId` FK を追加（`onDelete: SetNull`）
+- マイグレーション `20260425071956_add_group_model` を本番 DB に適用（追加のみ、既存データ保全）
+- `src/lib/validations/group.ts` を新規作成（createGroupSchema / updateGroupSchema / reorderGroups スキーマ）
+- `src/actions/group.ts` を新規作成（getGroups / createGroup / updateGroup / deleteGroup / reorderGroups）
+- `src/actions/category.ts` を更新：group の include を追加、`groupId` の CRUD 対応
+- `src/hooks/use-groups.ts` を新規作成（useGroups / useCreateGroup / useUpdateGroup / useDeleteGroup / useReorderGroups）
+- `src/hooks/use-categories.ts` を更新：楽観的更新に `group` オブジェクトを含めるよう修正（キャッシュから group を逆引き）
+- `src/components/group/group-edit-dialog.tsx` を新規作成（カラーピッカー付き、color は任意）
+- `src/components/category/category-edit-dialog.tsx` を更新：グループ選択 Select を追加（`__none__` センチネル方式）
+- `src/app/(app)/groups/page.tsx` を新規作成（D&D 並び替え、グループ CRUD）
+- `src/app/(app)/categories/page.tsx` を更新：グループフィルター・グループチップ表示・「グループを管理」リンク追加
+- `scripts/seed-groups.ts` を新規作成（仕事/プライベート/学習の3グループを idempotent に投入）
+- typecheck・lint ともにエラーなし
+
+### 技術メモ
+
+- Radix UI Select は空文字を value に使えないため `__none__` センチネルを null に変換するパターンを採用
+- 楽観的更新で group オブジェクトを補完するため `queryClient.getQueryData<Group[]>(["groups"])` でキャッシュを参照
+- `PrismaCategoryWithGroup` / `PrismaGroupWithCount` の intersection type で Prisma 生成型を拡張（namespace 不使用）
+- `updateData: Record<string, unknown>` で `any` を排除しつつ柔軟な部分更新を実現
+
+### 次にやりたいこと
+
+- 繰り返しタスクの設計（DB スキーマ検討）
+- 完了タスク折りたたみのデフォルト挙動設計
+
+---
+
 ## 2026-03-23（カテゴリ description フィールド追加）
 
 ### やったこと

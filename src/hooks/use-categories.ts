@@ -11,7 +11,7 @@ import {
   archiveCategory,
   unarchiveCategory,
 } from "@/actions";
-import type { Category } from "@/types";
+import type { Category, Group } from "@/types";
 
 export function useCategories() {
   return useQuery({
@@ -30,19 +30,20 @@ export function useCreateCategory() {
   const queryClient = useQueryClient();
 
   return useMutation({
-    mutationFn: async ({ name, color, description }: { name: string; color: string; description?: string }) => {
-      const result = await createCategory({ name, color, description });
+    mutationFn: async ({ name, color, description, groupId }: { name: string; color: string; description?: string; groupId?: string | null }) => {
+      const result = await createCategory({ name, color, description, groupId });
       if (!result.success) {
         throw new Error(result.error);
       }
       return result.data.category;
     },
-    onMutate: async ({ name, color, description }) => {
+    onMutate: async ({ name, color, description, groupId }) => {
       await queryClient.cancelQueries({ queryKey: ["categories"] });
       const previous = queryClient.getQueryData<Category[]>(["categories"]);
 
-      // Optimistic update: append to end
       const maxSortOrder = previous ? Math.max(...previous.map((c) => c.sortOrder), -1) : -1;
+      const groups = queryClient.getQueryData<Group[]>(["groups"]);
+      const group = groupId ? (groups?.find((g) => g.id === groupId) ?? null) : null;
       const optimisticCategory: Category = {
         id: `temp-${Date.now()}`,
         name,
@@ -50,6 +51,8 @@ export function useCreateCategory() {
         description: description ?? null,
         sortOrder: maxSortOrder + 1,
         archivedAt: null,
+        groupId: groupId ?? null,
+        group: group ? { id: group.id, name: group.name, color: group.color } : null,
         createdAt: new Date().toISOString(),
         updatedAt: new Date().toISOString(),
       };
@@ -80,36 +83,47 @@ export function useUpdateCategory() {
       name,
       color,
       description,
+      groupId,
     }: {
       id: string;
       name?: string;
       color?: string;
       description?: string;
+      groupId?: string | null;
     }) => {
-      const result = await updateCategory({ id, name, color, description });
+      const result = await updateCategory({ id, name, color, description, groupId });
       if (!result.success) {
         throw new Error(result.error);
       }
       return result.data.category;
     },
-    onMutate: async ({ id, name, color, description }) => {
+    onMutate: async ({ id, name, color, description, groupId }) => {
       await queryClient.cancelQueries({ queryKey: ["categories"] });
       const previous = queryClient.getQueryData<Category[]>(["categories"]);
 
       if (previous) {
+        const groups = queryClient.getQueryData<Group[]>(["groups"]);
         queryClient.setQueryData<Category[]>(
           ["categories"],
-          previous.map((cat) =>
-            cat.id === id
-              ? {
-                  ...cat,
-                  name: name ?? cat.name,
-                  color: color !== undefined ? color : cat.color,
-                  description: description !== undefined ? description : cat.description,
-                  updatedAt: new Date().toISOString(),
-                }
-              : cat,
-          ),
+          previous.map((cat) => {
+            if (cat.id !== id) return cat;
+            const newGroupId = groupId !== undefined ? groupId : cat.groupId;
+            const newGroup =
+              groupId !== undefined
+                ? groupId
+                  ? (groups?.find((g) => g.id === groupId) ?? null)
+                  : null
+                : cat.group;
+            return {
+              ...cat,
+              name: name ?? cat.name,
+              color: color !== undefined ? color : cat.color,
+              description: description !== undefined ? description : cat.description,
+              groupId: newGroupId,
+              group: newGroup ? { id: newGroup.id, name: newGroup.name, color: newGroup.color } : null,
+              updatedAt: new Date().toISOString(),
+            };
+          }),
         );
       }
 

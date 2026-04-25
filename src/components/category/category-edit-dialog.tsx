@@ -11,8 +11,9 @@ import { Button } from "@/components/ui/button";
 import { Input } from "@/components/ui/input";
 import { Label } from "@/components/ui/label";
 import { Textarea } from "@/components/ui/textarea";
+import { Select, SelectContent, SelectItem, SelectTrigger, SelectValue } from "@/components/ui/select";
 import { cn } from "@/lib/utils";
-import type { Category } from "@/types";
+import type { Category, Group } from "@/types";
 
 // カラーパレット
 const CATEGORY_COLORS = [
@@ -38,7 +39,8 @@ interface CategoryEditDialogProps {
   open: boolean;
   onOpenChange: (open: boolean) => void;
   category?: Category | null;
-  onSave: (data: { name: string; color: string; description?: string }) => void;
+  groups?: Group[];
+  onSave: (data: { name: string; color: string; description?: string; groupId?: string | null }) => void;
   isLoading?: boolean;
 }
 
@@ -46,12 +48,14 @@ export function CategoryEditDialog({
   open,
   onOpenChange,
   category,
+  groups,
   onSave,
   isLoading = false,
 }: CategoryEditDialogProps) {
   const [name, setName] = useState(category?.name ?? "");
   const [color, setColor] = useState(category?.color ?? CATEGORY_COLORS[4].value);
   const [description, setDescription] = useState(category?.description ?? "");
+  const [groupId, setGroupId] = useState<string | null>(category?.groupId ?? null);
   const [error, setError] = useState<string | null>(null);
 
   const isEditing = !!category;
@@ -70,7 +74,7 @@ export function CategoryEditDialog({
       return;
     }
 
-    onSave({ name: trimmedName, color, description: description || undefined });
+    onSave({ name: trimmedName, color, description: description || undefined, groupId });
   };
 
   return (
@@ -112,6 +116,29 @@ export function CategoryEditDialog({
               rows={3}
             />
           </div>
+
+          {/* グループ */}
+          {groups && groups.length > 0 && (
+            <div className="space-y-2">
+              <Label>グループ</Label>
+              <Select value={groupId ?? "__none__"} onValueChange={(v) => setGroupId(v === "__none__" ? null : v)}>
+                <SelectTrigger>
+                  <SelectValue placeholder="グループなし" />
+                </SelectTrigger>
+                <SelectContent>
+                  <SelectItem value="__none__">グループなし</SelectItem>
+                  {groups.map((g) => (
+                    <SelectItem key={g.id} value={g.id}>
+                      <span className="flex items-center gap-2">
+                        {g.color && <span className="w-2.5 h-2.5 rounded-full shrink-0 inline-block" style={{ backgroundColor: g.color }} />}
+                        {g.name}
+                      </span>
+                    </SelectItem>
+                  ))}
+                </SelectContent>
+              </Select>
+            </div>
+          )}
 
           {/* カラー */}
           <div className="space-y-2">

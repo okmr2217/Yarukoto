@@ -27,3 +27,5 @@ export {
 } from "./use-categories";
 
 export { useTheme, type Theme } from "./use-theme";
+
+export { useGroups, useCreateGroup, useUpdateGroup, useDeleteGroup, useReorderGroups } from "./use-groups";

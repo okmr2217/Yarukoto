@@ -26,3 +26,5 @@ export {
 } from "./category";
 
 export { deleteAccount, changeEmail } from "./account";
+
+export { getGroups, createGroup, updateGroup, deleteGroup, reorderGroups } from "./group";

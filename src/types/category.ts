@@ -5,6 +5,8 @@ export type Category = {
   description: string | null;
   sortOrder: number;
   archivedAt: string | null;
+  groupId: string | null;
+  group: { id: string; name: string; color: string | null } | null;
   createdAt: string;
   updatedAt: string;
 };

@@ -1,7 +1,8 @@
 "use client";
 
 import { useState } from "react";
-import { Plus, Pencil, Trash2, GripVertical, Archive, ArchiveRestore } from "lucide-react";
+import Link from "next/link";
+import { Plus, Pencil, Trash2, GripVertical, Archive, ArchiveRestore, Layers } from "lucide-react";
 import {
   DndContext,
   closestCenter,
@@ -41,6 +42,7 @@ import {
   useDeleteCategory,
   useArchiveCategory,
   useUnarchiveCategory,
+  useGroups,
 } from "@/hooks";
 import { useQueryClient } from "@tanstack/react-query";
 import type { Category } from "@/types";
@@ -84,6 +86,16 @@ function SortableCategoryRow({ category, onEdit, onDelete, onArchive }: Sortable
         />
         <div className="min-w-0">
           <span className="font-medium">{category.name}</span>
+          {category.group && (
+            <span
+              className="ml-2 inline-flex items-center gap-1 text-xs px-1.5 py-0.5 rounded bg-muted text-muted-foreground"
+            >
+              {category.group.color && (
+                <span className="w-2 h-2 rounded-full shrink-0 inline-block" style={{ backgroundColor: category.group.color }} />
+              )}
+              {category.group.name}
+            </span>
+          )}
           {category.description && (
             <p className="text-xs text-muted-foreground truncate">{category.description}</p>
           )}
@@ -181,6 +193,7 @@ function CategoryRowOverlay({ category }: { category: Category }) {
 export default function CategoriesPage() {
   const { data: categories, isLoading, error } = useCategories();
   const { data: archivedCategories } = useArchivedCategories();
+  const { data: groups } = useGroups();
   const queryClient = useQueryClient();
   const createCategory = useCreateCategory();
   const updateCategory = useUpdateCategory();
@@ -193,6 +206,7 @@ export default function CategoriesPage() {
   const [isDialogOpen, setIsDialogOpen] = useState(false);
   const [deletingCategory, setDeletingCategory] = useState<Category | null>(null);
   const [activeCategory, setActiveCategory] = useState<Category | null>(null);
+  const [groupFilter, setGroupFilter] = useState<string | null>(null);
 
   const sensors = useSensors(
     useSensor(PointerSensor),
@@ -214,7 +228,7 @@ export default function CategoriesPage() {
     setIsDialogOpen(true);
   };
 
-  const handleSave = async (data: { name: string; color: string; description?: string }) => {
+  const handleSave = async (data: { name: string; color: string; description?: string; groupId?: string | null }) => {
     try {
       if (editingCategory) {
         await updateCategory.mutateAsync({
@@ -222,12 +236,14 @@ export default function CategoriesPage() {
           name: data.name,
           color: data.color,
           description: data.description,
+          groupId: data.groupId,
         });
       } else {
         await createCategory.mutateAsync({
           name: data.name,
           color: data.color,
           description: data.description,
+          groupId: data.groupId,
         });
       }
       setIsDialogOpen(false);
@@ -282,10 +298,51 @@ export default function CategoriesPage() {
   return (
     <div className="flex-1 bg-background">
       <main className="px-4 pt-4 pb-20 md:pb-4">
-          <h1 className="text-lg font-semibold mb-1.5">カテゴリ</h1>
+          <div className="flex items-start justify-between mb-1.5">
+            <h1 className="text-lg font-semibold">カテゴリ</h1>
+            <Link href="/groups" className="flex items-center gap-1 text-xs text-muted-foreground hover:text-foreground transition-colors">
+              <Layers className="h-3.5 w-3.5" />
+              グループを管理
+            </Link>
+          </div>
           <p className="text-xs text-muted-foreground mb-4">
             タスクに設定するカテゴリを管理します。色を設定してタスクを視覚的に分類できます。ドラッグで表示順を並び替えられます。
           </p>
+
+          {/* グループフィルター */}
+          {groups && groups.length > 0 && (
+            <div className="flex gap-1.5 flex-wrap mb-4">
+              <button
+                onClick={() => setGroupFilter(null)}
+                className={`text-xs px-2.5 py-1 rounded-full border transition-colors ${
+                  groupFilter === null ? "bg-foreground text-background border-foreground" : "bg-card border-border text-muted-foreground hover:border-foreground/50"
+                }`}
+              >
+                すべて
+              </button>
+              {groups.map((g) => (
+                <button
+                  key={g.id}
+                  onClick={() => setGroupFilter(groupFilter === g.id ? null : g.id)}
+                  className={`flex items-center gap-1 text-xs px-2.5 py-1 rounded-full border transition-colors ${
+                    groupFilter === g.id ? "bg-foreground text-background border-foreground" : "bg-card border-border text-muted-foreground hover:border-foreground/50"
+                  }`}
+                >
+                  {g.color && <span className="w-2 h-2 rounded-full shrink-0 inline-block" style={{ backgroundColor: g.color }} />}
+                  {g.name}
+                </button>
+              ))}
+              <button
+                onClick={() => setGroupFilter("__none__")}
+                className={`text-xs px-2.5 py-1 rounded-full border transition-colors ${
+                  groupFilter === "__none__" ? "bg-foreground text-background border-foreground" : "bg-card border-border text-muted-foreground hover:border-foreground/50"
+                }`}
+              >
+                グループなし
+              </button>
+            </div>
+          )}
+
           {isLoading ? (
             <div className="text-center py-12 text-muted-foreground">読み込み中...</div>
           ) : error ? (
@@ -306,22 +363,29 @@ export default function CategoriesPage() {
                   strategy={verticalListSortingStrategy}
                 >
                   <div className="space-y-2">
-                    {categories && categories.length > 0 ? (
-                      categories.map((category) => (
-                        <SortableCategoryRow
-                          key={category.id}
-                          category={category}
-                          onEdit={handleEdit}
-                          onDelete={setDeletingCategory}
-                          onArchive={handleArchive}
-                        />
-                      ))
-                    ) : (
-                      <div className="text-center py-12 text-muted-foreground">
-                        <p>カテゴリがありません</p>
-                        <p className="text-sm mt-1">下のボタンから新しいカテゴリを追加しましょう</p>
-                      </div>
-                    )}
+                    {(() => {
+                      const filtered = categories?.filter((c) => {
+                        if (groupFilter === null) return true;
+                        if (groupFilter === "__none__") return !c.groupId;
+                        return c.groupId === groupFilter;
+                      });
+                      return filtered && filtered.length > 0 ? (
+                        filtered.map((category) => (
+                          <SortableCategoryRow
+                            key={category.id}
+                            category={category}
+                            onEdit={handleEdit}
+                            onDelete={setDeletingCategory}
+                            onArchive={handleArchive}
+                          />
+                        ))
+                      ) : (
+                        <div className="text-center py-12 text-muted-foreground">
+                          <p>カテゴリがありません</p>
+                          {!groupFilter && <p className="text-sm mt-1">下のボタンから新しいカテゴリを追加しましょう</p>}
+                        </div>
+                      );
+                    })()}
                   </div>
                 </SortableContext>
 
@@ -369,6 +433,7 @@ export default function CategoriesPage() {
         open={isDialogOpen}
         onOpenChange={setIsDialogOpen}
         category={editingCategory}
+        groups={groups}
         onSave={handleSave}
         isLoading={createCategory.isPending || updateCategory.isPending}
       />
