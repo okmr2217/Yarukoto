@@ -379,12 +379,6 @@ export function FilterSidebar({
                           !isGroupSelected && "px-1.5",
                         )}
                       >
-                        {groupColor && (
-                          <span
-                            className={cn("w-1.5 h-1.5 rounded-full shrink-0", !isGroupSelected && "opacity-40")}
-                            style={{ backgroundColor: groupColor }}
-                          />
-                        )}
                         {group.emoji && <span className="shrink-0 text-sm leading-none">{group.emoji}</span>}
                         <span className="truncate">{group.name}</span>
                       </button>
@@ -411,7 +405,7 @@ export function FilterSidebar({
                               onClick={() => onCategoryFilterChange(isCatSelected ? { type: "all" } : { type: "category", categoryId: cat.id })}
                               aria-pressed={isCatSelected}
                               className={cn(
-                                "flex items-center gap-1.5 w-full py-[3px] rounded-md text-[11px] transition-colors min-w-0 text-left",
+                                "flex items-center gap-1.5 w-full pr-1.5 py-[3px] rounded-md text-[11px] transition-colors min-w-0 text-left",
                                 isCatSelected ? "font-medium text-foreground" : "text-muted-foreground hover:bg-accent/40",
                                 !isCatSelected && "px-1.5",
                               )}
@@ -440,7 +434,7 @@ export function FilterSidebar({
                 <div className="mb-0.5">
                   <div className="flex items-center w-full rounded-md text-[11px]">
                     <span className="flex items-center gap-1.5 flex-1 px-1.5 py-[3px] text-muted-foreground">
-                      <span>📂</span>
+                      <span>🗂️</span>
                       <span>グループなし</span>
                     </span>
                     <button
@@ -528,26 +522,33 @@ export function FilterSidebar({
 
               {(() => {
                 const count = countByCategory["none"] ?? 0;
-                const isCatSelected = categoryFilter.type === "category" && categoryFilter.categoryId === "none";
+                const isNoneSelected = categoryFilter.type === "category" && categoryFilter.categoryId === "none";
                 return (
-                  <button
-                    type="button"
-                    onClick={() => onCategoryFilterChange(isCatSelected ? { type: "all" } : { type: "category", categoryId: "none" })}
-                    aria-pressed={isCatSelected}
-                    className={cn(
-                      "w-full flex items-center gap-1.5 px-1.5 py-1 rounded text-xs font-semibold transition-colors min-w-0",
-                      !isCatSelected ? "text-muted-foreground hover:text-foreground hover:bg-accent" : "text-foreground",
-                    )}
-                    style={isCatSelected ? { borderLeft: "3px solid currentColor", paddingLeft: "calc(0.375rem - 3px)" } : {}}
-                  >
-                    {isCatSelected ? (
-                      <span className="shrink-0 w-2 h-2 rounded-full bg-foreground" />
-                    ) : (
-                      <span className="shrink-0 w-2 h-2 rounded-full border border-foreground/30" />
-                    )}
-                    <span className="truncate">カテゴリなし</span>
-                    {count > 0 && <span className="ml-auto shrink-0 text-[10px] tabular-nums opacity-50">{count}</span>}
-                  </button>
+                  <div className="mb-0.5">
+                    <div
+                      className="flex items-center w-full rounded-md text-[11px] overflow-hidden"
+                      style={
+                        isNoneSelected
+                          ? { backgroundColor: "var(--muted)", borderLeft: `3px solid color-mix(in oklch, var(--muted-foreground) 40%, transparent)`, paddingLeft: "calc(0.375rem - 3px)" }
+                          : {}
+                      }
+                    >
+                      <button
+                        type="button"
+                        onClick={() => onCategoryFilterChange(isNoneSelected ? { type: "all" } : { type: "category", categoryId: "none" })}
+                        aria-pressed={isNoneSelected}
+                        className={cn(
+                          "flex items-center gap-1.5 flex-1 py-[3px] transition-colors min-w-0",
+                          isNoneSelected ? "font-medium text-foreground" : "text-muted-foreground hover:bg-accent/40",
+                          !isNoneSelected && "px-1.5",
+                        )}
+                      >
+                        <span className="shrink-0 text-sm leading-none">🏷️</span>
+                        <span className="truncate">カテゴリなし</span>
+                        {count > 0 && <span className="ml-auto shrink-0 text-[10px] tabular-nums opacity-70">{count}</span>}
+                      </button>
+                    </div>
+                  </div>
                 );
               })()}
             </div>
