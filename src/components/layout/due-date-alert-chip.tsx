@@ -11,13 +11,12 @@ export function DueDateAlertChip({ className }: { className?: string }) {
   if (overdueCount === 0 && todayCount === 0) return null;
 
   return (
-    <div className="relative group">
+    <div className={cn("relative group", className)}>
       <Link
         href="/?view=schedule"
         className={cn(
           "flex items-center gap-1.5 px-2.5 py-1.5 rounded-md border border-border",
           "bg-background hover:bg-muted transition-colors text-xs",
-          className
         )}
         aria-label={`期限アラート: 期限切れ${overdueCount}件、今日が期限${todayCount}件`}
       >
