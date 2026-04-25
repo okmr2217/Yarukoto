@@ -9,6 +9,7 @@ import { cn } from "@/lib/utils";
 import { useAllTasks, useCategories, useGroups, getGroupSelectionState, useCategoryGroupCollapsed } from "@/hooks";
 import { CATEGORY_DESELECTED_SENTINEL } from "@/lib/constants";
 import { CategoryGroupAccordion } from "./category-group-accordion";
+import { FilterSectionInfo } from "./filter-section-info";
 
 type StatusFilter = "all" | "pending" | "completed" | "skipped";
 type ViewMode = "list" | "schedule";
@@ -35,10 +36,11 @@ const SCHEDULED_SORT_OPTIONS: { value: ScheduledSortOrder; label: string }[] = [
 
 const KEYWORD_DEBOUNCE_MS = 300;
 
-function SectionLabel({ children }: { children: React.ReactNode }) {
+function SectionLabel({ children, tooltip }: { children: React.ReactNode; tooltip?: string }) {
   return (
-    <span className="block text-[11px] font-semibold text-muted-foreground/60 tracking-wider mb-0.5">
+    <span className="flex items-center gap-1 text-[11px] font-semibold text-muted-foreground/60 tracking-wider mb-0.5">
       {children}
+      {tooltip && <FilterSectionInfo content={tooltip} />}
     </span>
   );
 }
@@ -260,7 +262,7 @@ export function FilterBottomSheet({ open, onClose, viewMode, onViewModeChange, l
             {/* カテゴリ */}
             <section>
               <div className="flex items-center justify-between mb-1">
-                <SectionLabel>カテゴリ</SectionLabel>
+                <SectionLabel tooltip="複数選択できます（OR条件）。選択したカテゴリのいずれかに属するタスクが表示されます。「全て選択・解除」で一括操作できます。">カテゴリ</SectionLabel>
                 <div className="flex items-center gap-1">
                   <button
                     type="button"
@@ -380,7 +382,7 @@ export function FilterBottomSheet({ open, onClose, viewMode, onViewModeChange, l
 
             {/* キーワード */}
             <section>
-              <SectionLabel>キーワード</SectionLabel>
+              <SectionLabel tooltip="タスク名・メモに含まれる文字列でリアルタイムに絞り込みます。他のフィルターと組み合わせて使えます。">キーワード</SectionLabel>
               <div className="relative">
                 <Search className="absolute left-2.5 top-1/2 -translate-y-1/2 size-3 text-muted-foreground" />
                 <Input
@@ -406,7 +408,7 @@ export function FilterBottomSheet({ open, onClose, viewMode, onViewModeChange, l
 
             {/* ステータス */}
             <section>
-              <SectionLabel>ステータス</SectionLabel>
+              <SectionLabel tooltip="タスクの進捗状態で絞り込みます。1つだけ選択できます。デフォルトは「未完了」で、完了済みやスキップしたタスクの確認にも使えます。">ステータス</SectionLabel>
               <div className="flex rounded-md border border-input overflow-hidden divide-x divide-border text-xs bg-background">
                 {STATUS_OPTIONS.map((option) => {
                   const count = statusCounts[option.value];
@@ -433,7 +435,7 @@ export function FilterBottomSheet({ open, onClose, viewMode, onViewModeChange, l
 
             {/* ビュー */}
             <section>
-              <SectionLabel>ビュー</SectionLabel>
+              <SectionLabel tooltip="表示形式を切り替えます。「一覧」は日付セクション別のリスト表示、「予定」は予定日が設定されたタスクを日付順に表示します。">ビュー</SectionLabel>
               <div className="flex rounded-md border border-input overflow-hidden divide-x divide-border text-xs bg-background">
                 <button
                   type="button"
@@ -460,7 +462,7 @@ export function FilterBottomSheet({ open, onClose, viewMode, onViewModeChange, l
 
             {/* 日付 */}
             <section>
-              <SectionLabel>日付</SectionLabel>
+              <SectionLabel tooltip="特定の日付のタスクだけを表示します。未設定の場合は全期間が対象。前後の矢印ボタンで1日ずつ移動できます。">日付</SectionLabel>
               <div className="flex items-center gap-1">
                 <button
                   type="button"
@@ -512,7 +514,7 @@ export function FilterBottomSheet({ open, onClose, viewMode, onViewModeChange, l
 
             {/* お気に入り */}
             <section>
-              <SectionLabel>お気に入り</SectionLabel>
+              <SectionLabel tooltip="★マークをつけたタスクだけを表示します。重要なタスクをすばやく確認したいときに使います。">お気に入り</SectionLabel>
               <button
                 type="button"
                 onClick={() => updateSearchParams({ favorite: favoriteFilter ? null : "true" })}
@@ -538,7 +540,7 @@ export function FilterBottomSheet({ open, onClose, viewMode, onViewModeChange, l
 
             {/* 並び順 */}
             <section>
-              <SectionLabel>並び順</SectionLabel>
+              <SectionLabel tooltip="タスクの並び順を変更します。「表示順」はドラッグ＆ドロップで設定したカスタム順、「作成日時」は新しい順に並びます。">並び順</SectionLabel>
               <div className="grid grid-cols-2 gap-1">
                 {viewMode === "list"
                   ? LIST_SORT_OPTIONS.map((option) => {
