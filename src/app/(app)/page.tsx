@@ -22,6 +22,16 @@ import {
   useGroups,
   useRecentCategories,
 } from "@/hooks";
+import {
+  AlertDialog,
+  AlertDialogAction,
+  AlertDialogCancel,
+  AlertDialogContent,
+  AlertDialogDescription,
+  AlertDialogFooter,
+  AlertDialogHeader,
+  AlertDialogTitle,
+} from "@/components/ui/alert-dialog";
 import { parseCategoryParam, categoryFilterToParam, type CategoryFilter, UNGROUPED_VIRTUAL_ID } from "@/lib/category-filter";
 import type { Task } from "@/types";
 import { formatDateToJST } from "@/lib/dateUtils";
@@ -66,6 +76,7 @@ export default function HomePage() {
   const [detailTask, setDetailTask] = useState<TaskDetail | null>(null);
   const [detailOpen, setDetailOpen] = useState(false);
   const [filterSheetOpen, setFilterSheetOpen] = useState(false);
+  const [deletingTaskId, setDeletingTaskId] = useState<string | null>(null);
 
   // URLクエリパラメータ更新ヘルパー
   const updateSearchParams = useCallback(
@@ -189,8 +200,13 @@ export default function HomePage() {
   };
 
   const handleDelete = (id: string) => {
-    if (confirm("このタスクを削除しますか？")) {
-      mutations.deleteTask.mutate(id);
+    setDeletingTaskId(id);
+  };
+
+  const handleDeleteConfirm = () => {
+    if (deletingTaskId) {
+      mutations.deleteTask.mutate(deletingTaskId);
+      setDeletingTaskId(null);
     }
   };
 
@@ -459,6 +475,21 @@ export default function HomePage() {
       />
 
       <TaskDetailSheet task={detailTask} open={detailOpen} onOpenChange={setDetailOpen} />
+
+      <AlertDialog open={deletingTaskId !== null} onOpenChange={(open) => !open && setDeletingTaskId(null)}>
+        <AlertDialogContent>
+          <AlertDialogHeader>
+            <AlertDialogTitle>タスクを削除しますか？</AlertDialogTitle>
+            <AlertDialogDescription>この操作は元に戻せません。</AlertDialogDescription>
+          </AlertDialogHeader>
+          <AlertDialogFooter>
+            <AlertDialogCancel>キャンセル</AlertDialogCancel>
+            <AlertDialogAction onClick={handleDeleteConfirm} className="bg-destructive text-destructive-foreground hover:bg-destructive/90">
+              削除
+            </AlertDialogAction>
+          </AlertDialogFooter>
+        </AlertDialogContent>
+      </AlertDialog>
     </div>
   );
 }
