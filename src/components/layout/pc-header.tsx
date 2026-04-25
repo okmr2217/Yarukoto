@@ -1,8 +1,8 @@
 "use client";
 
 import Link from "next/link";
-import { usePathname, useRouter, useSearchParams } from "next/navigation";
-import { ListTodo, Tags, Settings, BarChart2, HelpCircle, X } from "lucide-react";
+import { usePathname } from "next/navigation";
+import { ListTodo, Tags, Settings, BarChart2, HelpCircle } from "lucide-react";
 import Image from "next/image";
 import { NAV_ITEMS } from "@/lib/constants";
 import { cn } from "@/lib/utils";
@@ -16,24 +16,8 @@ const iconMap = {
   HelpCircle,
 } as const;
 
-function countActiveFilters(searchParams: URLSearchParams): number {
-  let count = 0;
-  if (searchParams.get("keyword")) count++;
-  const status = searchParams.get("status");
-  if (status && status !== "pending") count++;
-  if (searchParams.get("date")) count++;
-  if (searchParams.get("favorite") === "true") count++;
-  if (searchParams.get("category") !== null) count++;
-  return count;
-}
-
 export function PCHeader() {
   const pathname = usePathname();
-  const router = useRouter();
-  const searchParams = useSearchParams();
-
-  const isTaskPage = pathname === "/";
-  const activeFilterCount = isTaskPage ? countActiveFilters(searchParams) : 0;
 
   const isActive = (href: string) => {
     if (href === "/") return pathname === "/";
@@ -72,21 +56,6 @@ export function PCHeader() {
             );
           })}
         </nav>
-
-        {/* Filter badge + reset (task page only) */}
-        {isTaskPage && activeFilterCount > 0 && (
-          <button
-            type="button"
-            onClick={() => router.push("/")}
-            className="flex items-center gap-1.5 px-2.5 py-1.5 rounded-md text-xs text-muted-foreground hover:bg-muted hover:text-foreground transition-colors shrink-0 self-center"
-          >
-            <span className="flex items-center justify-center w-4 h-4 rounded-full bg-primary text-primary-foreground text-[10px] font-semibold">
-              {activeFilterCount}
-            </span>
-            <span>絞り込み中</span>
-            <X className="size-3" />
-          </button>
-        )}
 
         <DueDateAlertChip className="shrink-0 self-center" />
       </div>

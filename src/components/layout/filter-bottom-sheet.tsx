@@ -2,13 +2,12 @@
 
 import { useRef, useState } from "react";
 import { useRouter, useSearchParams } from "next/navigation";
-import { Search, X, Star, ChevronLeft, ChevronRight } from "lucide-react";
+import { Search, X, Star, ChevronLeft, ChevronRight, ChevronDown } from "lucide-react";
 import { Input } from "@/components/ui/input";
 import { getTodayInJST, addDaysJST } from "@/lib/dateUtils";
 import { cn } from "@/lib/utils";
-import { useAllTasks, useCategories, useGroups, getGroupSelectionState, useCategoryGroupCollapsed } from "@/hooks";
-import { CATEGORY_DESELECTED_SENTINEL } from "@/lib/constants";
-import { CategoryGroupAccordion } from "./category-group-accordion";
+import { useAllTasks, useCategories, useGroups } from "@/hooks";
+import { parseCategoryParam, categoryFilterToParam } from "@/lib/category-filter";
 import { FilterSectionInfo } from "./filter-section-info";
 
 type StatusFilter = "all" | "pending" | "completed" | "skipped";
@@ -65,44 +64,39 @@ export function FilterBottomSheet({ open, onClose, viewMode, onViewModeChange, l
   const keyword = searchParams.get("keyword") || "";
   const statusFilter = (searchParams.get("status") || "pending") as StatusFilter;
   const favoriteFilter = searchParams.get("favorite") === "true";
-  const hasActiveFilters = !!(dateFilter || keyword || statusFilter !== "pending" || favoriteFilter);
+  const categoryParam = searchParams.get("category");
+  const categoryFilter = parseCategoryParam(categoryParam);
+
+  const hasActiveFilters = !!(dateFilter || keyword || statusFilter !== "pending" || favoriteFilter || categoryFilter.type !== "all");
 
   const [localKeyword, setLocalKeyword] = useState(keyword);
   const [syncedKeyword, setSyncedKeyword] = useState(keyword);
+  const [expandedGroups, setExpandedGroups] = useState<Set<string>>(new Set());
   const isComposingRef = useRef(false);
   const debounceTimerRef = useRef<ReturnType<typeof setTimeout> | null>(null);
 
-  const categoryParam = searchParams.get("category");
-  const isDefaultAllSelected = categoryParam === null;
-  const isAllDeselected = categoryParam === CATEGORY_DESELECTED_SENTINEL;
-  const selectedCategoryIds = isDefaultAllSelected
-    ? undefined
-    : isAllDeselected
-    ? []
-    : categoryParam?.split(",");
-
   const { data: categories = [], isLoading: categoriesLoading } = useCategories();
   const { data: groups = [] } = useGroups();
-  const { collapsed, toggleCollapse } = useCategoryGroupCollapsed();
-
-  const effectiveSelectedIds: string[] = isDefaultAllSelected
-    ? [...categories.map((c) => c.id), "none"]
-    : (selectedCategoryIds ?? []);
 
   if (keyword !== syncedKeyword) {
     setSyncedKeyword(keyword);
     setLocalKeyword(keyword);
   }
 
-  const { data: allFilteredTasks } = useAllTasks(
-    {
-      categoryIds: isDefaultAllSelected ? undefined : selectedCategoryIds,
-      date: dateFilter || undefined,
-      keyword: keyword || undefined,
-      isFavorite: favoriteFilter || undefined,
-    },
-    { enabled: !isAllDeselected },
-  );
+  const taskCategoryIds = (() => {
+    if (categoryFilter.type === "all") return undefined;
+    if (categoryFilter.type === "group") {
+      return categories.filter((c) => c.groupId === categoryFilter.groupId).map((c) => c.id);
+    }
+    return [categoryFilter.categoryId];
+  })();
+
+  const { data: allFilteredTasks } = useAllTasks({
+    categoryIds: taskCategoryIds,
+    date: dateFilter || undefined,
+    keyword: keyword || undefined,
+    isFavorite: favoriteFilter || undefined,
+  });
 
   const statusCounts: Record<StatusFilter, number> = (() => {
     if (!allFilteredTasks) return { all: 0, pending: 0, completed: 0, skipped: 0 };
@@ -152,52 +146,33 @@ export function FilterBottomSheet({ open, onClose, viewMode, onViewModeChange, l
   const handleClearFilters = () => {
     if (debounceTimerRef.current) clearTimeout(debounceTimerRef.current);
     setLocalKeyword("");
-    updateSearchParams({ keyword: null, status: null, favorite: null, date: null });
+    updateSearchParams({ keyword: null, status: null, favorite: null, date: null, category: null });
   };
 
-  const handleToggleCategory = (categoryId: string) => {
-    const next = effectiveSelectedIds.includes(categoryId)
-      ? effectiveSelectedIds.filter((id) => id !== categoryId)
-      : [...effectiveSelectedIds, categoryId];
-
-    if (next.length === 0) {
-      updateSearchParams({ category: CATEGORY_DESELECTED_SENTINEL });
-    } else {
-      const allIds = [...categories.map((c) => c.id), "none"];
-      const isAll = allIds.length === next.length && allIds.every((id) => next.includes(id));
-      updateSearchParams({ category: isAll ? null : next.join(",") });
-    }
-  };
-
-  const handleToggleGroup = (groupId: string, shiftKey: boolean) => {
-    const groupCats = categories.filter((c) => c.groupId === groupId);
-    const groupIds = groupCats.map((c) => c.id);
-    const state = getGroupSelectionState(groupIds, effectiveSelectedIds);
-
-    if (shiftKey) {
-      if (groupIds.length === 0) return;
-      updateSearchParams({ category: groupIds.join(",") });
-      return;
-    }
-
-    if (state === "all") {
-      const next = effectiveSelectedIds.filter((id) => !groupIds.includes(id));
-      if (next.length === 0) {
-        updateSearchParams({ category: CATEGORY_DESELECTED_SENTINEL });
+  const toggleGroupExpanded = (groupId: string) => {
+    setExpandedGroups((prev) => {
+      const next = new Set(prev);
+      if (next.has(groupId)) {
+        next.delete(groupId);
       } else {
-        const allIds = [...categories.map((c) => c.id), "none"];
-        const isAll = allIds.length === next.length && allIds.every((id) => next.includes(id));
-        updateSearchParams({ category: isAll ? null : next.join(",") });
+        next.add(groupId);
       }
-    } else {
-      const next = [...new Set([...effectiveSelectedIds, ...groupIds])];
-      const allIds = [...categories.map((c) => c.id), "none"];
-      const isAll = allIds.length === next.length && allIds.every((id) => next.includes(id));
-      updateSearchParams({ category: isAll ? null : next.join(",") });
-    }
+      return next;
+    });
   };
 
-  // カテゴリ件数: 他フィルター条件に連動
+  const handleGroupClick = (groupId: string) => {
+    const isSelected = categoryFilter.type === "group" && categoryFilter.groupId === groupId;
+    const newFilter = isSelected ? { type: "all" as const } : { type: "group" as const, groupId };
+    updateSearchParams({ category: categoryFilterToParam(newFilter) });
+  };
+
+  const handleCategoryClick = (categoryId: string) => {
+    const isSelected = categoryFilter.type === "category" && categoryFilter.categoryId === categoryId;
+    const newFilter = isSelected ? { type: "all" as const } : { type: "category" as const, categoryId };
+    updateSearchParams({ category: categoryFilterToParam(newFilter) });
+  };
+
   const { data: tasksForCounts } = useAllTasks({
     date: dateFilter || undefined,
     keyword: keyword || undefined,
@@ -262,34 +237,21 @@ export function FilterBottomSheet({ open, onClose, viewMode, onViewModeChange, l
             {/* カテゴリ */}
             <section>
               <div className="flex items-center justify-between mb-1">
-                <SectionLabel tooltip="複数選択できます（OR条件）。選択したカテゴリのいずれかに属するタスクが表示されます。「全て選択・解除」で一括操作できます。">カテゴリ</SectionLabel>
-                <div className="flex items-center gap-1">
-                  <button
-                    type="button"
-                    onClick={() => updateSearchParams({ category: CATEGORY_DESELECTED_SENTINEL })}
-                    className={cn(
-                      "text-[11px] px-1.5 py-0.5 rounded transition-colors",
-                      isAllDeselected ? "text-foreground font-semibold bg-muted" : "text-muted-foreground hover:text-foreground hover:bg-muted",
-                    )}
-                  >
-                    全て解除
-                  </button>
+                <SectionLabel tooltip="1つ選択できます。グループ名をクリックするとそのグループ全体、カテゴリ名をクリックすると個別絞り込みができます。再クリックで解除。">カテゴリ</SectionLabel>
+                {categoryFilter.type !== "all" && (
                   <button
                     type="button"
                     onClick={() => updateSearchParams({ category: null })}
-                    className={cn(
-                      "text-[11px] px-1.5 py-0.5 rounded transition-colors",
-                      isDefaultAllSelected ? "text-foreground font-semibold bg-muted" : "text-muted-foreground hover:text-foreground hover:bg-muted",
-                    )}
+                    className="text-[11px] px-1.5 py-0.5 rounded transition-colors text-muted-foreground hover:text-foreground hover:bg-muted"
                   >
-                    全て選択
+                    選択解除
                   </button>
-                </div>
+                )}
               </div>
 
               {categoriesLoading ? (
                 <div className="grid grid-cols-2 gap-1">
-                  {[80, 64, 96, 72].map((w, i) => (
+                  {[80, 64, 96, 72].map((_, i) => (
                     <div key={i} className="h-7 rounded-md bg-muted animate-pulse" />
                   ))}
                 </div>
@@ -298,54 +260,109 @@ export function FilterBottomSheet({ open, onClose, viewMode, onViewModeChange, l
                   {groups.map((group) => {
                     const groupCats = groupedCategories[group.id] ?? [];
                     if (groupCats.length === 0) return null;
-                    const groupIds = groupCats.map((c) => c.id);
-                    const selectionState = getGroupSelectionState(groupIds, effectiveSelectedIds);
+                    const isGroupSelected = categoryFilter.type === "group" && categoryFilter.groupId === group.id;
+                    const expanded = expandedGroups.has(group.id);
+                    const groupColor = group.color;
+
                     return (
-                      <CategoryGroupAccordion
-                        key={group.id}
-                        groupId={group.id}
-                        groupName={group.name}
-                        groupEmoji={group.emoji}
-                        groupColor={group.color}
-                        categories={groupCats}
-                        selectedCategoryIds={effectiveSelectedIds}
-                        countByCategory={countByCategory}
-                        isCollapsed={!!collapsed[group.id]}
-                        onToggleCollapse={toggleCollapse}
-                        onToggleGroup={handleToggleGroup}
-                        onToggleCategory={handleToggleCategory}
-                        selectionState={selectionState}
-                      />
+                      <div key={group.id} className="mb-0.5">
+                        <div
+                          className="flex items-center w-full rounded-md text-[11px] overflow-hidden"
+                          style={
+                            isGroupSelected && groupColor
+                              ? { backgroundColor: `${groupColor}26`, borderLeft: `3px solid ${groupColor}`, paddingLeft: "calc(0.375rem - 3px)" }
+                              : {}
+                          }
+                        >
+                          <button
+                            type="button"
+                            onClick={() => handleGroupClick(group.id)}
+                            className={cn(
+                              "flex items-center gap-1.5 flex-1 py-[5px] transition-colors min-w-0",
+                              isGroupSelected ? "font-medium text-foreground" : "text-muted-foreground hover:bg-accent/40",
+                              !isGroupSelected && "px-1.5",
+                            )}
+                          >
+                            {group.emoji && <span className="shrink-0">{group.emoji}</span>}
+                            {groupColor && (
+                              <span
+                                className={cn("w-1.5 h-1.5 rounded-full shrink-0", !isGroupSelected && "opacity-40")}
+                                style={{ backgroundColor: groupColor }}
+                              />
+                            )}
+                            <span className="truncate">{group.name}</span>
+                          </button>
+                          <button
+                            type="button"
+                            onClick={() => toggleGroupExpanded(group.id)}
+                            className="shrink-0 px-2 py-[5px] text-muted-foreground hover:text-foreground transition-colors"
+                            aria-label={expanded ? "折りたたむ" : "展開する"}
+                          >
+                            <ChevronDown className={cn("size-3.5 transition-transform duration-150", expanded && "rotate-180")} />
+                          </button>
+                        </div>
+
+                        {expanded && (
+                          <div className="ml-3 mt-0.5">
+                            {groupCats.map((cat) => {
+                              const count = countByCategory[cat.id] ?? 0;
+                              const isCatSelected = categoryFilter.type === "category" && categoryFilter.categoryId === cat.id;
+                              const catColor = cat.color;
+                              const activeStyle = catColor
+                                ? { backgroundColor: `${catColor}28`, color: catColor, boxShadow: `inset 0 0 0 1.5px ${catColor}50` }
+                                : undefined;
+                              const inactiveStyle = catColor ? { backgroundColor: `${catColor}14`, color: `${catColor}aa` } : undefined;
+                              return (
+                                <button
+                                  key={cat.id}
+                                  type="button"
+                                  onClick={() => handleCategoryClick(cat.id)}
+                                  aria-pressed={isCatSelected}
+                                  className={cn(
+                                    "flex items-center justify-between px-2 py-1 rounded-md text-xs transition-colors min-w-0 w-full mb-0.5",
+                                    isCatSelected ? "font-semibold" : catColor ? "" : "text-muted-foreground hover:bg-accent hover:text-foreground",
+                                  )}
+                                  style={isCatSelected ? activeStyle : inactiveStyle}
+                                >
+                                  <div className="flex items-center gap-1.5 min-w-0">
+                                    {catColor && <span className="w-1.5 h-1.5 rounded-full shrink-0" style={{ backgroundColor: catColor }} />}
+                                    <span className="truncate">{cat.name}</span>
+                                  </div>
+                                  {count > 0 && <span className="text-xs tabular-nums shrink-0 ml-1 opacity-70">{count}</span>}
+                                </button>
+                              );
+                            })}
+                          </div>
+                        )}
+                      </div>
                     );
                   })}
 
                   {ungroupedCategories.length > 0 && (
                     <div className="grid grid-cols-2 gap-1 mt-1">
-                      {ungroupedCategories.map((category) => {
-                        const count = countByCategory[category.id] ?? 0;
-                        const active = effectiveSelectedIds.includes(category.id);
-                        const color = category.color;
-                        const activeStyle = color
-                          ? { backgroundColor: `${color}28`, color: color, boxShadow: `inset 0 0 0 1.5px ${color}50` }
+                      {ungroupedCategories.map((cat) => {
+                        const count = countByCategory[cat.id] ?? 0;
+                        const isCatSelected = categoryFilter.type === "category" && categoryFilter.categoryId === cat.id;
+                        const catColor = cat.color;
+                        const activeStyle = catColor
+                          ? { backgroundColor: `${catColor}28`, color: catColor, boxShadow: `inset 0 0 0 1.5px ${catColor}50` }
                           : undefined;
-                        const inactiveStyle = color
-                          ? { backgroundColor: `${color}14`, color: `${color}aa` }
-                          : undefined;
+                        const inactiveStyle = catColor ? { backgroundColor: `${catColor}14`, color: `${catColor}aa` } : undefined;
                         return (
                           <button
-                            key={category.id}
+                            key={cat.id}
                             type="button"
-                            onClick={() => handleToggleCategory(category.id)}
-                            aria-pressed={active}
+                            onClick={() => handleCategoryClick(cat.id)}
+                            aria-pressed={isCatSelected}
                             className={cn(
                               "flex items-center justify-between px-2 py-1 rounded-md text-xs transition-colors min-w-0",
-                              active ? "font-semibold" : color ? "" : "text-muted-foreground hover:bg-accent hover:text-foreground",
+                              isCatSelected ? "font-semibold" : catColor ? "" : "text-muted-foreground hover:bg-accent hover:text-foreground",
                             )}
-                            style={active ? activeStyle : inactiveStyle}
+                            style={isCatSelected ? activeStyle : inactiveStyle}
                           >
                             <div className="flex items-center gap-1.5 min-w-0">
-                              {color && <span className="w-1.5 h-1.5 rounded-full shrink-0" style={{ backgroundColor: color }} />}
-                              <span className="truncate">{category.name}</span>
+                              {catColor && <span className="w-1.5 h-1.5 rounded-full shrink-0" style={{ backgroundColor: catColor }} />}
+                              <span className="truncate">{cat.name}</span>
                             </div>
                             {count > 0 && <span className="text-xs tabular-nums shrink-0 ml-1 opacity-70">{count}</span>}
                           </button>
@@ -360,15 +377,15 @@ export function FilterBottomSheet({ open, onClose, viewMode, onViewModeChange, l
 
                   {(() => {
                     const count = countByCategory["none"] ?? 0;
-                    const active = effectiveSelectedIds.includes("none");
+                    const isCatSelected = categoryFilter.type === "category" && categoryFilter.categoryId === "none";
                     return (
                       <button
                         type="button"
-                        onClick={() => handleToggleCategory("none")}
-                        aria-pressed={active}
+                        onClick={() => handleCategoryClick("none")}
+                        aria-pressed={isCatSelected}
                         className={cn(
                           "flex items-center justify-between px-2 py-1 rounded-md text-xs transition-colors min-w-0 w-full",
-                          active ? "bg-muted text-foreground font-semibold" : "text-muted-foreground hover:bg-accent hover:text-foreground",
+                          isCatSelected ? "bg-muted text-foreground font-semibold" : "text-muted-foreground hover:bg-accent hover:text-foreground",
                         )}
                       >
                         <span className="truncate">カテゴリなし</span>

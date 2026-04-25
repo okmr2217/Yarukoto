@@ -1,6 +1,6 @@
 "use client";
 
-import { useState, useEffect, useCallback, useMemo } from "react";
+import { useState, useEffect, useCallback } from "react";
 import { useRouter, useSearchParams } from "next/navigation";
 import { FilterArea, FilterFab, FilterBottomSheet, type FilterValues } from "@/components/layout";
 import {
@@ -22,7 +22,7 @@ import {
   useGroups,
   useRecentCategories,
 } from "@/hooks";
-import { CATEGORY_DESELECTED_SENTINEL } from "@/lib/constants";
+import { parseCategoryParam, categoryFilterToParam, type CategoryFilter } from "@/lib/category-filter";
 import type { Task } from "@/types";
 import { formatDateToJST } from "@/lib/dateUtils";
 
@@ -41,8 +41,7 @@ export default function HomePage() {
 
   // URLクエリパラメータからフィルタ状態を読み取る
   const categoryParam = searchParams.get("category");
-  const isDefaultAllSelected = categoryParam === null;
-  const isAllDeselected = categoryParam === CATEGORY_DESELECTED_SENTINEL;
+  const categoryFilter = parseCategoryParam(categoryParam);
   const dateFilter = searchParams.get("date") || "";
   const keyword = searchParams.get("keyword") || "";
   const statusFilter = (searchParams.get("status") || "pending") as FilterValues["status"];
@@ -51,7 +50,7 @@ export default function HomePage() {
   const [listSort, setListSort] = useState<"displayOrder" | "createdAt">("displayOrder");
   const [scheduledSort, setScheduledSort] = useState<"scheduledAt_asc" | "scheduledAt_desc" | "createdAt">("scheduledAt_asc");
 
-  const hasActiveFilters = !!(dateFilter || keyword || statusFilter !== "pending" || favoriteFilter || !isDefaultAllSelected);
+  const hasActiveFilters = !!(dateFilter || keyword || statusFilter !== "pending" || favoriteFilter || categoryFilter.type !== "all");
 
   const [editingTask, setEditingTask] = useState<Task | null>(null);
   const [skippingTask, setSkippingTask] = useState<Task | null>(null);
@@ -61,18 +60,21 @@ export default function HomePage() {
   const [filterSheetOpen, setFilterSheetOpen] = useState(false);
 
   // URLクエリパラメータ更新ヘルパー
-  const updateSearchParams = useCallback((updates: Record<string, string | null>) => {
-    const params = new URLSearchParams(searchParams.toString());
-    for (const [key, value] of Object.entries(updates)) {
-      if (value === null || value === "") {
-        params.delete(key);
-      } else {
-        params.set(key, value);
+  const updateSearchParams = useCallback(
+    (updates: Record<string, string | null>) => {
+      const params = new URLSearchParams(searchParams.toString());
+      for (const [key, value] of Object.entries(updates)) {
+        if (value === null || value === "") {
+          params.delete(key);
+        } else {
+          params.set(key, value);
+        }
       }
-    }
-    const qs = params.toString();
-    router.push(qs ? `/?${qs}` : "/");
-  }, [searchParams, router]);
+      const qs = params.toString();
+      router.push(qs ? `/?${qs}` : "/");
+    },
+    [searchParams, router],
+  );
 
   const filterValues: FilterValues = {
     keyword,
@@ -85,41 +87,28 @@ export default function HomePage() {
   const { data: groups = [] } = useGroups();
   const { recordRecentCategory } = useRecentCategories();
 
-  // カテゴリの表示状態（チップのアクティブ状態に使用）
-  const effectiveSelectedIds = useMemo(
-    () =>
-      isDefaultAllSelected
-        ? [...categories.map((c) => c.id), "none"]
-        : isAllDeselected
-        ? []
-        : (categoryParam?.split(",") ?? []),
-    [isDefaultAllSelected, isAllDeselected, categories, categoryParam],
-  );
-
-  const handleToggleCategory = useCallback((categoryId: string) => {
-    const next = effectiveSelectedIds.includes(categoryId)
-      ? effectiveSelectedIds.filter((id) => id !== categoryId)
-      : [...effectiveSelectedIds, categoryId];
-
-    if (next.length === 0) {
-      updateSearchParams({ category: CATEGORY_DESELECTED_SENTINEL });
-    } else {
-      const allIds = [...categories.map((c) => c.id), "none"];
-      const isAllSelected = allIds.length === next.length && allIds.every((id) => next.includes(id));
-      updateSearchParams({ category: isAllSelected ? null : next.join(",") });
+  const taskCategoryIds = (() => {
+    if (categoryFilter.type === "all") return undefined;
+    if (categoryFilter.type === "group") {
+      return categories.filter((c) => c.groupId === categoryFilter.groupId).map((c) => c.id);
     }
-  }, [effectiveSelectedIds, categories, updateSearchParams]);
+    return [categoryFilter.categoryId];
+  })();
 
-  const { data: tasks, isLoading, error } = useAllTasks(
-    {
-      categoryIds: isDefaultAllSelected ? undefined : effectiveSelectedIds,
-      date: dateFilter || undefined,
-      keyword: keyword || undefined,
-      status: statusFilter !== "all" ? statusFilter : undefined,
-      isFavorite: favoriteFilter || undefined,
+  const handleCategoryFilterChange = useCallback(
+    (filter: CategoryFilter) => {
+      updateSearchParams({ category: categoryFilterToParam(filter) });
     },
-    { enabled: !isAllDeselected },
+    [updateSearchParams],
   );
+
+  const { data: tasks, isLoading, error } = useAllTasks({
+    categoryIds: taskCategoryIds,
+    date: dateFilter || undefined,
+    keyword: keyword || undefined,
+    status: statusFilter !== "all" ? statusFilter : undefined,
+    isFavorite: favoriteFilter || undefined,
+  });
 
   const sortedTasks = (() => {
     if (!tasks) return [];
@@ -144,12 +133,7 @@ export default function HomePage() {
 
   const mutations = useTaskMutations();
 
-  const handleCreateTask = (data: {
-    title: string;
-    scheduledAt?: string;
-    categoryId?: string;
-    memo?: string;
-  }) => {
+  const handleCreateTask = (data: { title: string; scheduledAt?: string; categoryId?: string; memo?: string }) => {
     if (data.categoryId) recordRecentCategory(data.categoryId);
     mutations.createTask.mutate(data);
   };
@@ -237,7 +221,7 @@ export default function HomePage() {
     return () => document.removeEventListener("keydown", handleKeyDown);
   }, []);
 
-  // 数字キー（0-9）でカテゴリフィルターをトグル
+  // 数字キー（0-9）でカテゴリフィルターを切り替え
   useEffect(() => {
     const handleKeyDown = (e: KeyboardEvent) => {
       if (e.ctrlKey || e.metaKey || e.shiftKey || e.altKey) return;
@@ -249,12 +233,16 @@ export default function HomePage() {
 
       const categoryId = e.key === "0" ? "none" : categories[parseInt(e.key, 10) - 1]?.id;
       if (!categoryId) return;
-      handleToggleCategory(categoryId);
+      if (categoryFilter.type === "category" && categoryFilter.categoryId === categoryId) {
+        handleCategoryFilterChange({ type: "all" });
+      } else {
+        handleCategoryFilterChange({ type: "category", categoryId });
+      }
     };
 
     document.addEventListener("keydown", handleKeyDown);
     return () => document.removeEventListener("keydown", handleKeyDown);
-  }, [categories, effectiveSelectedIds, searchParams, router, taskInputOpen, editingTask, handleToggleCategory]);
+  }, [categories, categoryFilter, taskInputOpen, editingTask, handleCategoryFilterChange]);
 
   // 日付フィルタ時のマッチ理由を算出（クライアント側）
   const getMatchReasons = (task: Task): string[] => {
@@ -273,6 +261,9 @@ export default function HomePage() {
     return reasons;
   };
 
+  const defaultCategoryId =
+    categoryFilter.type === "category" && categoryFilter.categoryId !== "none" ? categoryFilter.categoryId : undefined;
+
   if (isLoading) {
     return (
       <div className="flex-1 bg-background flex flex-col">
@@ -283,8 +274,8 @@ export default function HomePage() {
           <FilterSidebar
             categories={categories}
             categoriesLoading={categoriesLoading}
-            selectedCategoryIds={effectiveSelectedIds}
-            onToggleCategory={handleToggleCategory}
+            categoryFilter={categoryFilter}
+            onCategoryFilterChange={handleCategoryFilterChange}
             viewMode={viewMode}
             onViewModeChange={(mode) => updateSearchParams({ view: mode === "list" ? null : mode })}
             listSort={listSort}
@@ -302,16 +293,11 @@ export default function HomePage() {
                       <div className="h-4 w-4 rounded bg-muted animate-pulse mt-0.5 shrink-0" />
                       <div className="flex-1 min-w-0 space-y-2">
                         <div className="flex items-center gap-2">
-                          <div
-                            className="h-4 rounded bg-muted animate-pulse"
-                            style={{ width: `${[55, 72, 40, 63][i]}%` }}
-                          />
+                          <div className="h-4 rounded bg-muted animate-pulse" style={{ width: `${[55, 72, 40, 63][i]}%` }} />
                           <div className="h-3 w-8 rounded bg-muted animate-pulse ml-auto shrink-0" />
                           <div className="h-6 w-6 rounded bg-muted animate-pulse shrink-0" />
                         </div>
-                        {i % 2 === 0 && (
-                          <div className="h-3 w-20 rounded-full bg-muted animate-pulse" />
-                        )}
+                        {i % 2 === 0 && <div className="h-3 w-20 rounded-full bg-muted animate-pulse" />}
                       </div>
                     </div>
                   </div>
@@ -322,10 +308,7 @@ export default function HomePage() {
           </div>
         </div>
 
-        <FilterFab
-          onClick={() => setFilterSheetOpen(true)}
-          activeFilterCount={countActiveFilters(filterValues)}
-        />
+        <FilterFab onClick={() => setFilterSheetOpen(true)} activeFilterCount={countActiveFilters(filterValues)} />
 
         <FilterBottomSheet
           open={filterSheetOpen}
@@ -345,11 +328,7 @@ export default function HomePage() {
           onSubmit={handleCreateTask}
           categories={categories}
           groups={groups}
-          defaultCategoryId={
-            !isDefaultAllSelected && !isAllDeselected && effectiveSelectedIds.length === 1 && effectiveSelectedIds[0] !== "none"
-              ? effectiveSelectedIds[0]
-              : undefined
-          }
+          defaultCategoryId={defaultCategoryId}
           isLoading={mutations.createTask.isPending}
         />
       </div>
@@ -379,8 +358,8 @@ export default function HomePage() {
         <FilterSidebar
           categories={categories}
           categoriesLoading={categoriesLoading}
-          selectedCategoryIds={effectiveSelectedIds}
-          onToggleCategory={handleToggleCategory}
+          categoryFilter={categoryFilter}
+          onCategoryFilterChange={handleCategoryFilterChange}
           viewMode={viewMode}
           onViewModeChange={(mode) => updateSearchParams({ view: mode === "list" ? null : mode })}
           listSort={listSort}
@@ -400,8 +379,7 @@ export default function HomePage() {
                       <p>タスクがありません</p>
                       <p className="text-sm mt-1">
                         <kbd className="px-1.5 py-0.5 text-xs bg-muted rounded border">N</kbd>{" "}
-                        キーまたは下の <span className="text-primary font-semibold">＋</span>{" "}
-                        ボタンから新しいタスクを追加しましょう
+                        キーまたは下の <span className="text-primary font-semibold">＋</span> ボタンから新しいタスクを追加しましょう
                       </p>
                     </>
                   )}
@@ -425,10 +403,7 @@ export default function HomePage() {
       </div>
 
       {/* モバイル: フィルター FAB */}
-      <FilterFab
-        onClick={() => setFilterSheetOpen(true)}
-        activeFilterCount={countActiveFilters(filterValues)}
-      />
+      <FilterFab onClick={() => setFilterSheetOpen(true)} activeFilterCount={countActiveFilters(filterValues)} />
 
       {/* モバイル: フィルター ボトムシート */}
       <FilterBottomSheet
@@ -449,11 +424,7 @@ export default function HomePage() {
         onSubmit={handleCreateTask}
         categories={categories}
         groups={groups}
-        defaultCategoryId={
-          !isDefaultAllSelected && !isAllDeselected && effectiveSelectedIds.length === 1 && effectiveSelectedIds[0] !== "none"
-            ? effectiveSelectedIds[0]
-            : undefined
-        }
+        defaultCategoryId={defaultCategoryId}
         isLoading={mutations.createTask.isPending}
       />
 
