@@ -8,25 +8,22 @@ import { CONFIG } from '../config';
  * PC シナリオ (runPcScenarios)
  *   home-pc              / — ホーム（タスク一覧、3カラムレイアウト）
  *   task-add-modal-pc    / — タスク追加モーダルを開いた状態
- *   task-drag-drop       / — ドラッグ中演出を適用したタスク一覧
- *   stats-pc             /stats — 統計ページ
+ *   stats-category-pc             /stats — 統計ページ（カテゴリタブ）
+ *   stats-daily-pc             /stats — 統計ページ（日次タブ）
  *   categories-list      /categories — カテゴリ一覧
- *   category-edit-dialog /categories — カテゴリ編集ダイアログを開いた状態
- *   category-delete-dialog /categories — カテゴリ削除ダイアログを開いた状態
  *   settings             /settings — 設定ページ
- *   help-pc              /help — ヘルプページ
  *
  * モバイル シナリオ (runMobileScenarios)
- *   home-mobile          / — ホーム（ボトムナビ付き）
- *   task-add-modal-mobile / — タスク追加モーダルを開いた状態
- *   stats-mobile         /stats — 統計ページ
- *   filter-bottom-sheet  / — フィルター FAB からボトムシートを開いた状態
- *   menu-bottom-sheet    / — ボトムナビのメニューボタンからシートを開いた状態
+ *   home-mobile              / — ホーム（タスク一覧、3カラムレイアウト）
+ *   task-add-modal-mobile    / — タスク追加モーダルを開いた状態
+ *   stats-category-mobile             /stats — 統計ページ（カテゴリタブ）
+ *   stats-daily-mobile             /stats — 統計ページ（日次タブ）
+ *   categories-list-mobile      /categories — カテゴリ一覧
+ *   settings-mobile             /settings — 設定ページ
  *
  * ログインシナリオ (runLoginScenarios) ※認証不要
  *   login                /login — ログインページ
  *   signup               /signup — 新規登録ページ
- *   forgot-password      /forgot-password — パスワードリセット申請ページ
  */
 
 const BASE_URL = CONFIG.BASE_URL;
@@ -55,30 +52,22 @@ export async function runPcScenarios(page: Page): Promise<void> {
     console.error('❌ task-add-modal-pc failed:', e);
   }
 
-  // task-drag-drop (PC)
-  try {
-    await page.goto(`${BASE_URL}/`);
-    await page.waitForLoadState('networkidle');
-    await page.evaluate(() => {
-      const items = document.querySelectorAll('[draggable], [data-dnd-item], li, [role="listitem"]');
-      if (items.length > 0) {
-        (items[0] as HTMLElement).style.opacity = '0.5';
-        (items[0] as HTMLElement).style.transform = 'scale(1.02)';
-        (items[0] as HTMLElement).style.boxShadow = '0 8px 24px rgba(0,0,0,0.15)';
-      }
-    });
-    await capture(page, 'task-drag-drop', 'pc');
-  } catch (e) {
-    console.error('❌ task-drag-drop failed:', e);
-  }
-
-  // stats-pc — カレンダー廃止、統計ページに変更
+  // stats-category-pc — 統計ページ（カテゴリタブ、デフォルト）
   try {
     await page.goto(`${BASE_URL}/stats`);
     await page.waitForLoadState('networkidle');
-    await capture(page, 'stats-pc', 'pc');
+    await capture(page, 'stats-category-pc', 'pc');
   } catch (e) {
-    console.error('❌ stats-pc failed:', e);
+    console.error('❌ stats-category-pc failed:', e);
+  }
+
+  // stats-daily-pc — 統計ページ（日次タブ）
+  try {
+    await page.goto(`${BASE_URL}/stats?tab=daily`);
+    await page.waitForLoadState('networkidle');
+    await capture(page, 'stats-daily-pc', 'pc');
+  } catch (e) {
+    console.error('❌ stats-daily-pc failed:', e);
   }
 
   // categories-list
@@ -90,34 +79,6 @@ export async function runPcScenarios(page: Page): Promise<void> {
     console.error('❌ categories-list failed:', e);
   }
 
-  // category-edit-dialog
-  try {
-    await page.goto(`${BASE_URL}/categories`);
-    await page.waitForLoadState('networkidle');
-    const editBtn = page.locator('button:has-text("編集"), button[aria-label*="編集"], button[aria-label*="edit"]').first();
-    await editBtn.click({ timeout: 5000 });
-    await page.waitForTimeout(300);
-    await capture(page, 'category-edit-dialog', 'pc');
-    await page.keyboard.press('Escape');
-    await page.waitForTimeout(200);
-  } catch (e) {
-    console.error('❌ category-edit-dialog failed:', e);
-  }
-
-  // category-delete-dialog
-  try {
-    await page.goto(`${BASE_URL}/categories`);
-    await page.waitForLoadState('networkidle');
-    const deleteBtn = page.locator('button:has-text("削除"), button[aria-label*="削除"], button[aria-label*="delete"]').first();
-    await deleteBtn.click({ timeout: 5000 });
-    await page.waitForTimeout(300);
-    await capture(page, 'category-delete-dialog', 'pc');
-    await page.keyboard.press('Escape');
-    await page.waitForTimeout(200);
-  } catch (e) {
-    console.error('❌ category-delete-dialog failed:', e);
-  }
-
   // settings
   try {
     await page.goto(`${BASE_URL}/settings`);
@@ -125,15 +86,6 @@ export async function runPcScenarios(page: Page): Promise<void> {
     await capture(page, 'settings', 'pc');
   } catch (e) {
     console.error('❌ settings failed:', e);
-  }
-
-  // help-pc
-  try {
-    await page.goto(`${BASE_URL}/help`);
-    await page.waitForLoadState('networkidle');
-    await capture(page, 'help-pc', 'pc');
-  } catch (e) {
-    console.error('❌ help-pc failed:', e);
   }
 }
 
@@ -161,41 +113,40 @@ export async function runMobileScenarios(page: Page): Promise<void> {
     console.error('❌ task-add-modal-mobile failed:', e);
   }
 
-  // stats-mobile — カレンダー廃止、統計ページに変更
+  // stats-category-mobile — 統計ページ（カテゴリタブ、デフォルト）
   try {
     await page.goto(`${BASE_URL}/stats`);
     await page.waitForLoadState('networkidle');
-    await capture(page, 'stats-mobile', 'mobile');
+    await capture(page, 'stats-category-mobile', 'mobile');
   } catch (e) {
-    console.error('❌ stats-mobile failed:', e);
+    console.error('❌ stats-category-mobile failed:', e);
   }
 
-  // filter-bottom-sheet (mobile) — FilterFab をクリックしてボトムシートを開く
+  // stats-daily-mobile — 統計ページ（日次タブ）
   try {
-    await page.goto(`${BASE_URL}/`);
+    await page.goto(`${BASE_URL}/stats?tab=daily`);
     await page.waitForLoadState('networkidle');
-    const filterFab = page.locator('button[aria-label="フィルターを開く"]').first();
-    await filterFab.click({ timeout: 5000 });
-    await page.waitForTimeout(300);
-    await capture(page, 'filter-bottom-sheet', 'mobile');
-    await page.keyboard.press('Escape');
-    await page.waitForTimeout(200);
+    await capture(page, 'stats-daily-mobile', 'mobile');
   } catch (e) {
-    console.error('❌ filter-bottom-sheet failed:', e);
+    console.error('❌ stats-daily-mobile failed:', e);
   }
 
-  // menu-bottom-sheet (mobile) — ボトムナビのメニューボタンをクリック
+  // categories-list-mobile
   try {
-    await page.goto(`${BASE_URL}/`);
+    await page.goto(`${BASE_URL}/categories`);
     await page.waitForLoadState('networkidle');
-    const menuBtn = page.locator('nav button:has-text("メニュー")').first();
-    await menuBtn.click({ timeout: 5000 });
-    await page.waitForTimeout(300);
-    await capture(page, 'menu-bottom-sheet', 'mobile');
-    await page.keyboard.press('Escape');
-    await page.waitForTimeout(200);
+    await capture(page, 'categories-list-mobile', 'mobile');
   } catch (e) {
-    console.error('❌ menu-bottom-sheet failed:', e);
+    console.error('❌ categories-list-mobile failed:', e);
+  }
+
+  // settings-mobile
+  try {
+    await page.goto(`${BASE_URL}/settings`);
+    await page.waitForLoadState('networkidle');
+    await capture(page, 'settings-mobile', 'mobile');
+  } catch (e) {
+    console.error('❌ settings-mobile failed:', e);
   }
 }
 
@@ -216,14 +167,5 @@ export async function runLoginScenarios(page: Page): Promise<void> {
     await capture(page, 'signup', 'pc');
   } catch (e) {
     console.error('❌ signup failed:', e);
-  }
-
-  // forgot-password (PC, no auth)
-  try {
-    await page.goto(`${BASE_URL}/forgot-password`);
-    await page.waitForLoadState('networkidle');
-    await capture(page, 'forgot-password', 'pc');
-  } catch (e) {
-    console.error('❌ forgot-password failed:', e);
   }
 }
