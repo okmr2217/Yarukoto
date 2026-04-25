@@ -12,28 +12,9 @@ import { Input } from "@/components/ui/input";
 import { Label } from "@/components/ui/label";
 import { Textarea } from "@/components/ui/textarea";
 import { Select, SelectContent, SelectItem, SelectTrigger, SelectValue } from "@/components/ui/select";
-import { cn } from "@/lib/utils";
+import { ColorPicker } from "@/components/ui/color-picker";
+import { COLOR_PRESETS } from "@/constants/colors";
 import type { Category, Group } from "@/types";
-
-// カラーパレット
-const CATEGORY_COLORS = [
-  { name: "レッド",      value: "#EF4444" },
-  { name: "ローズ",      value: "#F43F5E" },
-  { name: "ピンク",      value: "#EC4899" },
-  { name: "オレンジ",    value: "#F97316" },
-  { name: "アンバー",    value: "#F59E0B" },
-  { name: "イエロー",    value: "#EAB308" },
-  { name: "ライム",      value: "#84CC16" },
-  { name: "グリーン",    value: "#22C55E" },
-  { name: "エメラルド",  value: "#10B981" },
-  { name: "ティール",    value: "#14B8A6" },
-  { name: "スカイ",      value: "#0EA5E9" },
-  { name: "ブルー",      value: "#3B82F6" },
-  { name: "インディゴ",  value: "#6366F1" },
-  { name: "バイオレット",value: "#8B5CF6" },
-  { name: "スレート",    value: "#64748B" },
-  { name: "ストーン",    value: "#78716C" },
-];
 
 interface CategoryEditDialogProps {
   open: boolean;
@@ -53,7 +34,7 @@ export function CategoryEditDialog({
   isLoading = false,
 }: CategoryEditDialogProps) {
   const [name, setName] = useState(category?.name ?? "");
-  const [color, setColor] = useState(category?.color ?? CATEGORY_COLORS[4].value);
+  const [color, setColor] = useState<string>(category?.color ?? COLOR_PRESETS[4].value);
   const [description, setDescription] = useState(category?.description ?? "");
   const [groupId, setGroupId] = useState<string | null>(category?.groupId ?? null);
   const [error, setError] = useState<string | null>(null);
@@ -143,23 +124,7 @@ export function CategoryEditDialog({
           {/* カラー */}
           <div className="space-y-2">
             <Label>カラー</Label>
-            <div className="flex gap-2 flex-wrap">
-              {CATEGORY_COLORS.map((c) => (
-                <button
-                  key={c.value}
-                  type="button"
-                  onClick={() => setColor(c.value)}
-                  className={cn(
-                    "w-10 h-10 rounded-full border-2 transition-all",
-                    color === c.value
-                      ? "border-foreground scale-110"
-                      : "border-transparent hover:scale-105",
-                  )}
-                  style={{ backgroundColor: c.value }}
-                  aria-label={c.name}
-                />
-              ))}
-            </div>
+            <ColorPicker value={color} onChange={(v) => setColor(v ?? COLOR_PRESETS[4].value)} />
           </div>
 
           {/* ボタン */}
