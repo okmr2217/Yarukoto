@@ -379,22 +379,22 @@ export function FilterSidebar({
                           !isGroupSelected && "px-1.5",
                         )}
                       >
-                        {group.emoji && <span className="shrink-0">{group.emoji}</span>}
                         {groupColor && (
                           <span
                             className={cn("w-1.5 h-1.5 rounded-full shrink-0", !isGroupSelected && "opacity-40")}
                             style={{ backgroundColor: groupColor }}
                           />
                         )}
+                        {group.emoji && <span className="shrink-0 text-sm leading-none">{group.emoji}</span>}
                         <span className="truncate">{group.name}</span>
                       </button>
                       <button
                         type="button"
                         onClick={() => toggle(group.id)}
-                        className="shrink-0 px-1.5 py-[3px] text-muted-foreground hover:text-foreground transition-colors"
+                        className="shrink-0 flex items-center justify-center w-4 h-4 rounded-full bg-muted/60 text-muted-foreground hover:bg-muted hover:text-foreground transition-colors mr-0.5"
                         aria-label={expanded ? "折りたたむ" : "展開する"}
                       >
-                        <ChevronDown className={cn("size-3 transition-transform duration-150", expanded && "rotate-180")} />
+                        <ChevronDown className={cn("size-2.5 transition-transform duration-150", expanded && "rotate-180")} />
                       </button>
                     </div>
 
@@ -446,10 +446,10 @@ export function FilterSidebar({
                     <button
                       type="button"
                       onClick={() => toggle(UNGROUPED_VIRTUAL_ID)}
-                      className="shrink-0 px-1.5 py-[3px] text-muted-foreground hover:text-foreground transition-colors"
+                      className="shrink-0 flex items-center justify-center w-4 h-4 rounded-full bg-muted/60 text-muted-foreground hover:bg-muted hover:text-foreground transition-colors mr-0.5"
                       aria-label={isExpanded(UNGROUPED_VIRTUAL_ID) ? "折りたたむ" : "展開する"}
                     >
-                      <ChevronDown className={cn("size-3 transition-transform duration-150", isExpanded(UNGROUPED_VIRTUAL_ID) && "rotate-180")} />
+                      <ChevronDown className={cn("size-2.5 transition-transform duration-150", isExpanded(UNGROUPED_VIRTUAL_ID) && "rotate-180")} />
                     </button>
                   </div>
                   {isExpanded(UNGROUPED_VIRTUAL_ID) && (

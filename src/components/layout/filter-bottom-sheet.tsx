@@ -283,22 +283,22 @@ export function FilterBottomSheet({ open, onClose, viewMode, onViewModeChange, l
                               !isGroupSelected && "px-1.5",
                             )}
                           >
-                            {group.emoji && <span className="shrink-0">{group.emoji}</span>}
                             {groupColor && (
                               <span
                                 className={cn("w-1.5 h-1.5 rounded-full shrink-0", !isGroupSelected && "opacity-40")}
                                 style={{ backgroundColor: groupColor }}
                               />
                             )}
+                            {group.emoji && <span className="shrink-0 text-sm leading-none">{group.emoji}</span>}
                             <span className="truncate">{group.name}</span>
                           </button>
                           <button
                             type="button"
                             onClick={() => toggleGroupExpanded(group.id)}
-                            className="shrink-0 px-2 py-[5px] text-muted-foreground hover:text-foreground transition-colors"
+                            className="shrink-0 flex items-center justify-center w-5 h-5 rounded-full bg-muted/60 text-muted-foreground hover:bg-muted hover:text-foreground transition-colors mr-1"
                             aria-label={expanded ? "折りたたむ" : "展開する"}
                           >
-                            <ChevronDown className={cn("size-3.5 transition-transform duration-150", expanded && "rotate-180")} />
+                            <ChevronDown className={cn("size-3 transition-transform duration-150", expanded && "rotate-180")} />
                           </button>
                         </div>
 
@@ -319,16 +319,14 @@ export function FilterBottomSheet({ open, onClose, viewMode, onViewModeChange, l
                                   onClick={() => handleCategoryClick(cat.id)}
                                   aria-pressed={isCatSelected}
                                   className={cn(
-                                    "flex items-center justify-between px-2 py-1 rounded-md text-xs transition-colors min-w-0 w-full mb-0.5",
+                                    "flex items-center gap-1.5 px-2 py-1 rounded-md text-xs transition-colors min-w-0 w-full mb-0.5",
                                     isCatSelected ? "font-semibold" : catColor ? "" : "text-muted-foreground hover:bg-accent hover:text-foreground",
                                   )}
                                   style={isCatSelected ? activeStyle : inactiveStyle}
                                 >
-                                  <div className="flex items-center gap-1.5 min-w-0">
-                                    {catColor && <span className="w-1.5 h-1.5 rounded-full shrink-0" style={{ backgroundColor: catColor }} />}
-                                    <span className="truncate">{cat.name}</span>
-                                  </div>
-                                  {count > 0 && <span className="text-xs tabular-nums shrink-0 ml-1 opacity-70">{count}</span>}
+                                  {catColor && <span className="w-1.5 h-1.5 rounded-full shrink-0" style={{ backgroundColor: catColor }} />}
+                                  <span className="truncate flex-1">{cat.name}</span>
+                                  {count > 0 && <span className="text-xs tabular-nums shrink-0 opacity-70">{count}</span>}
                                 </button>
                               );
                             })}
@@ -355,16 +353,14 @@ export function FilterBottomSheet({ open, onClose, viewMode, onViewModeChange, l
                             onClick={() => handleCategoryClick(cat.id)}
                             aria-pressed={isCatSelected}
                             className={cn(
-                              "flex items-center justify-between px-2 py-1 rounded-md text-xs transition-colors min-w-0",
+                              "flex items-center gap-1.5 px-2 py-1 rounded-md text-xs transition-colors min-w-0",
                               isCatSelected ? "font-semibold" : catColor ? "" : "text-muted-foreground hover:bg-accent hover:text-foreground",
                             )}
                             style={isCatSelected ? activeStyle : inactiveStyle}
                           >
-                            <div className="flex items-center gap-1.5 min-w-0">
-                              {catColor && <span className="w-1.5 h-1.5 rounded-full shrink-0" style={{ backgroundColor: catColor }} />}
-                              <span className="truncate">{cat.name}</span>
-                            </div>
-                            {count > 0 && <span className="text-xs tabular-nums shrink-0 ml-1 opacity-70">{count}</span>}
+                            {catColor && <span className="w-1.5 h-1.5 rounded-full shrink-0" style={{ backgroundColor: catColor }} />}
+                            <span className="truncate flex-1">{cat.name}</span>
+                            {count > 0 && <span className="text-xs tabular-nums shrink-0 opacity-70">{count}</span>}
                           </button>
                         );
                       })}
