@@ -9,6 +9,8 @@ import { useAllTasks, useGroups, getGroupSelectionState } from "@/hooks";
 import { cn } from "@/lib/utils";
 import { CATEGORY_DESELECTED_SENTINEL } from "@/lib/constants";
 
+const UNGROUPED_VIRTUAL_ID = "__ungrouped__";
+
 interface CategoryFilterProps {
   categories: Category[];
   isLoading?: boolean;
@@ -111,10 +113,33 @@ export function CategoryFilter({ categories, isLoading }: CategoryFilterProps) {
   // グループがある場合はグループチップ表示、ない場合はフラット表示
   const hasGroups = groups.length > 0 && categories.some((c) => c.groupId);
 
-  // 展開中グループのカテゴリ
-  const expandedGroupCats = expandedGroupId
-    ? (groupedCategories[expandedGroupId] ?? [])
-    : [];
+  const handleToggleUngroupedGroup = () => {
+    const groupIds = ungroupedCategories.map((c) => c.id);
+    const state = getGroupSelectionState(groupIds, selectedCategoryIds);
+
+    if (state === "all") {
+      const next = selectedCategoryIds.filter((id) => !groupIds.includes(id));
+      if (next.length === 0) {
+        updateSearchParams({ category: CATEGORY_DESELECTED_SENTINEL });
+      } else {
+        const allIds = [...categories.map((c) => c.id), "none"];
+        const isAll = allIds.length === next.length && allIds.every((id) => next.includes(id));
+        updateSearchParams({ category: isAll ? null : next.join(",") });
+      }
+    } else {
+      const next = [...new Set([...selectedCategoryIds, ...groupIds])];
+      const allIds = [...categories.map((c) => c.id), "none"];
+      const isAll = allIds.length === next.length && allIds.every((id) => next.includes(id));
+      updateSearchParams({ category: isAll ? null : next.join(",") });
+    }
+  };
+
+  // 展開中グループのカテゴリ（仮想グループ対応）
+  const expandedGroupCats = (() => {
+    if (!expandedGroupId) return [];
+    if (expandedGroupId === UNGROUPED_VIRTUAL_ID) return ungroupedCategories;
+    return groupedCategories[expandedGroupId] ?? [];
+  })();
 
   return (
     <div className="bg-background border-b">
@@ -203,25 +228,63 @@ export function CategoryFilter({ categories, isLoading }: CategoryFilterProps) {
               );
             })}
 
-            {/* グループなしカテゴリ */}
-            {ungroupedCategories.map((category) => (
-              <CategoryChip
-                key={category.id}
-                label={category.name}
-                color={category.color}
-                active={selectedCategoryIds.includes(category.id)}
-                onClick={() => handleToggleCategory(category.id)}
-                count={pendingCountByCategory[category.id]}
-              />
-            ))}
+            {/* グループなし仮想グループ */}
+            {ungroupedCategories.length > 0 && (() => {
+              const groupIds = ungroupedCategories.map((c) => c.id);
+              const state = getGroupSelectionState(groupIds, selectedCategoryIds);
+              const isExpanded = expandedGroupId === UNGROUPED_VIRTUAL_ID;
+              const groupCount = groupIds.reduce((sum, id) => sum + (pendingCountByCategory[id] ?? 0), 0);
+              return (
+                <div className="flex items-center shrink-0">
+                  <button
+                    type="button"
+                    onClick={handleToggleUngroupedGroup}
+                    className={cn(
+                      "flex items-center gap-1 text-xs px-2.5 py-1.5 rounded-l-full whitespace-nowrap transition-all",
+                      state === "none"
+                        ? "bg-muted/50 text-muted-foreground hover:bg-muted/70"
+                        : state === "all"
+                        ? "bg-muted text-foreground font-semibold"
+                        : "bg-muted/70 text-foreground/70 font-medium",
+                    )}
+                  >
+                    <span className="text-sm leading-none">📂</span>
+                    グループなし
+                    {groupCount > 0 && <span className="text-[10px] tabular-nums opacity-60">{groupCount}</span>}
+                  </button>
+                  <button
+                    type="button"
+                    onClick={() => setExpandedGroupId(isExpanded ? null : UNGROUPED_VIRTUAL_ID)}
+                    className={cn(
+                      "flex items-center justify-center text-xs px-1.5 py-1.5 rounded-r-full whitespace-nowrap transition-all border-l border-black/10",
+                      state === "none"
+                        ? "bg-muted/50 text-muted-foreground hover:bg-muted/70"
+                        : "bg-muted/70 text-foreground/70",
+                    )}
+                    aria-label={isExpanded ? "折りたたむ" : "展開"}
+                    aria-expanded={isExpanded}
+                  >
+                    <ChevronDown className={cn("size-3 transition-transform", isExpanded && "rotate-180")} />
+                  </button>
+                </div>
+              );
+            })()}
 
-            <CategoryChip
-              label="カテゴリなし"
-              active={selectedCategoryIds.includes("none")}
+            <button
+              type="button"
               onClick={() => handleToggleCategory("none")}
-              isSpecial
-              count={pendingCountByCategory["none"]}
-            />
+              className={cn(
+                "flex items-center gap-1 text-xs px-2.5 py-1.5 rounded-full whitespace-nowrap transition-all shrink-0",
+                selectedCategoryIds.includes("none")
+                  ? "bg-muted text-foreground font-semibold"
+                  : "bg-muted/50 text-muted-foreground hover:bg-muted/70",
+              )}
+            >
+              カテゴリなし
+              {(pendingCountByCategory["none"] ?? 0) > 0 && (
+                <span className="text-[10px] tabular-nums opacity-60">{pendingCountByCategory["none"]}</span>
+              )}
+            </button>
           </>
         ) : (
           <>

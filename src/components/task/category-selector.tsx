@@ -149,7 +149,6 @@ export function CategorySelector({
               )}
             >
               <span className="text-sm leading-none">{emoji}</span>
-              <span className="hidden md:inline">{group.name}</span>
             </button>
           );
         })}
