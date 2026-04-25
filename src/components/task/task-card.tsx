@@ -56,21 +56,28 @@ function StopPropagation({ children }: { children: React.ReactNode }) {
   );
 }
 
-const DEFAULT_ACTIONS: Array<{
-  key: "skip" | "unskip" | "delete";
+type ActionKey = "skip" | "unskip" | "delete" | "favorite" | "unfavorite";
+
+interface ActionDef {
+  key: ActionKey;
   label: string;
   Icon: LucideIcon;
   className: string;
   destructive?: boolean;
-}> = [
+}
+
+const BASE_ACTIONS: ActionDef[] = [
   { key: "skip", label: "やらない", Icon: Ban, className: "hover:text-yellow-600" },
   { key: "delete", label: "削除", Icon: Trash2, className: "hover:text-destructive", destructive: true },
 ];
 
-const SKIPPED_ACTIONS: typeof DEFAULT_ACTIONS = [
+const SKIPPED_BASE_ACTIONS: ActionDef[] = [
   { key: "unskip", label: "やらないを取り消す", Icon: Undo2, className: "hover:text-foreground" },
   { key: "delete", label: "削除", Icon: Trash2, className: "hover:text-destructive", destructive: true },
 ];
+
+const FAVORITE_ACTION: ActionDef = { key: "favorite", label: "お気に入りにする", Icon: Star, className: "hover:text-yellow-500" };
+const UNFAVORITE_ACTION: ActionDef = { key: "unfavorite", label: "お気に入りを解除", Icon: Star, className: "hover:text-yellow-600" };
 
 interface TaskCardActionsProps {
   task: Task;
@@ -79,27 +86,30 @@ interface TaskCardActionsProps {
 
 function TaskCardActions({ task, handlers }: TaskCardActionsProps) {
   const isSkipped = task.status === "SKIPPED";
-  const actionHandlers: Record<"skip" | "unskip" | "delete", () => void> = {
+  const actionHandlers: Record<ActionKey, () => void> = {
     skip: () => handlers.onSkip(task.id),
     unskip: () => handlers.onUnskip(task.id),
     delete: () => handlers.onDelete(task.id),
+    favorite: () => handlers.onToggleFavorite(task.id),
+    unfavorite: () => handlers.onToggleFavorite(task.id),
   };
-  const actions = isSkipped ? SKIPPED_ACTIONS : DEFAULT_ACTIONS;
+  const baseActions = isSkipped ? SKIPPED_BASE_ACTIONS : BASE_ACTIONS;
+  const favoriteAction = task.isFavorite ? UNFAVORITE_ACTION : FAVORITE_ACTION;
+  const actions = [favoriteAction, ...baseActions];
 
   return (
     <div className="flex items-center gap-0.5">
-      <StopPropagation>
-        <button
-          onClick={() => handlers.onToggleFavorite(task.id)}
-          className={cn(
-            "p-1.5 rounded transition-colors hover:bg-accent",
-            task.isFavorite ? "text-yellow-500 hover:text-yellow-600" : "text-muted-foreground hover:text-yellow-500",
-          )}
-          aria-label={task.isFavorite ? "お気に入りを解除" : "お気に入りに追加"}
-        >
-          <Star className="h-3.5 w-3.5" fill={task.isFavorite ? "currentColor" : "none"} />
-        </button>
-      </StopPropagation>
+      {task.isFavorite && (
+        <StopPropagation>
+          <button
+            onClick={() => handlers.onToggleFavorite(task.id)}
+            className="p-1.5 rounded transition-colors text-yellow-500 hover:text-yellow-600 hover:bg-accent"
+            aria-label="お気に入りを解除"
+          >
+            <Star className="h-3.5 w-3.5" fill="currentColor" />
+          </button>
+        </StopPropagation>
+      )}
       <StopPropagation>
         <DropdownMenu>
           <DropdownMenuTrigger asChild>

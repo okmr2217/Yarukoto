@@ -1,6 +1,7 @@
 "use client";
 
 import { useState, useRef, useEffect } from "react";
+import { Calendar } from "lucide-react";
 import {
   Dialog,
   DialogContent,
@@ -8,13 +9,10 @@ import {
   DialogTitle,
 } from "@/components/ui/dialog";
 import { Button } from "@/components/ui/button";
-import { Input } from "@/components/ui/input";
-import { Label } from "@/components/ui/label";
 import { Textarea } from "@/components/ui/textarea";
 import { CategorySelector } from "./category-selector";
 import { useRecentCategories } from "@/hooks/use-recent-categories";
-import { cn } from "@/lib/utils";
-import { Star } from "lucide-react";
+import { getTodayInJST, addDaysJST } from "@/lib/dateUtils";
 import type { Task, Category, Group } from "@/types";
 
 export interface TaskEditData {
@@ -29,7 +27,6 @@ interface TaskEditDialogProps {
   open: boolean;
   onOpenChange: (open: boolean) => void;
   onSave: (data: TaskEditData) => void;
-  onToggleFavorite?: (id: string) => void;
   task: Task | null;
   categories: Category[];
   groups?: Group[];
@@ -39,7 +36,6 @@ export function TaskEditDialog({
   open,
   onOpenChange,
   onSave,
-  onToggleFavorite,
   task,
   categories,
   groups = [],
@@ -50,11 +46,11 @@ export function TaskEditDialog({
   const [scheduledAt, setScheduledAt] = useState(task?.scheduledAt ?? "");
   const [categoryId, setCategoryId] = useState<string | null>(task?.categoryId ?? null);
   const [memo, setMemo] = useState(task?.memo ?? "");
-  const [isFavorite, setIsFavorite] = useState(task?.isFavorite ?? false);
   const [error, setError] = useState<string | null>(null);
   const [recentIds] = useState(() => getRecentIds());
   const titleTextareaRef = useRef<HTMLTextAreaElement>(null);
   const memoTextareaRef = useRef<HTMLTextAreaElement>(null);
+  const dateInputRef = useRef<HTMLInputElement>(null);
 
   useEffect(() => {
     if (!open) return;
@@ -68,10 +64,19 @@ export function TaskEditDialog({
     });
   }, [open]);
 
-  const handleFavoriteToggle = () => {
-    if (!task) return;
-    setIsFavorite((prev) => !prev);
-    onToggleFavorite?.(task.id);
+  const todayString = getTodayInJST();
+  const tomorrowString = addDaysJST(todayString, 1);
+
+  const handleDateSelect = (type: "none" | "today" | "tomorrow" | "custom") => {
+    if (type === "none") {
+      setScheduledAt("");
+    } else if (type === "today") {
+      setScheduledAt(todayString);
+    } else if (type === "tomorrow") {
+      setScheduledAt(tomorrowString);
+    } else if (type === "custom") {
+      dateInputRef.current?.showPicker();
+    }
   };
 
   const handleSubmit = (e: React.FormEvent) => {
@@ -100,20 +105,7 @@ export function TaskEditDialog({
     <Dialog open={open} onOpenChange={onOpenChange}>
       <DialogContent className="sm:max-w-lg max-h-[90dvh] p-0 gap-0 max-sm:top-4 max-sm:translate-y-0">
         <DialogHeader className="px-4 py-3 border-b">
-          <div className="flex items-center justify-between">
-            <DialogTitle>タスクを編集</DialogTitle>
-            <button
-              type="button"
-              onClick={handleFavoriteToggle}
-              className={cn(
-                "p-1.5 rounded transition-colors hover:bg-accent",
-                isFavorite ? "text-yellow-500 hover:text-yellow-600" : "text-muted-foreground hover:text-yellow-500",
-              )}
-              aria-label={isFavorite ? "お気に入りを解除" : "お気に入りに追加"}
-            >
-              <Star className="h-4 w-4" fill={isFavorite ? "currentColor" : "none"} />
-            </button>
-          </div>
+          <DialogTitle>タスクを編集</DialogTitle>
         </DialogHeader>
 
         <form
@@ -129,7 +121,7 @@ export function TaskEditDialog({
           <div className="overflow-y-auto p-4 space-y-5">
             {/* タスク名 */}
             <div>
-              <Label htmlFor="edit-task-title" className="block mb-1">タスク名</Label>
+              <label className="text-sm font-medium block mb-1">タスク名</label>
               <Textarea
                 ref={titleTextareaRef}
                 id="edit-task-title"
@@ -159,7 +151,7 @@ export function TaskEditDialog({
 
             {/* メモ */}
             <div>
-              <Label htmlFor="edit-task-memo" className="block mb-1">メモ</Label>
+              <label className="text-sm font-medium block mb-1">メモ</label>
               <Textarea
                 ref={memoTextareaRef}
                 id="edit-task-memo"
@@ -173,7 +165,7 @@ export function TaskEditDialog({
 
             {/* カテゴリ */}
             <div>
-              <Label className="block mb-1">カテゴリ</Label>
+              <label className="text-sm font-medium block mb-1">カテゴリ</label>
               <CategorySelector
                 categories={categories}
                 groups={groups}
@@ -186,26 +178,54 @@ export function TaskEditDialog({
 
             {/* 予定日 */}
             <div>
-              <Label htmlFor="edit-task-date" className="block mb-1">予定日</Label>
-              <div className="flex gap-2">
-                <Input
-                  id="edit-task-date"
+              <label className="text-sm font-medium block mb-1">予定日</label>
+              <div className="grid grid-cols-4 gap-1.5">
+                <Button
+                  type="button"
+                  size="sm"
+                  variant={!scheduledAt ? "default" : "outline"}
+                  onClick={() => handleDateSelect("none")}
+                >
+                  なし
+                </Button>
+                <Button
+                  type="button"
+                  size="sm"
+                  variant={scheduledAt === todayString ? "default" : "outline"}
+                  onClick={() => handleDateSelect("today")}
+                >
+                  今日
+                </Button>
+                <Button
+                  type="button"
+                  size="sm"
+                  variant={scheduledAt === tomorrowString ? "default" : "outline"}
+                  onClick={() => handleDateSelect("tomorrow")}
+                >
+                  明日
+                </Button>
+                <Button
+                  type="button"
+                  size="sm"
+                  variant="outline"
+                  onClick={() => handleDateSelect("custom")}
+                >
+                  <Calendar className="size-4" />
+                  選択
+                </Button>
+                <input
+                  ref={dateInputRef}
                   type="date"
                   value={scheduledAt}
                   onChange={(e) => setScheduledAt(e.target.value)}
-                  className="flex-1"
+                  className="sr-only"
                 />
-                {scheduledAt && (
-                  <Button
-                    type="button"
-                    variant="outline"
-                    size="sm"
-                    onClick={() => setScheduledAt("")}
-                  >
-                    クリア
-                  </Button>
-                )}
               </div>
+              {scheduledAt && (
+                <p className="text-xs text-muted-foreground">
+                  選択中: {scheduledAt.replace(/-/g, "/")}
+                </p>
+              )}
             </div>
           </div>
 
