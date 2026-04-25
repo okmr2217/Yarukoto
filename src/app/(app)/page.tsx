@@ -7,7 +7,9 @@ import {
   TaskSection,
   TaskInputModal,
   TaskFab,
-  TaskDetailSheet,
+  TaskEditDialog,
+  SkipReasonDialog,
+  type TaskEditData,
 } from "@/components/task";
 import { FilterSidebar } from "@/components/layout";
 import {
@@ -17,6 +19,16 @@ import {
   useGroups,
   useRecentCategories,
 } from "@/hooks";
+import {
+  AlertDialog,
+  AlertDialogAction,
+  AlertDialogCancel,
+  AlertDialogContent,
+  AlertDialogDescription,
+  AlertDialogFooter,
+  AlertDialogHeader,
+  AlertDialogTitle,
+} from "@/components/ui/alert-dialog";
 import { parseCategoryParam, categoryFilterToParam, type CategoryFilter, UNGROUPED_VIRTUAL_ID } from "@/lib/category-filter";
 import type { Task } from "@/types";
 import { formatDateToJST } from "@/lib/dateUtils";
@@ -54,9 +66,11 @@ export default function HomePage() {
 
   const hasActiveFilters = !!(dateFilter || keyword || statusFilter !== "pending" || favoriteFilter || categoryFilter.type !== "all");
 
-  const [selectedTask, setSelectedTask] = useState<Task | null>(null);
+  const [editingTask, setEditingTask] = useState<Task | null>(null);
+  const [skippingTask, setSkippingTask] = useState<Task | null>(null);
   const [taskInputOpen, setTaskInputOpen] = useState(false);
   const [filterSheetOpen, setFilterSheetOpen] = useState(false);
+  const [deletingTaskId, setDeletingTaskId] = useState<string | null>(null);
 
   const updateSearchParams = useCallback(
     (updates: Record<string, string | null>) => {
@@ -151,14 +165,55 @@ export default function HomePage() {
     mutations.uncompleteTask.mutate(id);
   };
 
+  const handleOpen = (task: Task) => {
+    setEditingTask(task);
+  };
+
+  const handleEditTaskWithDetails = (data: TaskEditData) => {
+    setEditingTask(null);
+    if (data.categoryId) recordRecentCategory(data.categoryId);
+    mutations.updateTask.mutate(data);
+  };
+
+  const handleSkip = (id: string) => {
+    if (!tasks) return;
+    const task = tasks.find((t) => t.id === id);
+    if (task) setSkippingTask(task);
+  };
+
+  const handleSkipConfirm = (reason?: string) => {
+    if (skippingTask) {
+      mutations.skipTask.mutate({ id: skippingTask.id, reason });
+      setSkippingTask(null);
+    }
+  };
+
+  const handleUnskip = (id: string) => {
+    mutations.unskipTask.mutate(id);
+  };
+
+  const handleDelete = (id: string) => {
+    setDeletingTaskId(id);
+  };
+
+  const handleDeleteConfirm = () => {
+    if (deletingTaskId) {
+      mutations.deleteTask.mutate(deletingTaskId);
+      setDeletingTaskId(null);
+    }
+  };
+
   const handleToggleFavorite = (id: string) => {
     mutations.toggleFavorite.mutate(id);
   };
 
   const taskHandlers = {
-    onOpen: setSelectedTask,
+    onOpen: handleOpen,
     onComplete: handleComplete,
     onUncomplete: handleUncomplete,
+    onSkip: handleSkip,
+    onUnskip: handleUnskip,
+    onDelete: handleDelete,
     onToggleFavorite: handleToggleFavorite,
   };
 
@@ -180,7 +235,7 @@ export default function HomePage() {
     const handleKeyDown = (e: KeyboardEvent) => {
       if (e.ctrlKey || e.metaKey || e.shiftKey || e.altKey) return;
       if (!/^[0-9]$/.test(e.key)) return;
-      if (taskInputOpen || selectedTask !== null) return;
+      if (taskInputOpen || editingTask !== null) return;
       const target = e.target as HTMLElement;
       if (target.tagName === "INPUT" || target.tagName === "TEXTAREA" || target.tagName === "SELECT") return;
       e.preventDefault();
@@ -196,7 +251,7 @@ export default function HomePage() {
 
     document.addEventListener("keydown", handleKeyDown);
     return () => document.removeEventListener("keydown", handleKeyDown);
-  }, [categories, categoryFilter, taskInputOpen, selectedTask, handleCategoryFilterChange]);
+  }, [categories, categoryFilter, taskInputOpen, editingTask, handleCategoryFilterChange]);
 
   const getMatchReasons = (task: Task): string[] => {
     if (!dateFilter) return [];
@@ -378,11 +433,39 @@ export default function HomePage() {
         isLoading={mutations.createTask.isPending}
       />
 
-      <TaskDetailSheet
-        task={selectedTask}
-        open={!!selectedTask}
-        onClose={() => setSelectedTask(null)}
+      <TaskEditDialog
+        key={editingTask?.id ?? "task-edit-closed"}
+        open={editingTask !== null}
+        onOpenChange={(open) => !open && setEditingTask(null)}
+        onSave={handleEditTaskWithDetails}
+        task={editingTask}
+        categories={categories}
+        groups={groups}
       />
+
+      <SkipReasonDialog
+        key={skippingTask?.id ?? "skip-closed"}
+        open={skippingTask !== null}
+        onOpenChange={(open) => !open && setSkippingTask(null)}
+        taskTitle={skippingTask?.title || ""}
+        onConfirm={handleSkipConfirm}
+        isLoading={mutations.skipTask.isPending}
+      />
+
+      <AlertDialog open={deletingTaskId !== null} onOpenChange={(open) => !open && setDeletingTaskId(null)}>
+        <AlertDialogContent>
+          <AlertDialogHeader>
+            <AlertDialogTitle>タスクを削除しますか？</AlertDialogTitle>
+            <AlertDialogDescription>この操作は元に戻せません。</AlertDialogDescription>
+          </AlertDialogHeader>
+          <AlertDialogFooter>
+            <AlertDialogCancel>キャンセル</AlertDialogCancel>
+            <AlertDialogAction onClick={handleDeleteConfirm} className="bg-destructive text-destructive-foreground hover:bg-destructive/90">
+              削除
+            </AlertDialogAction>
+          </AlertDialogFooter>
+        </AlertDialogContent>
+      </AlertDialog>
     </div>
   );
 }

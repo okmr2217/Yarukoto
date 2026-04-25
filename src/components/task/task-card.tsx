@@ -2,18 +2,29 @@
 
 import { useState, useMemo } from "react";
 import { Checkbox } from "@/components/ui/checkbox";
+import {
+  DropdownMenu,
+  DropdownMenuContent,
+  DropdownMenuItem,
+  DropdownMenuTrigger,
+} from "@/components/ui/dropdown-menu";
 import { cn } from "@/lib/utils";
 import { LinkText } from "@/components/ui/link-text";
 import { Tooltip, TooltipTrigger, TooltipContent } from "@/components/ui/tooltip";
 import type { Task } from "@/types";
 import {
   Ban,
+  Trash2,
+  MoreVertical,
+  Info,
   GripVertical,
   Star,
   AlertCircle,
   Calendar,
   CheckCircle2,
   Clock,
+  Undo2,
+  type LucideIcon,
 } from "lucide-react";
 import type { DraggableAttributes, DraggableSyntheticListeners } from "@dnd-kit/core";
 import { getScheduledDateStatus, formatCompactTime, formatRelativeScheduledDate } from "@/lib/dateUtils";
@@ -22,6 +33,9 @@ export interface TaskCardHandlers {
   onOpen: (task: Task) => void;
   onComplete: (id: string) => void;
   onUncomplete: (id: string) => void;
+  onSkip: (id: string) => void;
+  onUnskip: (id: string) => void;
+  onDelete: (id: string) => void;
   onToggleFavorite: (id: string) => void;
 }
 
@@ -39,6 +53,83 @@ function StopPropagation({ children }: { children: React.ReactNode }) {
   return (
     <div onPointerDown={(e) => e.stopPropagation()} onClick={(e) => e.stopPropagation()}>
       {children}
+    </div>
+  );
+}
+
+const DEFAULT_ACTIONS: Array<{
+  key: "open" | "skip" | "unskip" | "delete";
+  label: string;
+  Icon: LucideIcon;
+  className: string;
+  destructive?: boolean;
+}> = [
+  { key: "open", label: "詳細", Icon: Info, className: "" },
+  { key: "skip", label: "やらない", Icon: Ban, className: "hover:text-yellow-600" },
+  { key: "delete", label: "削除", Icon: Trash2, className: "hover:text-destructive", destructive: true },
+];
+
+const SKIPPED_ACTIONS: typeof DEFAULT_ACTIONS = [
+  { key: "open", label: "詳細", Icon: Info, className: "" },
+  { key: "unskip", label: "やらないを取り消す", Icon: Undo2, className: "hover:text-foreground" },
+  { key: "delete", label: "削除", Icon: Trash2, className: "hover:text-destructive", destructive: true },
+];
+
+interface TaskCardActionsProps {
+  task: Task;
+  handlers: TaskCardHandlers;
+}
+
+function TaskCardActions({ task, handlers }: TaskCardActionsProps) {
+  const isSkipped = task.status === "SKIPPED";
+  const actionHandlers: Record<"open" | "skip" | "unskip" | "delete", () => void> = {
+    open: () => handlers.onOpen(task),
+    skip: () => handlers.onSkip(task.id),
+    unskip: () => handlers.onUnskip(task.id),
+    delete: () => handlers.onDelete(task.id),
+  };
+  const actions = isSkipped ? SKIPPED_ACTIONS : DEFAULT_ACTIONS;
+
+  return (
+    <div className="flex items-center gap-0.5">
+      <StopPropagation>
+        <button
+          onClick={() => handlers.onToggleFavorite(task.id)}
+          className={cn(
+            "p-1.5 rounded transition-colors hover:bg-accent",
+            task.isFavorite ? "text-yellow-500 hover:text-yellow-600" : "text-muted-foreground hover:text-yellow-500",
+          )}
+          aria-label={task.isFavorite ? "お気に入りを解除" : "お気に入りに追加"}
+        >
+          <Star className="h-3.5 w-3.5" fill={task.isFavorite ? "currentColor" : "none"} />
+        </button>
+      </StopPropagation>
+      <StopPropagation>
+        <DropdownMenu>
+          <DropdownMenuTrigger asChild>
+            <button
+              className="p-1.5 rounded transition-colors text-muted-foreground hover:text-foreground hover:bg-accent"
+              aria-label="メニュー"
+            >
+              <MoreVertical className="h-4 w-4" />
+            </button>
+          </DropdownMenuTrigger>
+          <DropdownMenuContent align="end">
+            {actions.map((action) => (
+              <DropdownMenuItem
+                key={action.key}
+                onClick={actionHandlers[action.key]}
+                className={cn(action.destructive ? "text-destructive" : "")}
+              >
+                <span className="mr-2">
+                  <action.Icon className="h-4 w-4" />
+                </span>
+                {action.label}
+              </DropdownMenuItem>
+            ))}
+          </DropdownMenuContent>
+        </DropdownMenu>
+      </StopPropagation>
     </div>
   );
 }
@@ -163,7 +254,7 @@ export function TaskCard({
         </div>
       )}
       <div className="flex-1 px-3 py-1.5">
-        {/* 上段：チェックボックス・時間・★ */}
+        {/* 上段：チェックボックス・時間・アクション */}
         <div className="flex items-center gap-2">
           <StopPropagation>
             <Checkbox
@@ -181,18 +272,7 @@ export function TaskCard({
             ))}
           </div>
           <div className="flex-1" />
-          <StopPropagation>
-            <button
-              onClick={() => handlers.onToggleFavorite(task.id)}
-              className={cn(
-                "p-1.5 rounded transition-colors hover:bg-accent",
-                task.isFavorite ? "text-yellow-500 hover:text-yellow-600" : "text-muted-foreground hover:text-yellow-500",
-              )}
-              aria-label={task.isFavorite ? "お気に入りを解除" : "お気に入りに追加"}
-            >
-              <Star className="h-3.5 w-3.5" fill={task.isFavorite ? "currentColor" : "none"} />
-            </button>
-          </StopPropagation>
+          <TaskCardActions task={task} handlers={handlers} />
         </div>
 
         {/* 区切り線 */}
