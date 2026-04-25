@@ -18,6 +18,8 @@ import {
   useAllTasks,
   useTaskMutations,
   useCategories,
+  useGroups,
+  useRecentCategories,
 } from "@/hooks";
 import { CATEGORY_DESELECTED_SENTINEL } from "@/lib/constants";
 import type { Task } from "@/types";
@@ -77,6 +79,8 @@ export default function HomePage() {
   };
 
   const { data: categories = [], isLoading: categoriesLoading } = useCategories();
+  const { data: groups = [] } = useGroups();
+  const { recordRecentCategory } = useRecentCategories();
 
   // カテゴリの表示状態（チップのアクティブ状態に使用）
   const effectiveSelectedIds = useMemo(
@@ -136,6 +140,7 @@ export default function HomePage() {
     categoryId?: string;
     memo?: string;
   }) => {
+    if (data.categoryId) recordRecentCategory(data.categoryId);
     mutations.createTask.mutate(data);
   };
 
@@ -157,6 +162,7 @@ export default function HomePage() {
 
   const handleEditTaskWithDetails = (data: TaskEditData) => {
     setEditingTask(null);
+    if (data.categoryId) recordRecentCategory(data.categoryId);
     mutations.updateTask.mutate(data);
   };
 
@@ -310,6 +316,7 @@ export default function HomePage() {
           onOpenChange={setTaskInputOpen}
           onSubmit={handleCreateTask}
           categories={categories}
+          groups={groups}
           defaultCategoryId={
             !isDefaultAllSelected && !isAllDeselected && effectiveSelectedIds.length === 1 && effectiveSelectedIds[0] !== "none"
               ? effectiveSelectedIds[0]
@@ -395,6 +402,7 @@ export default function HomePage() {
         onOpenChange={setTaskInputOpen}
         onSubmit={handleCreateTask}
         categories={categories}
+        groups={groups}
         defaultCategoryId={
           !isDefaultAllSelected && !isAllDeselected && effectiveSelectedIds.length === 1 && effectiveSelectedIds[0] !== "none"
             ? effectiveSelectedIds[0]
@@ -410,6 +418,7 @@ export default function HomePage() {
         onSave={handleEditTaskWithDetails}
         task={editingTask}
         categories={categories}
+        groups={groups}
       />
 
       <SkipReasonDialog

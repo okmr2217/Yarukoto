@@ -11,8 +11,9 @@ import { Button } from "@/components/ui/button";
 import { Input } from "@/components/ui/input";
 import { Label } from "@/components/ui/label";
 import { Textarea } from "@/components/ui/textarea";
-import { cn } from "@/lib/utils";
-import type { Task, Category } from "@/types";
+import { CategorySelector } from "./category-selector";
+import { useRecentCategories } from "@/hooks/use-recent-categories";
+import type { Task, Category, Group } from "@/types";
 
 export interface TaskEditData {
   id: string;
@@ -28,6 +29,7 @@ interface TaskEditDialogProps {
   onSave: (data: TaskEditData) => void;
   task: Task | null;
   categories: Category[];
+  groups?: Group[];
 }
 
 export function TaskEditDialog({
@@ -36,12 +38,16 @@ export function TaskEditDialog({
   onSave,
   task,
   categories,
+  groups = [],
 }: TaskEditDialogProps) {
+  const { getRecentIds } = useRecentCategories();
+
   const [title, setTitle] = useState(task?.title ?? "");
   const [scheduledAt, setScheduledAt] = useState(task?.scheduledAt ?? "");
-  const [categoryId, setCategoryId] = useState<string>(task?.categoryId ?? "none");
+  const [categoryId, setCategoryId] = useState<string | null>(task?.categoryId ?? null);
   const [memo, setMemo] = useState(task?.memo ?? "");
   const [error, setError] = useState<string | null>(null);
+  const [recentIds] = useState(() => getRecentIds());
   const titleTextareaRef = useRef<HTMLTextAreaElement>(null);
   const memoTextareaRef = useRef<HTMLTextAreaElement>(null);
 
@@ -68,7 +74,7 @@ export function TaskEditDialog({
       id: task.id,
       title: trimmedTitle,
       scheduledAt: scheduledAt || null,
-      categoryId: categoryId !== "none" ? categoryId : null,
+      categoryId: categoryId,
       memo: memo.trim() || null,
     });
   };
@@ -141,62 +147,14 @@ export function TaskEditDialog({
             {/* カテゴリ */}
             <div>
               <Label className="block mb-1">カテゴリ</Label>
-              <div
-                className="flex flex-wrap gap-1"
-                onKeyDown={(e) => {
-                  if (e.key === "0") {
-                    setCategoryId("none");
-                    return;
-                  }
-                  const num = parseInt(e.key);
-                  if (num >= 1 && num <= 9) {
-                    const target = categories[num - 1];
-                    if (target) setCategoryId(target.id);
-                  }
-                }}
-              >
-                <button
-                  type="button"
-                  onClick={() => setCategoryId("none")}
-                  className={cn(
-                    "px-2.5 py-1 rounded-full text-xs border-2 transition-colors",
-                    categoryId === "none"
-                      ? "border-primary bg-primary text-primary-foreground"
-                      : "border-border bg-background hover:bg-accent",
-                  )}
-                >
-                  なし
-                </button>
-                {categories.map((cat) => (
-                  <button
-                    key={cat.id}
-                    type="button"
-                    onClick={() => setCategoryId(cat.id)}
-                    className={cn(
-                      "px-2.5 py-1 rounded-full text-xs border-2 transition-colors flex items-center gap-1",
-                      categoryId === cat.id
-                        ? "border-primary"
-                        : "border-border hover:bg-accent",
-                    )}
-                    style={{
-                      backgroundColor:
-                        categoryId === cat.id && cat.color
-                          ? `${cat.color}20`
-                          : undefined,
-                      borderColor:
-                        categoryId === cat.id && cat.color
-                          ? cat.color
-                          : undefined,
-                    }}
-                  >
-                    <div
-                      className="w-2 h-2 rounded-full"
-                      style={{ backgroundColor: cat.color || "#6B7280" }}
-                    />
-                    {cat.name}
-                  </button>
-                ))}
-              </div>
+              <CategorySelector
+                categories={categories}
+                groups={groups}
+                selectedCategoryId={categoryId}
+                onChange={setCategoryId}
+                mode="edit"
+                recentCategoryIds={recentIds}
+              />
             </div>
 
             {/* 予定日 */}

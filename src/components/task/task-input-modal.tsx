@@ -10,9 +10,10 @@ import {
   DialogHeader,
   DialogTitle,
 } from "@/components/ui/dialog";
-import { cn } from "@/lib/utils";
 import { getTodayInJST, addDaysJST } from "@/lib/dateUtils";
-import type { Category } from "@/types";
+import { CategorySelector } from "./category-selector";
+import { useRecentCategories } from "@/hooks/use-recent-categories";
+import type { Category, Group } from "@/types";
 
 export interface TaskInputData {
   title: string;
@@ -26,6 +27,7 @@ interface TaskInputModalProps {
   onOpenChange: (open: boolean) => void;
   onSubmit: (data: TaskInputData) => void;
   categories?: Category[];
+  groups?: Group[];
   defaultDate?: string;
   defaultCategoryId?: string | null;
   isLoading?: boolean;
@@ -36,24 +38,25 @@ export function TaskInputModal({
   onOpenChange,
   onSubmit,
   categories = [],
+  groups = [],
   defaultDate,
   defaultCategoryId,
   isLoading = false,
 }: TaskInputModalProps) {
-  // defaultCategoryIdから初期値を計算
-  const getInitialCategoryId = () => {
+  const { getRecentIds } = useRecentCategories();
+
+  const getInitialCategoryId = (): string | null => {
     if (defaultCategoryId && defaultCategoryId !== "none") {
       return defaultCategoryId;
     }
-    return undefined;
+    return null;
   };
 
   const [title, setTitle] = useState("");
   const [scheduledAt, setScheduledAt] = useState(defaultDate || "");
-  const [categoryId, setCategoryId] = useState<string | undefined>(
-    getInitialCategoryId(),
-  );
+  const [categoryId, setCategoryId] = useState<string | null>(getInitialCategoryId());
   const [memo, setMemo] = useState("");
+  const [recentIds] = useState(() => getRecentIds());
 
   const titleInputRef = useRef<HTMLTextAreaElement>(null);
   const memoInputRef = useRef<HTMLTextAreaElement>(null);
@@ -75,15 +78,12 @@ export function TaskInputModal({
     onSubmit({
       title: title.trim(),
       scheduledAt: scheduledAt || undefined,
-      categoryId: categoryId || undefined,
+      categoryId: categoryId ?? undefined,
       memo: memo.trim() || undefined,
     });
 
-    // フォームをリセット
     setTitle("");
     setMemo("");
-    // カテゴリは保持（連続入力用）
-    // 日付は次回モーダルを開いたときにdefaultDateでリセットされる
     onOpenChange(false);
   };
 
@@ -164,62 +164,14 @@ export function TaskInputModal({
             {/* カテゴリ */}
             <div>
               <label className="text-sm font-medium block mb-1">カテゴリ</label>
-              <div
-                className="flex flex-wrap gap-1"
-                onKeyDown={(e) => {
-                  if (e.key === "0") {
-                    setCategoryId(undefined);
-                    return;
-                  }
-                  const num = parseInt(e.key);
-                  if (num >= 1 && num <= 9) {
-                    const target = categories[num - 1];
-                    if (target) setCategoryId(target.id);
-                  }
-                }}
-              >
-                <button
-                  type="button"
-                  onClick={() => setCategoryId(undefined)}
-                  className={cn(
-                    "px-2.5 py-1 rounded-full text-xs border-2 transition-colors",
-                    !categoryId
-                      ? "border-primary bg-primary text-primary-foreground"
-                      : "border-border bg-background hover:bg-accent",
-                  )}
-                >
-                  なし
-                </button>
-                {categories.map((cat) => (
-                  <button
-                    key={cat.id}
-                    type="button"
-                    onClick={() => setCategoryId(cat.id)}
-                    className={cn(
-                      "px-2.5 py-1 rounded-full text-xs border-2 transition-colors flex items-center gap-1",
-                      categoryId === cat.id
-                        ? "border-primary"
-                        : "border-border hover:bg-accent",
-                    )}
-                    style={{
-                      backgroundColor:
-                        categoryId === cat.id && cat.color
-                          ? `${cat.color}20`
-                          : undefined,
-                      borderColor:
-                        categoryId === cat.id && cat.color
-                          ? cat.color
-                          : undefined,
-                    }}
-                  >
-                    <div
-                      className="w-2 h-2 rounded-full"
-                      style={{ backgroundColor: cat.color || "#6B7280" }}
-                    />
-                    {cat.name}
-                  </button>
-                ))}
-              </div>
+              <CategorySelector
+                categories={categories}
+                groups={groups}
+                selectedCategoryId={categoryId}
+                onChange={setCategoryId}
+                mode="create"
+                recentCategoryIds={recentIds}
+              />
             </div>
 
             {/* 予定日 */}
