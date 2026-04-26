@@ -9,7 +9,7 @@
     "lint": "eslint",
     "postinstall": "prisma generate",
     "db:seed": "npx prisma db seed",
-    "screenshots": "tsx scripts/screenshots/take-screenshots.ts"
+    "seed:sample": "tsx --env-file=.env prisma/seed-sample.ts"
   },
   "dependencies": {
     "@dnd-kit/core": "^6.3.1",
@@ -55,6 +55,7 @@
     "eslint": "^9",
     "eslint-config-next": "16.1.1",
     "playwright": "^1.58.2",
+    "shot-kit": "file:../../../Packages/Screenshot Kit/screenshot-kit",
     "prisma": "^7.2.0",
     "tailwindcss": "^4",
     "tsx": "^4.21.0",

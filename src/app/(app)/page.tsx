@@ -54,15 +54,14 @@ export default function HomePage() {
   const favoriteFilter = searchParams.get("favorite") === "true";
   const viewMode = (searchParams.get("view") || "list") as "list" | "schedule";
   const [listSort, setListSort] = useState<"displayOrder" | "createdAt">("displayOrder");
+  const [prevStatusFilter, setPrevStatusFilter] = useState(statusFilter);
   const [scheduledSort, setScheduledSort] = useState<"scheduledAt_asc" | "scheduledAt_desc" | "createdAt">("scheduledAt_asc");
 
-  useEffect(() => {
-    if (statusFilter === "completed") {
-      setListSort("createdAt");
-    } else {
-      setListSort("displayOrder");
-    }
-  }, [statusFilter]);
+  if (prevStatusFilter !== statusFilter) {
+    setPrevStatusFilter(statusFilter);
+    const derived = statusFilter === "completed" ? "createdAt" : "displayOrder";
+    if (listSort !== derived) setListSort(derived);
+  }
 
   const hasActiveFilters = !!(dateFilter || keyword || statusFilter !== "pending" || favoriteFilter || categoryFilter.type !== "all");
 

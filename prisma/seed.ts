@@ -1,6 +1,7 @@
 import { PrismaClient } from "../src/generated/prisma/client";
 import { PrismaPg } from "@prisma/adapter-pg";
 import { hashPassword } from "better-auth/crypto";
+import * as readline from "readline";
 
 const connectionString = process.env.DATABASE_URL;
 if (!connectionString) {
@@ -9,6 +10,48 @@ if (!connectionString) {
 
 const adapter = new PrismaPg({ connectionString });
 const prisma = new PrismaClient({ adapter });
+
+function maskConnectionString(url: string): string {
+  try {
+    const parsed = new URL(url);
+    parsed.password = "***";
+    return parsed.toString();
+  } catch {
+    return url.replace(/:\/\/[^@]+@/, "://***@");
+  }
+}
+
+function isLikelyProduction(url: string): boolean {
+  const lower = url.toLowerCase();
+  return /prod|production|live|release/.test(lower) || !lower.includes("localhost") && !lower.includes("127.0.0.1");
+}
+
+async function confirmDeletion(): Promise<void> {
+  const masked = maskConnectionString(connectionString!);
+  const looksLikeProd = isLikelyProduction(connectionString!);
+
+  console.log("\n⚠️  全データ削除の確認");
+  console.log(`   接続先: ${masked}`);
+
+  if (looksLikeProd) {
+    console.log("   ⚠️  本番 DB の可能性があります！");
+  }
+
+  console.log("\n   この操作はすべてのタスク・カテゴリ・グループ・ユーザーを削除します。");
+
+  const rl = readline.createInterface({ input: process.stdin, output: process.stdout });
+
+  return new Promise((resolve, reject) => {
+    rl.question('\n   続行するには "yes" と入力してください: ', (answer) => {
+      rl.close();
+      if (answer.trim().toLowerCase() === "yes") {
+        resolve();
+      } else {
+        reject(new Error("シード処理をキャンセルしました"));
+      }
+    });
+  });
+}
 
 // Get today's date in YYYY-MM-DD format
 function getToday(): Date {
@@ -26,10 +69,13 @@ function getRelativeDate(daysFromToday: number): Date {
 async function main() {
   console.log("🌱 Seeding database...");
 
+  await confirmDeletion();
+
   // Clean up existing data (optional - comment out if you want to keep existing data)
   console.log("🧹 Cleaning up existing data...");
   await prisma.task.deleteMany({});
   await prisma.category.deleteMany({});
+  await prisma.group.deleteMany({});
   await prisma.session.deleteMany({});
   await prisma.account.deleteMany({});
   await prisma.user.deleteMany({});
@@ -55,28 +101,60 @@ async function main() {
 
   console.log(`✅ Created user: ${testUser.email}`);
 
+  // Create groups
+  console.log("📁 Creating groups...");
+  const groups = await Promise.all([
+    prisma.group.create({
+      data: {
+        name: "仕事",
+        emoji: "💼",
+        color: "#3B82F6",
+        sortOrder: 0,
+        userId: testUser.id,
+      },
+    }),
+    prisma.group.create({
+      data: {
+        name: "生活",
+        emoji: "🏠",
+        color: "#22C55E",
+        sortOrder: 1,
+        userId: testUser.id,
+      },
+    }),
+  ]);
+
+  const [workGroup, lifeGroup] = groups;
+  console.log(`✅ Created ${groups.length} groups`);
+
   // Create categories
   console.log("🏷️ Creating categories...");
   const categories = await Promise.all([
     prisma.category.create({
       data: {
         name: "仕事",
-        color: "#3B82F6", // blue
+        color: "#3B82F6",
+        sortOrder: 0,
         userId: testUser.id,
+        groupId: workGroup.id,
       },
     }),
     prisma.category.create({
       data: {
         name: "プライベート",
-        color: "#22C55E", // green
+        color: "#22C55E",
+        sortOrder: 0,
         userId: testUser.id,
+        groupId: lifeGroup.id,
       },
     }),
     prisma.category.create({
       data: {
         name: "買い物",
-        color: "#F97316", // orange
+        color: "#F97316",
+        sortOrder: 1,
         userId: testUser.id,
+        groupId: lifeGroup.id,
       },
     }),
   ]);

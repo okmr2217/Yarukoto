@@ -1,6 +1,6 @@
 "use client";
 
-import { useState, useEffect } from "react";
+import { useState } from "react";
 import { Info } from "lucide-react";
 import { Tooltip, TooltipTrigger, TooltipContent } from "@/components/ui/tooltip";
 
@@ -9,12 +9,8 @@ interface FilterSectionInfoProps {
 }
 
 export function FilterSectionInfo({ content }: FilterSectionInfoProps) {
-  const [isTouchDevice, setIsTouchDevice] = useState(false);
+  const [isTouchDevice] = useState(() => typeof window !== "undefined" && window.matchMedia("(pointer: coarse)").matches);
   const [open, setOpen] = useState(false);
-
-  useEffect(() => {
-    setIsTouchDevice(window.matchMedia("(pointer: coarse)").matches);
-  }, []);
 
   return (
     <Tooltip open={isTouchDevice ? open : undefined} onOpenChange={isTouchDevice ? setOpen : undefined}>
