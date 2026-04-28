@@ -70,7 +70,7 @@ export function Sidebar() {
       <div className="flex items-center h-12 px-4 shrink-0">
         <Link href="/" className="flex items-center gap-0.5">
           <Image
-            src="/icons/icon-192x192.png"
+            src="/icon-192x192.png"
             alt="icon"
             width={28}
             height={28}

@@ -21,7 +21,7 @@ export function AuthCard({ description, children }: AuthCardProps) {
         <CardHeader className="text-center">
           <CardTitle className="flex items-center justify-center">
             <Image
-              src={"/icons/icon-192x192.png"}
+              src={"/icon-192x192.png"}
               alt="icon"
               width={40}
               height={40}

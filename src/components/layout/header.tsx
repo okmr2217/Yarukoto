@@ -50,7 +50,7 @@ export function Header() {
             </SheetHeader>
             <div className="flex items-center h-14 px-4 border-b shrink-0">
               <Link href="/" className="flex items-center gap-0.5" onClick={() => setOpen(false)}>
-                <Image src="/icons/icon-192x192.png" alt="icon" width={32} height={32} />
+                <Image src="/icon-192x192.png" alt="icon" width={32} height={32} />
                 <span className="text-xl font-medium font-logo">Yarukoto</span>
               </Link>
             </div>
@@ -82,7 +82,7 @@ export function Header() {
 
         <div className="flex items-center">
           <Image
-            src={"/icons/icon-192x192.png"}
+            src={"/icon-192x192.png"}
             alt="icon"
             width={32}
             height={32}
