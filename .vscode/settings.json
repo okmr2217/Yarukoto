@@ -14,5 +14,11 @@
   },
   "[javascriptreact]": {
     "editor.formatOnSave": false
+  },
+  "chat.tools.terminal.autoApprove": {
+    "/^cd /home/daichi/projects/apps/yarukoto && git add \\. && git commit -m \"chore: format files and apply workspace updates\"$/": {
+      "approve": true,
+      "matchCommandLine": true
+    }
   }
 }
