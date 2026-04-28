@@ -18,7 +18,7 @@ export default function HelpPage() {
       <header className="sticky top-0 z-10 border-b border-border bg-background/95 backdrop-blur supports-[backdrop-filter]:bg-background/60">
         <div className="mx-auto max-w-5xl flex items-center justify-between h-12 px-4">
           <Link href="/" className="flex items-center gap-0.5">
-            <Image src="/icon-192x192.png" alt="icon" width={24} height={24} />
+            <Image src="/icon-192.png" alt="icon" width={24} height={24} />
             <span className="text-base font-medium font-logo">Yarukoto</span>
           </Link>
           <Link href="/" className="text-sm text-muted-foreground hover:text-foreground transition-colors">

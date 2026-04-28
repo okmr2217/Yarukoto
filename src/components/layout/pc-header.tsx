@@ -29,7 +29,7 @@ export function PCHeader() {
       <div className="max-w-265 mx-auto h-full px-4 flex items-end gap-12">
         {/* Logo */}
         <Link href="/" className="flex items-center gap-1 shrink-0 self-center">
-          <Image src="/icon-192x192.png" alt="icon" width={28} height={28} />
+          <Image src="/icon-192.png" alt="icon" width={28} height={28} />
           <span className="text-lg font-medium font-logo">Yarukoto</span>
         </Link>
 
