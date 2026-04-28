@@ -28,9 +28,9 @@ export function PCHeader() {
     <header className="hidden md:block sticky top-0 z-40 h-12 bg-white border-b shrink-0">
       <div className="max-w-265 mx-auto h-full px-4 flex items-end gap-12">
         {/* Logo */}
-        <Link href="/" className="flex items-center gap-1 shrink-0 self-center">
-          <Image src="/icon-192.png" alt="icon" width={28} height={28} />
-          <span className="text-lg font-medium font-logo">Yarukoto</span>
+        <Link href="/" className="flex items-center gap-1.5 shrink-0 self-center">
+          <Image src="/icon-192.png" alt="icon" width={32} height={32} />
+          <span className="text-xl font-medium font-logo">Yarukoto</span>
         </Link>
 
         {/* Navigation */}
@@ -44,13 +44,13 @@ export function PCHeader() {
                 key={item.href}
                 href={item.href}
                 className={cn(
-                  "flex items-center gap-1 px-3 pt-2 pb-3.5 rounded-t-md text-xs transition-all duration-150",
+                  "flex items-center gap-1.5 px-4 pt-2 pb-3.5 rounded-t-md text-xs transition-all duration-150",
                   active
                     ? "text-foreground font-semibold bg-background border border-b-0 border-border -mb-px"
                     : "text-muted-foreground hover:bg-background/60 hover:text-foreground",
                 )}
               >
-                <Icon className="h-3.5 w-3.5 shrink-0" />
+                <Icon className="h-3.5 w-3.5 shrink-0 translate-y-px" />
                 <span>{item.label}</span>
               </Link>
             );

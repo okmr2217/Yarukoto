@@ -1,6 +1,7 @@
 import Link from "next/link";
 import Image from "next/image";
 import { Keyboard } from "lucide-react";
+import { Button } from "@/components/ui/button";
 
 const SECTIONS = [
   { id: "about", label: "Yarukotoとは" },
@@ -17,13 +18,16 @@ export default function HelpPage() {
       {/* Header */}
       <header className="sticky top-0 z-10 border-b border-border bg-background/95 backdrop-blur supports-[backdrop-filter]:bg-background/60">
         <div className="mx-auto max-w-5xl flex items-center justify-between h-12 px-4">
-          <Link href="/" className="flex items-center gap-0.5">
-            <Image src="/icon-192.png" alt="icon" width={24} height={24} />
-            <span className="text-base font-medium font-logo">Yarukoto</span>
+          <Link href="/" className="flex items-center gap-1.5">
+            <Image src="/icon-192.png" alt="icon" width={32} height={32} />
+            <span className="text-xl font-medium font-logo">Yarukoto</span>
           </Link>
-          <Link href="/" className="text-sm text-muted-foreground hover:text-foreground transition-colors">
+          <Button asChild variant="link" size="sm" className="text-xs">
+
+          <Link href="/">
             アプリへ戻る
           </Link>
+          </Button>
         </div>
       </header>
 
