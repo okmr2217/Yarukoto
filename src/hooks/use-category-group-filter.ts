@@ -1,6 +1,7 @@
 "use client";
 
 import { useState, useCallback } from "react";
+import { readBoolRecord, saveBoolRecord } from "@/lib/local-storage";
 
 const STORAGE_KEY = "yarukoto:categoryGroupCollapsed";
 
@@ -14,27 +15,13 @@ export function getGroupSelectionState(groupCategoryIds: string[], selectedCateg
   return "partial";
 }
 
-function readCollapsedFromStorage(): Record<string, boolean> {
-  if (typeof window === "undefined") return {};
-  try {
-    const raw = localStorage.getItem(STORAGE_KEY);
-    return raw ? (JSON.parse(raw) as Record<string, boolean>) : {};
-  } catch {
-    return {};
-  }
-}
-
 export function useCategoryGroupCollapsed() {
-  const [collapsed, setCollapsed] = useState<Record<string, boolean>>(readCollapsedFromStorage);
+  const [collapsed, setCollapsed] = useState<Record<string, boolean>>(() => readBoolRecord(STORAGE_KEY));
 
   const toggleCollapse = useCallback((groupId: string) => {
     setCollapsed((prev) => {
       const next = { ...prev, [groupId]: !prev[groupId] };
-      try {
-        localStorage.setItem(STORAGE_KEY, JSON.stringify(next));
-      } catch {
-        // ignore
-      }
+      saveBoolRecord(STORAGE_KEY, next);
       return next;
     });
   }, []);
