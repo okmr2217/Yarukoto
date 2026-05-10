@@ -1,6 +1,7 @@
 "use client";
 
 import { cn } from "@/lib/utils";
+import { categoryColorStyle } from "@/lib/category-color";
 
 interface CategoryChipProps {
   label: string;
@@ -39,13 +40,8 @@ export function CategoryChip({
     );
   }
 
-  // Regular category chips - Same style as SearchColumn
-  const activeStyle = color
-    ? { backgroundColor: `${color}28`, color: color, boxShadow: `inset 0 0 0 1.5px ${color}50` }
-    : undefined;
-  const inactiveStyle = color
-    ? { backgroundColor: `${color}14`, color: `${color}aa`, boxShadow: `inset 0 0 0 1.5px transparent` }
-    : undefined;
+  const activeStyle = color ? categoryColorStyle(color, true) : undefined;
+  const inactiveStyle = color ? categoryColorStyle(color, false) : undefined;
 
   return (
     <button

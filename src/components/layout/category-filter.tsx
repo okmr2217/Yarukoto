@@ -7,6 +7,7 @@ import { useAllTasks, useGroups } from "@/hooks";
 import { cn } from "@/lib/utils";
 import { parseCategoryParam, categoryFilterToParam } from "@/lib/category-filter";
 import type { CategoryFilter } from "@/lib/category-filter";
+import { categoryColorStyle } from "@/lib/category-color";
 
 const UNGROUPED_VIRTUAL_ID = "__ungrouped__";
 
@@ -215,12 +216,8 @@ export function CategoryFilter({ categories, isLoading }: CategoryFilterProps) {
             {stage2Categories.map((category) => {
               const isActive = categoryFilter.type === "category" && categoryFilter.categoryId === category.id;
               const color = category.color;
-              const activeStyle = color
-                ? { backgroundColor: `${color}28`, color, boxShadow: `inset 0 0 0 1.5px ${color}50` }
-                : undefined;
-              const inactiveStyle = color
-                ? { backgroundColor: `${color}14`, color: `${color}aa` }
-                : undefined;
+              const activeStyle = color ? categoryColorStyle(color, true) : undefined;
+              const inactiveStyle = color ? categoryColorStyle(color, false) : undefined;
               const count = pendingCountByCategory[category.id];
               return (
                 <button
