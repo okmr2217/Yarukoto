@@ -1,7 +1,6 @@
 export {
   getAllTasks,
   getMonthlyTaskStats,
-  getTaskDetail,
   createTask,
   updateTask,
   completeTask,
