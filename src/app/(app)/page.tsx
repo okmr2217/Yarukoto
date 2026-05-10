@@ -32,6 +32,7 @@ import {
 import { parseCategoryParam, categoryFilterToParam, type CategoryFilter, UNGROUPED_VIRTUAL_ID } from "@/lib/category-filter";
 import type { Task } from "@/types";
 import { formatDateToJST } from "@/lib/dateUtils";
+import type { ViewMode, ListSortOrder, ScheduledSortOrder } from "@/lib/filter-types";
 
 function countActiveFilters(values: FilterValues): number {
   let count = 0;
@@ -52,10 +53,10 @@ export default function HomePage() {
   const keyword = searchParams.get("keyword") || "";
   const statusFilter = (searchParams.get("status") || "pending") as FilterValues["status"];
   const favoriteFilter = searchParams.get("favorite") === "true";
-  const viewMode = (searchParams.get("view") || "list") as "list" | "schedule";
-  const [listSort, setListSort] = useState<"displayOrder" | "createdAt">("displayOrder");
+  const viewMode = (searchParams.get("view") || "list") as ViewMode;
+  const [listSort, setListSort] = useState<ListSortOrder>("displayOrder");
   const [prevStatusFilter, setPrevStatusFilter] = useState(statusFilter);
-  const [scheduledSort, setScheduledSort] = useState<"scheduledAt_asc" | "scheduledAt_desc" | "createdAt">("scheduledAt_asc");
+  const [scheduledSort, setScheduledSort] = useState<ScheduledSortOrder>("scheduledAt_asc");
 
   if (prevStatusFilter !== statusFilter) {
     setPrevStatusFilter(statusFilter);
