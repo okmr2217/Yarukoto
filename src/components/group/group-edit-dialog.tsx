@@ -7,7 +7,7 @@ import { Input } from "@/components/ui/input";
 import { Label } from "@/components/ui/label";
 import { ColorPicker } from "@/components/ui/color-picker";
 import { cn } from "@/lib/utils";
-import { isValidEmoji } from "@/utils/categoryGroup";
+import { isValidEmoji } from "@/lib/categoryGroup";
 import type { Group } from "@/types";
 
 const EMOJI_PRESETS = ["🛠", "💡", "🏠", "📚", "💼", "🎯", "🌱", "🎨", "🔬", "🏃", "🍳", "✈️", "💪", "🤝", "📝", "🎵"];

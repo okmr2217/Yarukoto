@@ -2,7 +2,7 @@
 
 import { useState } from "react";
 import { cn } from "@/lib/utils";
-import { getGroupEmoji } from "@/utils/categoryGroup";
+import { getGroupEmoji } from "@/lib/categoryGroup";
 import { Tooltip, TooltipTrigger, TooltipContent } from "@/components/ui/tooltip";
 import type { Category, Group } from "@/types";
 
