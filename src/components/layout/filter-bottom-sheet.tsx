@@ -14,6 +14,13 @@ type ViewMode = "list" | "schedule";
 type ListSortOrder = "displayOrder" | "createdAt";
 type ScheduledSortOrder = "scheduledAt_asc" | "scheduledAt_desc" | "createdAt";
 
+export type FilterValues = {
+  keyword: string;
+  status: StatusFilter;
+  isFavorite: boolean;
+  date: string;
+};
+
 const STATUS_OPTIONS: { value: StatusFilter; label: string }[] = [
   { value: "all", label: "すべて" },
   { value: "pending", label: "未完了" },
