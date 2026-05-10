@@ -24,14 +24,6 @@ export type Task = {
   category: CategorySummary | null;
 };
 
-export type TodayTasks = {
-  overdue: Task[];
-  today: Task[];
-  undated: Task[];
-  completed: Task[];
-  skipped: Task[];
-};
-
 export type TaskGroup = {
   date: string | null;
   tasks: Task[];
