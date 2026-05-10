@@ -36,8 +36,6 @@ export function useTheme() {
     }
     return getSystemTheme();
   });
-  const isLoaded = true;
-
   // Listen to system theme changes
   useEffect(() => {
     if (theme !== "system") return;
@@ -53,12 +51,10 @@ export function useTheme() {
 
   // Apply theme to document
   useEffect(() => {
-    if (!isLoaded) return;
-
     const root = document.documentElement;
     root.classList.remove("light", "dark");
     root.classList.add(resolvedTheme);
-  }, [resolvedTheme, isLoaded]);
+  }, [resolvedTheme]);
 
   const updateTheme = useCallback((newTheme: Theme) => {
     setTheme(newTheme);
@@ -73,7 +69,6 @@ export function useTheme() {
   return {
     theme,
     resolvedTheme,
-    isLoaded,
     setTheme: updateTheme,
   };
 }
