@@ -32,22 +32,9 @@ export type TodayTasks = {
   skipped: Task[];
 };
 
-export type DateTasks = {
-  isPast: boolean;
-  isFuture: boolean;
-  completed: Task[];
-  skipped: Task[];
-  scheduled: Task[];
-};
-
 export type TaskGroup = {
   date: string | null;
   tasks: Task[];
-};
-
-export type SearchTasksResult = {
-  tasks: Task[];
-  total: number;
 };
 
 export type DayTaskStats = {

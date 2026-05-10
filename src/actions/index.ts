@@ -22,7 +22,6 @@ export {
   deleteCategory,
   archiveCategory,
   unarchiveCategory,
-  getCategoryStats,
   getCategoryGroupStats,
 } from "./category";
 

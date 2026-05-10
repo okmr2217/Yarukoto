@@ -63,21 +63,8 @@ export const skipTaskSchema = z.object({
     .optional(),
 });
 
-export const getTasksByDateSchema = z.object({
-  date: dateStringSchema,
-});
-
 export const toggleFavoriteSchema = z.object({
   id: z.string().min(1, "タスクIDは必須です"),
-});
-
-export const searchTasksSchema = z.object({
-  keyword: z.string().optional(),
-  status: z.enum(["all", "pending", "completed", "skipped"]).optional(),
-  categoryId: z.string().nullable().optional(),
-  isFavorite: z.boolean().optional(),
-  dateFrom: dateStringSchema.optional(),
-  dateTo: dateStringSchema.optional(),
 });
 
 export const getMonthlyTaskStatsSchema = z.object({
@@ -97,8 +84,6 @@ export type UpdateTaskInput = z.infer<typeof updateTaskSchema>;
 export type TaskIdInput = z.infer<typeof taskIdSchema>;
 export type SkipTaskInput = z.infer<typeof skipTaskSchema>;
 export type ToggleFavoriteInput = z.infer<typeof toggleFavoriteSchema>;
-export type GetTasksByDateInput = z.infer<typeof getTasksByDateSchema>;
-export type SearchTasksInput = z.infer<typeof searchTasksSchema>;
 export type GetMonthlyTaskStatsInput = z.infer<
   typeof getMonthlyTaskStatsSchema
 >;
