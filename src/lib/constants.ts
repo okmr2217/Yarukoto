@@ -71,17 +71,6 @@ export const ERROR_MESSAGES = {
 } as const;
 
 /**
- * React Queryのクエリキー
- */
-export const QUERY_KEYS = {
-  DATE_TASKS: ["dateTasks"] as const,
-  SEARCH_TASKS: ["searchTasks"] as const,
-  CATEGORIES: ["categories"] as const,
-  MONTHLY_STATS: ["monthlyTaskStats"] as const,
-  SETTINGS: ["settings"] as const,
-} as const;
-
-/**
  * ナビゲーション項目
  */
 export const NAV_ITEMS = [
