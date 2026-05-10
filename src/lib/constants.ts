@@ -60,9 +60,6 @@ export const ERROR_MESSAGES = {
   CATEGORY_DELETE_FAILED: "カテゴリの削除に失敗しました",
   CATEGORY_NOT_FOUND: "カテゴリが見つかりません",
 
-  // 検索関連
-  SEARCH_FAILED: "検索に失敗しました",
-
   // アカウント関連
   ACCOUNT_DELETE_FAILED: "アカウントの削除に失敗しました",
 
