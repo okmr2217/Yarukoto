@@ -1,6 +1,7 @@
 "use server";
 
 import { prisma } from "@/lib/prisma";
+import type { Prisma } from "@/generated/prisma/client";
 import { getRequiredUser } from "@/lib/auth-server";
 import { type ActionResult, success, failure, type Task } from "@/types";
 import {
@@ -124,16 +125,12 @@ export async function updateTask(
       }
     }
 
-    // 更新データを構築（undefinedのフィールドは更新しない）
-    // eslint-disable-next-line @typescript-eslint/no-explicit-any
-    const updateData: any = {};
-    if (title !== undefined) updateData.title = title.trim();
-    if (memo !== undefined) updateData.memo = memo?.trim() || null;
-    if (scheduledAt !== undefined) {
-      // scheduledAtはDATE型なので、文字列をDateオブジェクトに変換
-      updateData.scheduledAt = scheduledAt ? new Date(scheduledAt) : null;
-    }
-    if (categoryId !== undefined) updateData.categoryId = categoryId;
+    const updateData: Prisma.TaskUpdateInput = {
+      ...(title !== undefined ? { title: title.trim() } : {}),
+      ...(memo !== undefined ? { memo: memo?.trim() || null } : {}),
+      ...(scheduledAt !== undefined ? { scheduledAt: scheduledAt ? new Date(scheduledAt) : null } : {}),
+      ...(categoryId !== undefined ? { category: categoryId ? { connect: { id: categoryId } } : { disconnect: true } } : {}),
+    };
 
     const task = await prisma.task.update({
       where: { id },

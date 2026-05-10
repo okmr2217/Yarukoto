@@ -1,6 +1,7 @@
 "use server";
 
 import { prisma } from "@/lib/prisma";
+import type { Prisma } from "@/generated/prisma/client";
 import { getRequiredUser } from "@/lib/auth-server";
 import {
   type ActionResult,
@@ -46,9 +47,7 @@ export async function getAllTasks(input?: GetAllTasksInput): Promise<ActionResul
     const user = await getRequiredUser();
     const { categoryIds, date, keyword, status, isFavorite } = parsed.data;
 
-    // eslint-disable-next-line @typescript-eslint/no-explicit-any
-    const andConditions: any[] = [
-      // アーカイブ済みカテゴリのタスクを常に除外
+    const andConditions: Prisma.TaskWhereInput[] = [
       { OR: [{ categoryId: null }, { category: { archivedAt: null } }] },
     ];
 
@@ -77,8 +76,7 @@ export async function getAllTasks(input?: GetAllTasksInput): Promise<ActionResul
     }
 
     // カテゴリフィルタ（複数選択 OR 検索）
-    // eslint-disable-next-line @typescript-eslint/no-explicit-any
-    let categoryFilter: any = undefined;
+    let categoryFilter: Prisma.TaskWhereInput["categoryId"] = undefined;
     if (categoryIds && categoryIds.length > 0) {
       const hasNone = categoryIds.includes("none");
       const regularIds = categoryIds.filter((id) => id !== "none");
@@ -91,22 +89,13 @@ export async function getAllTasks(input?: GetAllTasksInput): Promise<ActionResul
       }
     }
 
-    // eslint-disable-next-line @typescript-eslint/no-explicit-any
-    const where: any = {
+    const where: Prisma.TaskWhereInput = {
       userId: user.id,
       ...(andConditions.length > 0 ? { AND: andConditions } : {}),
       ...(categoryFilter !== undefined ? { categoryId: categoryFilter } : {}),
+      ...(status && status !== "all" ? { status: status.toUpperCase() as Prisma.EnumTaskStatusFilter["equals"] } : {}),
+      ...(isFavorite !== undefined ? { isFavorite } : {}),
     };
-
-    // ステータスフィルタ
-    if (status && status !== "all") {
-      where.status = status.toUpperCase();
-    }
-
-    // お気に入りフィルタ
-    if (isFavorite !== undefined) {
-      where.isFavorite = isFavorite;
-    }
 
     const tasks = await prisma.task.findMany({
       where,
