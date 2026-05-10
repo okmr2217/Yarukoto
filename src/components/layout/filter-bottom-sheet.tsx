@@ -8,11 +8,16 @@ import { getTodayInJST, addDaysJST } from "@/lib/dateUtils";
 import { cn } from "@/lib/utils";
 import { useAllTasks } from "@/hooks";
 import { FilterSectionInfo } from "./filter-section-info";
-
-type StatusFilter = "all" | "pending" | "completed" | "skipped";
-type ViewMode = "list" | "schedule";
-type ListSortOrder = "displayOrder" | "createdAt";
-type ScheduledSortOrder = "scheduledAt_asc" | "scheduledAt_desc" | "createdAt";
+import {
+  type StatusFilter,
+  type ViewMode,
+  type ListSortOrder,
+  type ScheduledSortOrder,
+  STATUS_OPTIONS,
+  LIST_SORT_OPTIONS,
+  SCHEDULED_SORT_OPTIONS,
+  KEYWORD_DEBOUNCE_MS,
+} from "@/lib/filter-types";
 
 export type FilterValues = {
   keyword: string;
@@ -20,26 +25,6 @@ export type FilterValues = {
   isFavorite: boolean;
   date: string;
 };
-
-const STATUS_OPTIONS: { value: StatusFilter; label: string }[] = [
-  { value: "all", label: "すべて" },
-  { value: "pending", label: "未完了" },
-  { value: "completed", label: "完了" },
-  { value: "skipped", label: "やらない" },
-];
-
-const LIST_SORT_OPTIONS: { value: ListSortOrder; label: string }[] = [
-  { value: "displayOrder", label: "表示順" },
-  { value: "createdAt", label: "作成日時" },
-];
-
-const SCHEDULED_SORT_OPTIONS: { value: ScheduledSortOrder; label: string }[] = [
-  { value: "scheduledAt_asc", label: "予定日（近い順）" },
-  { value: "scheduledAt_desc", label: "予定日（遠い順）" },
-  { value: "createdAt", label: "作成日時" },
-];
-
-const KEYWORD_DEBOUNCE_MS = 300;
 
 function SectionLabel({ children, tooltip }: { children: React.ReactNode; tooltip?: string }) {
   return (

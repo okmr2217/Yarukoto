@@ -10,31 +10,18 @@ import type { Category } from "@/types";
 import { cn } from "@/lib/utils";
 import { type CategoryFilter, UNGROUPED_VIRTUAL_ID } from "@/lib/category-filter";
 import { FilterSectionInfo } from "./filter-section-info";
+import {
+  type StatusFilter,
+  type ViewMode,
+  type ListSortOrder,
+  type ScheduledSortOrder,
+  STATUS_OPTIONS,
+  LIST_SORT_OPTIONS,
+  SCHEDULED_SORT_OPTIONS,
+  KEYWORD_DEBOUNCE_MS,
+} from "@/lib/filter-types";
 
-type StatusFilter = "all" | "pending" | "completed" | "skipped";
-export type ViewMode = "list" | "schedule";
-export type ListSortOrder = "displayOrder" | "createdAt";
-export type ScheduledSortOrder = "scheduledAt_asc" | "scheduledAt_desc" | "createdAt";
-
-const STATUS_OPTIONS: { value: StatusFilter; label: string }[] = [
-  { value: "all", label: "すべて" },
-  { value: "pending", label: "未完了" },
-  { value: "completed", label: "完了" },
-  { value: "skipped", label: "やらない" },
-];
-
-const LIST_SORT_OPTIONS: { value: ListSortOrder; label: string }[] = [
-  { value: "displayOrder", label: "表示順" },
-  { value: "createdAt", label: "作成日時" },
-];
-
-const SCHEDULED_SORT_OPTIONS: { value: ScheduledSortOrder; label: string }[] = [
-  { value: "scheduledAt_asc", label: "予定日（近い順）" },
-  { value: "scheduledAt_desc", label: "予定日（遠い順）" },
-  { value: "createdAt", label: "作成日時" },
-];
-
-const KEYWORD_DEBOUNCE_MS = 300;
+export type { ViewMode, ListSortOrder, ScheduledSortOrder };
 
 interface FilterSidebarProps {
   categories: Category[];
