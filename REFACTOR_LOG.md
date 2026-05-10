@@ -56,7 +56,72 @@ REFACTOR_PLAN.md から振る舞いを変えない項目を自律実行した記
 
 ---
 
-## スキップした項目と理由
+---
+
+## 実行したコミット（セッション2: 10件）
+
+### 10. 未使用の `useMediaQuery` hook を削除 `d667331`
+- 削除: `src/hooks/use-media-query.ts`（どこからも import されていない dead code）
+
+### 11. localStorage bool record を lib/local-storage に抽出 `3d38ea7`
+- 新規: `src/lib/local-storage.ts`（`readBoolRecord`, `saveBoolRecord`）
+- `use-group-expanded.ts` と `use-category-group-filter.ts` の重複する read/write 処理を共通化
+- 対応: 計画書 1.7
+
+### 12. カテゴリカラー inline styles を categoryColorStyle helper に抽出 `9d9cba0`
+- 新規: `src/lib/category-color.ts`（`categoryColorStyle(color, active)`）
+- `category-chip.tsx` と `category-filter.tsx` の重複スタイル生成を共通化
+- 対応: 計画書 1.8
+
+### 13. フィルター型・定数を lib/filter-types に集約 `08ca41b`
+- 新規: `src/lib/filter-types.ts`（`StatusFilter` / `ViewMode` / `ListSortOrder` / `ScheduledSortOrder` および `STATUS_OPTIONS` / `LIST_SORT_OPTIONS` / `SCHEDULED_SORT_OPTIONS` / `KEYWORD_DEBOUNCE_MS`）
+- `filter-sidebar.tsx` と `filter-bottom-sheet.tsx` の重複型・定数を除去し lib から import
+- `filter-sidebar.tsx` の公開 export は re-export で維持
+- 対応: 計画書 3.1
+
+### 14. page.tsx の inline 型 literal を lib/filter-types の型に置換 `1276e37`
+- `viewMode` / `listSort` / `scheduledSort` の inline literal を `ViewMode` / `ListSortOrder` / `ScheduledSortOrder` に置換
+- 対応: 計画書 3.1（補完）
+
+### 15. 未使用の `getTaskDetail` と `TaskDetail` を削除 `0afde87`
+- `src/actions/task/task-queries.ts` から関数本体を削除
+- `src/actions/task/index.ts` / `src/actions/index.ts` の re-export を削除
+- `src/types/task.ts` から `TaskDetail` 型を削除
+- 対応: 計画書 6.2
+
+### 16. 未使用パッケージを削除 `1df46bc`
+- `radix-ui`, `react-day-picker`, `vaul`, `@radix-ui/react-popover`, `@radix-ui/react-switch` を `npm uninstall`
+- 対応: 計画書 6.3
+
+### 17. `actions/task/index.ts` の未使用 `toTask` re-export を削除 `4d1cb12`
+- `task-mutations.ts` / `task-queries.ts` は `lib/task-helpers` を直接 import しており re-export 不要
+
+### 18. 未使用の `SEARCH_FAILED` エラーメッセージを削除 `e158a03`
+- `searchTasks` 削除後に参照元のなくなった定数を `lib/constants.ts` から除去
+
+### 19. 未使用の `TodayTasks` 型を削除 `96018bc`
+- `use-today-tasks.ts` 削除後に参照元のなくなった型を `types/task.ts` から除去
+
+---
+
+## スキップした項目と理由（セッション2）
+
+| 項目 | 理由 |
+|---|---|
+| **4.2 フォーカス処理** / **4.3 キーボード useEffect** / **4.4 派生 state 同期** | 振る舞い変更リスク（前セッションの判断を踏襲） |
+| **1.1/1.2/1.3/1.4 大規模共通化** | コスト L/M・振る舞い変更の可能性あり |
+| **2.x 大ファイル分割** | コスト L/M・設計変更を伴う |
+| **4.5 Props バケツリレー** | URL 化が必要で設計変更 |
+| **5.2 layout/ ディレクトリ再編** | ディレクトリ全面変更禁止 |
+| **5.3/5.4 types//hooks/ 整理** | 影響範囲が広い |
+| **6.1 category-filter.tsx** | FilterArea 経由で現役使用中 |
+| **7.x shadcn/Tailwind** | ライブラリ追加が禁止条件 |
+| **8.x DB クエリ最適化** | raw SQL / スキーマ変更が必要 |
+| **dateUtils.ts/categoryGroup.ts のリネーム** | REFACTOR_PLAN.md に記載なし |
+
+---
+
+## スキップした項目と理由（セッション1）
 
 | 項目 | 理由 |
 |---|---|
