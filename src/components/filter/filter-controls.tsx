@@ -33,6 +33,7 @@ export function FilterStatusChips({ statusFilter, statusCounts, allFilteredTasks
           <button
             key={option.value}
             type="button"
+            aria-pressed={active}
             className={cn(
               "flex-1 flex flex-col items-center justify-center py-1 px-0.5 min-h-8 transition-colors",
               active ? "bg-primary text-primary-foreground font-medium" : "text-muted-foreground hover:bg-muted",
@@ -60,6 +61,7 @@ export function FilterViewModeToggle({ viewMode, onViewModeChange }: FilterViewM
     <div className="flex rounded-md border border-input overflow-hidden divide-x divide-border text-xs bg-background">
       <button
         type="button"
+        aria-pressed={viewMode === "list"}
         className={cn(
           "flex-1 flex items-center justify-center py-1.5 transition-colors",
           viewMode === "list" ? "bg-primary text-primary-foreground font-medium" : "text-muted-foreground hover:bg-muted",
@@ -70,6 +72,7 @@ export function FilterViewModeToggle({ viewMode, onViewModeChange }: FilterViewM
       </button>
       <button
         type="button"
+        aria-pressed={viewMode === "schedule"}
         className={cn(
           "flex-1 flex items-center justify-center py-1.5 transition-colors",
           viewMode === "schedule" ? "bg-primary text-primary-foreground font-medium" : "text-muted-foreground hover:bg-muted",
@@ -148,6 +151,7 @@ export function FilterFavoriteToggle({ favoriteFilter, favoriteCount, onUpdate }
   return (
     <button
       type="button"
+      aria-pressed={favoriteFilter}
       onClick={() => onUpdate({ favorite: favoriteFilter ? null : "true" })}
       className={cn(
         "w-full flex items-center gap-2 px-2.5 h-8 rounded-md border text-xs transition-colors",
@@ -186,6 +190,7 @@ export function FilterSortChips({ viewMode, listSort, scheduledSort, onListSortC
               <button
                 key={option.value}
                 type="button"
+                aria-pressed={active}
                 className={cn(
                   "flex items-center justify-center px-2 py-1.5 rounded-md text-xs transition-colors border",
                   active ? "bg-primary text-primary-foreground font-medium border-primary" : "border-input text-muted-foreground hover:bg-muted hover:text-foreground",
@@ -202,6 +207,7 @@ export function FilterSortChips({ viewMode, listSort, scheduledSort, onListSortC
               <button
                 key={option.value}
                 type="button"
+                aria-pressed={active}
                 className={cn(
                   "flex items-center justify-center px-2 py-1.5 rounded-md text-xs transition-colors border",
                   active ? "bg-primary text-primary-foreground font-medium border-primary" : "border-input text-muted-foreground hover:bg-muted hover:text-foreground",
