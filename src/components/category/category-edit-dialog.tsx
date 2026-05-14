@@ -2,11 +2,13 @@
 
 import { useState } from "react";
 import {
-  Dialog,
-  DialogContent,
-  DialogHeader,
-  DialogTitle,
-} from "@/components/ui/dialog";
+  ResponsiveDialog,
+  ResponsiveDialogContent,
+  ResponsiveDialogHeader,
+  ResponsiveDialogTitle,
+  ResponsiveDialogBody,
+  ResponsiveDialogFooter,
+} from "@/components/ui/responsive-dialog";
 import { Button } from "@/components/ui/button";
 import { Input } from "@/components/ui/input";
 import { Label } from "@/components/ui/label";
@@ -59,90 +61,80 @@ export function CategoryEditDialog({
   };
 
   return (
-    <Dialog open={open} onOpenChange={onOpenChange}>
-      <DialogContent className="sm:max-w-md">
-        <DialogHeader>
-          <DialogTitle>
-            {isEditing ? "カテゴリを編集" : "新しいカテゴリ"}
-          </DialogTitle>
-        </DialogHeader>
+    <ResponsiveDialog open={open} onOpenChange={onOpenChange}>
+      <ResponsiveDialogContent>
+        <ResponsiveDialogHeader>
+          <ResponsiveDialogTitle>{isEditing ? "カテゴリを編集" : "新しいカテゴリ"}</ResponsiveDialogTitle>
+        </ResponsiveDialogHeader>
 
-        <form onSubmit={handleSubmit} className="space-y-6">
-          {/* カテゴリ名 */}
-          <div className="space-y-2">
-            <Label htmlFor="category-name">カテゴリ名</Label>
-            <Input
-              id="category-name"
-              value={name}
-              onChange={(e) => {
-                setName(e.target.value);
-                setError(null);
-              }}
-              placeholder="例: 仕事"
-              maxLength={20}
-              autoFocus
-            />
-            {error && <p className="text-sm text-destructive">{error}</p>}
-          </div>
-
-          {/* 説明文 */}
-          <div className="space-y-2">
-            <Label htmlFor="category-description">説明文</Label>
-            <Textarea
-              id="category-description"
-              value={description}
-              onChange={(e) => setDescription(e.target.value)}
-              placeholder="例: yarukotoリポジトリのフロントエンド改善"
-              maxLength={200}
-              rows={3}
-            />
-          </div>
-
-          {/* グループ */}
-          {groups && groups.length > 0 && (
+        <form onSubmit={handleSubmit} className="flex flex-col flex-1 min-h-0">
+          <ResponsiveDialogBody className="px-6 py-4 space-y-6">
             <div className="space-y-2">
-              <Label>グループ</Label>
-              <Select value={groupId ?? "__none__"} onValueChange={(v) => setGroupId(v === "__none__" ? null : v)}>
-                <SelectTrigger>
-                  <SelectValue placeholder="グループなし" />
-                </SelectTrigger>
-                <SelectContent>
-                  <SelectItem value="__none__">グループなし</SelectItem>
-                  {groups.map((g) => (
-                    <SelectItem key={g.id} value={g.id}>
-                      <span className="flex items-center gap-2">
-                        {g.color && <span className="w-2.5 h-2.5 rounded-full shrink-0 inline-block" style={{ backgroundColor: g.color }} />}
-                        {g.name}
-                      </span>
-                    </SelectItem>
-                  ))}
-                </SelectContent>
-              </Select>
+              <Label htmlFor="category-name">カテゴリ名</Label>
+              <Input
+                id="category-name"
+                value={name}
+                onChange={(e) => {
+                  setName(e.target.value);
+                  setError(null);
+                }}
+                placeholder="例: 仕事"
+                maxLength={20}
+                autoFocus
+              />
+              {error && <p className="text-sm text-destructive">{error}</p>}
             </div>
-          )}
 
-          {/* カラー */}
-          <div className="space-y-2">
-            <Label>カラー</Label>
-            <ColorPicker value={color} onChange={(v) => setColor(v ?? COLOR_PRESETS[4].value)} />
-          </div>
+            <div className="space-y-2">
+              <Label htmlFor="category-description">説明文</Label>
+              <Textarea
+                id="category-description"
+                value={description}
+                onChange={(e) => setDescription(e.target.value)}
+                placeholder="例: yarukotoリポジトリのフロントエンド改善"
+                maxLength={200}
+                rows={3}
+              />
+            </div>
 
-          {/* ボタン */}
-          <div className="flex justify-end gap-2">
-            <Button
-              type="button"
-              variant="outline"
-              onClick={() => onOpenChange(false)}
-              disabled={isLoading}
-            >
+            {groups && groups.length > 0 && (
+              <div className="space-y-2">
+                <Label>グループ</Label>
+                <Select value={groupId ?? "__none__"} onValueChange={(v) => setGroupId(v === "__none__" ? null : v)}>
+                  <SelectTrigger>
+                    <SelectValue placeholder="グループなし" />
+                  </SelectTrigger>
+                  <SelectContent>
+                    <SelectItem value="__none__">グループなし</SelectItem>
+                    {groups.map((g) => (
+                      <SelectItem key={g.id} value={g.id}>
+                        <span className="flex items-center gap-2">
+                          {g.color && <span className="w-2.5 h-2.5 rounded-full shrink-0 inline-block" style={{ backgroundColor: g.color }} />}
+                          {g.name}
+                        </span>
+                      </SelectItem>
+                    ))}
+                  </SelectContent>
+                </Select>
+              </div>
+            )}
+
+            <div className="space-y-2">
+              <Label>カラー</Label>
+              <ColorPicker value={color} onChange={(v) => setColor(v ?? COLOR_PRESETS[4].value)} />
+            </div>
+          </ResponsiveDialogBody>
+
+          <ResponsiveDialogFooter>
+            <Button type="button" variant="outline" onClick={() => onOpenChange(false)} disabled={isLoading}>
               キャンセル
             </Button>
             <Button type="submit" disabled={isLoading}>
               {isLoading ? "保存中..." : "保存する"}
             </Button>
-          </div>
+          </ResponsiveDialogFooter>
         </form>
-      </DialogContent>
-    </Dialog>
+      </ResponsiveDialogContent>
+    </ResponsiveDialog>
   );
 }

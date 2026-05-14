@@ -2,12 +2,13 @@
 
 import { useState } from "react";
 import {
-  Dialog,
-  DialogContent,
-  DialogHeader,
-  DialogTitle,
-  DialogFooter,
-} from "@/components/ui/dialog";
+  ResponsiveDialog,
+  ResponsiveDialogContent,
+  ResponsiveDialogHeader,
+  ResponsiveDialogTitle,
+  ResponsiveDialogBody,
+  ResponsiveDialogFooter,
+} from "@/components/ui/responsive-dialog";
 import { Button } from "@/components/ui/button";
 import { Textarea } from "@/components/ui/textarea";
 import { Label } from "@/components/ui/label";
@@ -34,7 +35,6 @@ export function SkipReasonDialog({
   };
 
   const handleKeyDown = (e: React.KeyboardEvent) => {
-    // Ctrl+Enter or Cmd+Enter to submit
     if (e.key === "Enter" && (e.ctrlKey || e.metaKey)) {
       e.preventDefault();
       handleConfirm();
@@ -42,16 +42,15 @@ export function SkipReasonDialog({
   };
 
   return (
-    <Dialog open={open} onOpenChange={onOpenChange}>
-      <DialogContent className="sm:max-w-md">
-        <DialogHeader>
-          <DialogTitle>やらないにする</DialogTitle>
-        </DialogHeader>
+    <ResponsiveDialog open={open} onOpenChange={onOpenChange}>
+      <ResponsiveDialogContent>
+        <ResponsiveDialogHeader>
+          <ResponsiveDialogTitle>やらないにする</ResponsiveDialogTitle>
+        </ResponsiveDialogHeader>
 
-        <div className="space-y-4 py-2">
+        <ResponsiveDialogBody className="px-6 py-4 space-y-4">
           <p className="text-sm text-muted-foreground">
-            「<span className="font-medium text-foreground">{taskTitle}</span>
-            」をやらないにしますか？
+            「<span className="font-medium text-foreground">{taskTitle}</span>」をやらないにしますか？
           </p>
 
           <div className="space-y-2">
@@ -66,26 +65,19 @@ export function SkipReasonDialog({
               maxLength={1000}
               autoFocus
             />
-            <p className="text-xs text-muted-foreground text-right">
-              {reason.length}/1000
-            </p>
+            <p className="text-xs text-muted-foreground text-right">{reason.length}/1000</p>
           </div>
-        </div>
+        </ResponsiveDialogBody>
 
-        <DialogFooter className="gap-2 sm:gap-0">
-          <Button
-            type="button"
-            variant="outline"
-            onClick={() => onOpenChange(false)}
-            disabled={isLoading}
-          >
+        <ResponsiveDialogFooter>
+          <Button type="button" variant="outline" onClick={() => onOpenChange(false)} disabled={isLoading}>
             キャンセル
           </Button>
           <Button type="button" onClick={handleConfirm} disabled={isLoading}>
             {isLoading ? "処理中..." : "やらないにする"}
           </Button>
-        </DialogFooter>
-      </DialogContent>
-    </Dialog>
+        </ResponsiveDialogFooter>
+      </ResponsiveDialogContent>
+    </ResponsiveDialog>
   );
 }

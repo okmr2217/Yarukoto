@@ -2,11 +2,13 @@
 
 import { useState, useRef, useEffect } from "react";
 import {
-  Dialog,
-  DialogContent,
-  DialogHeader,
-  DialogTitle,
-} from "@/components/ui/dialog";
+  ResponsiveDialog,
+  ResponsiveDialogContent,
+  ResponsiveDialogHeader,
+  ResponsiveDialogTitle,
+  ResponsiveDialogBody,
+  ResponsiveDialogFooter,
+} from "@/components/ui/responsive-dialog";
 import { Button } from "@/components/ui/button";
 import { TaskFormFields } from "./task-form-fields";
 import { useRecentCategories } from "@/hooks";
@@ -81,11 +83,11 @@ export function TaskInputModal({
   };
 
   return (
-    <Dialog open={open} onOpenChange={onOpenChange}>
-      <DialogContent className="sm:max-w-lg max-h-[90dvh] p-0 gap-0 max-sm:top-4 max-sm:translate-y-0">
-        <DialogHeader className="px-4 py-3 border-b">
-          <DialogTitle>タスクを追加</DialogTitle>
-        </DialogHeader>
+    <ResponsiveDialog open={open} onOpenChange={onOpenChange}>
+      <ResponsiveDialogContent>
+        <ResponsiveDialogHeader>
+          <ResponsiveDialogTitle>タスクを追加</ResponsiveDialogTitle>
+        </ResponsiveDialogHeader>
 
         <form
           onSubmit={handleSubmit}
@@ -95,33 +97,35 @@ export function TaskInputModal({
               e.currentTarget.requestSubmit();
             }
           }}
-          className="flex flex-col"
+          className="flex flex-col flex-1 min-h-0"
         >
-          <TaskFormFields
-            title={title}
-            onTitleChange={setTitle}
-            memo={memo}
-            onMemoChange={setMemo}
-            scheduledAt={scheduledAt}
-            onScheduledAtChange={setScheduledAt}
-            categoryId={categoryId}
-            onCategoryIdChange={setCategoryId}
-            categories={categories}
-            groups={groups}
-            recentCategoryIds={recentIds}
-            mode="create"
-            isLoading={isLoading}
-            titleRef={titleInputRef}
-            memoRef={memoInputRef}
-          />
+          <ResponsiveDialogBody>
+            <TaskFormFields
+              title={title}
+              onTitleChange={setTitle}
+              memo={memo}
+              onMemoChange={setMemo}
+              scheduledAt={scheduledAt}
+              onScheduledAtChange={setScheduledAt}
+              categoryId={categoryId}
+              onCategoryIdChange={setCategoryId}
+              categories={categories}
+              groups={groups}
+              recentCategoryIds={recentIds}
+              mode="create"
+              isLoading={isLoading}
+              titleRef={titleInputRef}
+              memoRef={memoInputRef}
+            />
+          </ResponsiveDialogBody>
 
-          <div className="border-t p-4">
-            <Button type="submit" className="w-full h-12" disabled={!title.trim() || isLoading}>
+          <ResponsiveDialogFooter>
+            <Button type="submit" className="w-full sm:w-auto h-12 sm:h-9" disabled={!title.trim() || isLoading}>
               追加
             </Button>
-          </div>
+          </ResponsiveDialogFooter>
         </form>
-      </DialogContent>
-    </Dialog>
+      </ResponsiveDialogContent>
+    </ResponsiveDialog>
   );
 }
