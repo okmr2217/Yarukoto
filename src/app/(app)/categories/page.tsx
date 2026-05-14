@@ -6,16 +6,9 @@ import { Plus, Pencil, Trash2, GripVertical, Archive, ArchiveRestore, Layers } f
 import {
   DndContext,
   closestCenter,
-  PointerSensor,
-  TouchSensor,
   DragOverlay,
-  useSensor,
-  useSensors,
-  type DragEndEvent,
-  type DragStartEvent,
 } from "@dnd-kit/core";
 import {
-  arrayMove,
   SortableContext,
   verticalListSortingStrategy,
   useSortable,
@@ -44,7 +37,7 @@ import {
   useUnarchiveCategory,
   useGroups,
 } from "@/hooks";
-import { useQueryClient } from "@tanstack/react-query";
+import { useSortableDnd } from "@/hooks/use-sortable-dnd";
 import type { Category } from "@/types";
 
 interface SortableCategoryRowProps {
@@ -194,7 +187,6 @@ export default function CategoriesPage() {
   const { data: categories, isLoading, error } = useCategories();
   const { data: archivedCategories } = useArchivedCategories();
   const { data: groups } = useGroups();
-  const queryClient = useQueryClient();
   const createCategory = useCreateCategory();
   const updateCategory = useUpdateCategory();
   const updateSortOrder = useUpdateCategorySortOrder();
@@ -205,18 +197,13 @@ export default function CategoriesPage() {
   const [editingCategory, setEditingCategory] = useState<Category | null>(null);
   const [isDialogOpen, setIsDialogOpen] = useState(false);
   const [deletingCategory, setDeletingCategory] = useState<Category | null>(null);
-  const [activeCategory, setActiveCategory] = useState<Category | null>(null);
   const [groupFilter, setGroupFilter] = useState<string | null>(null);
 
-  const sensors = useSensors(
-    useSensor(PointerSensor),
-    useSensor(TouchSensor, {
-      activationConstraint: {
-        delay: 200,
-        tolerance: 5,
-      },
-    }),
-  );
+  const { sensors, activeItem: activeCategory, handleDragStart, handleDragEnd } = useSortableDnd<Category>({
+    items: categories,
+    queryKey: ["categories"],
+    onSort: (updates, rollback) => updateSortOrder.mutate(updates, { onError: rollback }),
+  });
 
   const handleCreate = () => {
     setEditingCategory(null);
@@ -268,31 +255,6 @@ export default function CategoriesPage() {
 
   const handleUnarchive = (id: string) => {
     unarchiveCategory.mutate(id);
-  };
-
-  const handleDragStart = (event: DragStartEvent) => {
-    const cat = categories?.find((c) => c.id === event.active.id);
-    setActiveCategory(cat ?? null);
-  };
-
-  const handleDragEnd = (event: DragEndEvent) => {
-    setActiveCategory(null);
-    const { active, over } = event;
-    if (!over || active.id === over.id || !categories) return;
-
-    const oldIndex = categories.findIndex((c) => c.id === active.id);
-    const newIndex = categories.findIndex((c) => c.id === over.id);
-    const reordered = arrayMove(categories, oldIndex, newIndex);
-
-    // Optimistic update
-    queryClient.setQueryData<Category[]>(["categories"], reordered);
-
-    const updates = reordered.map((cat, i) => ({ id: cat.id, sortOrder: i }));
-    updateSortOrder.mutate(updates, {
-      onError: () => {
-        queryClient.setQueryData<Category[]>(["categories"], categories);
-      },
-    });
   };
 
   return (

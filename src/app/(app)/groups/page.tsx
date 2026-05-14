@@ -6,16 +6,9 @@ import { Plus, Pencil, Trash2, GripVertical, ChevronLeft } from "lucide-react";
 import {
   DndContext,
   closestCenter,
-  PointerSensor,
-  TouchSensor,
   DragOverlay,
-  useSensor,
-  useSensors,
-  type DragEndEvent,
-  type DragStartEvent,
 } from "@dnd-kit/core";
 import {
-  arrayMove,
   SortableContext,
   verticalListSortingStrategy,
   useSortable,
@@ -34,7 +27,7 @@ import {
 } from "@/components/ui/alert-dialog";
 import { GroupEditDialog } from "@/components/group";
 import { useGroups, useCreateGroup, useUpdateGroup, useDeleteGroup, useReorderGroups } from "@/hooks";
-import { useQueryClient } from "@tanstack/react-query";
+import { useSortableDnd } from "@/hooks/use-sortable-dnd";
 import type { Group } from "@/types";
 
 interface SortableGroupRowProps {
@@ -107,7 +100,6 @@ function GroupRowOverlay({ group }: { group: Group }) {
 
 export default function GroupsPage() {
   const { data: groups, isLoading, error } = useGroups();
-  const queryClient = useQueryClient();
   const createGroup = useCreateGroup();
   const updateGroup = useUpdateGroup();
   const deleteGroup = useDeleteGroup();
@@ -116,12 +108,12 @@ export default function GroupsPage() {
   const [editingGroup, setEditingGroup] = useState<Group | null>(null);
   const [isDialogOpen, setIsDialogOpen] = useState(false);
   const [deletingGroup, setDeletingGroup] = useState<Group | null>(null);
-  const [activeGroup, setActiveGroup] = useState<Group | null>(null);
 
-  const sensors = useSensors(
-    useSensor(PointerSensor),
-    useSensor(TouchSensor, { activationConstraint: { delay: 200, tolerance: 5 } }),
-  );
+  const { sensors, activeItem: activeGroup, handleDragStart, handleDragEnd } = useSortableDnd<Group>({
+    items: groups,
+    queryKey: ["groups"],
+    onSort: (updates, rollback) => reorderGroups.mutate(updates, { onError: rollback }),
+  });
 
   const handleCreate = () => {
     setEditingGroup(null);
@@ -154,30 +146,6 @@ export default function GroupsPage() {
     } catch {
       // Error handled by mutation
     }
-  };
-
-  const handleDragStart = (event: DragStartEvent) => {
-    const g = groups?.find((g) => g.id === event.active.id);
-    setActiveGroup(g ?? null);
-  };
-
-  const handleDragEnd = (event: DragEndEvent) => {
-    setActiveGroup(null);
-    const { active, over } = event;
-    if (!over || active.id === over.id || !groups) return;
-
-    const oldIndex = groups.findIndex((g) => g.id === active.id);
-    const newIndex = groups.findIndex((g) => g.id === over.id);
-    const reordered = arrayMove(groups, oldIndex, newIndex);
-
-    queryClient.setQueryData<Group[]>(["groups"], reordered);
-
-    const updates = reordered.map((g, i) => ({ id: g.id, sortOrder: i }));
-    reorderGroups.mutate(updates, {
-      onError: () => {
-        queryClient.setQueryData<Group[]>(["groups"], groups);
-      },
-    });
   };
 
   return (
