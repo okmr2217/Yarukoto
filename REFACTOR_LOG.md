@@ -146,6 +146,52 @@ REFACTOR_PLAN.md から振る舞いを変えない項目を自律実行した記
 
 ---
 
+---
+
+## 実行したコミット（セッション4: 5件）
+
+### 26. フィルター UI を `components/layout/` から `components/filter/` に分離 `7861037`
+- 11 ファイルを `components/layout/` から新規 `components/filter/` ディレクトリに移動
+- `components/filter/index.ts` を新規作成してバレルエクスポートを整備
+- `components/layout/index.ts` は PCHeader / BottomNav のみに整理
+- `pc-header.tsx` の DueDateAlertChip import を `@/components/filter` に更新
+- `app/(app)/page.tsx` の layout import を filter import に統合
+- 対応: 計画書 5.2
+
+### 27. `Group` 型を `category.ts` に統合し `group.ts` を削除 `f0e4aa6`
+- `types/group.ts` の Group 型定義を `types/category.ts` 末尾に移動してファイル削除
+- `types/index.ts` から `export * from "./group"` を削除
+- `actions/account.ts` の import を `@/types/action-result` → `@/types` に統一
+- 対応: 計画書 5.3
+
+### 28. 全 hook を `hooks/index.ts` に集約し直接インポートを解消 `bf7a4c9`
+- `hooks/index.ts` に `useSortableDnd` / `useFilterSearchParams` / `useDebouncedKeyword` を追加
+- `categories/page.tsx` / `groups/page.tsx` / `task-edit-dialog.tsx` / `task-input-modal.tsx` / `filter-sidebar.tsx` / `filter-bottom-sheet.tsx` / `category-group-accordion.tsx` の直接 import を `@/hooks` に統一
+- 対応: 計画書 5.4
+
+### 29. フィルター toggle ボタンに `aria-pressed` を追加 `ddc8a72`
+- `FilterStatusChips` / `FilterViewModeToggle` / `FilterFavoriteToggle` / `FilterSortChips` の各ボタンに `aria-pressed={active}` を付与
+- 対応: 計画書 7.1
+
+### 30. `filter-category-tree` の hex-alpha カラーを `categoryTreeItemStyle` helper に集約 `ccf9d85`
+- `lib/category-color.ts` に `categoryTreeItemStyle(color)` を追加
+- `filter-category-tree.tsx` の `${color}20` / `${color}26` inline スタイルを helper 呼び出しに置換
+- 対応: 計画書 7.3
+
+---
+
+## スキップした項目と理由（セッション4）
+
+| 項目 | 理由 |
+|---|---|
+| **7.1（Button 置き換え全般）** | 70 箇所超の生 `<button>` を Toggle/ToggleGroup に置き換えは Costing L・新規 shadcn コンポーネント追加が必要。aria-pressed の付与（アクセシビリティ修正）のみ実施 |
+| **7.2 ダークモード色 palette の手書き重複** | セッション3 の filter-controls.tsx 抽出により FilterFavoriteToggle に一元化済み。重複解消を確認 |
+| **7.4 tw-animate-css の利用** | コード変更なし（使用箇所が限定的、コメント追加は CLAUDE.md 禁止） |
+| **4.2 / 4.3 / 4.4 / 4.5** | 振る舞い変更リスク・設計変更が必要（前セッションの判断を踏襲） |
+| **8.x DB クエリ最適化** | raw SQL / スキーマ変更が禁止条件 |
+
+---
+
 ## スキップした項目と理由（セッション3）
 
 | 項目 | 理由 |
