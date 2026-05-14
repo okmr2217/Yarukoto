@@ -1,7 +1,6 @@
 "use client";
 
 import { useState, useRef, useEffect } from "react";
-import { Calendar } from "lucide-react";
 import {
   Dialog,
   DialogContent,
@@ -9,10 +8,8 @@ import {
   DialogTitle,
 } from "@/components/ui/dialog";
 import { Button } from "@/components/ui/button";
-import { Textarea } from "@/components/ui/textarea";
-import { CategorySelector } from "./category-selector";
+import { TaskFormFields } from "./task-form-fields";
 import { useRecentCategories } from "@/hooks/use-recent-categories";
-import { getTodayInJST, addDaysJST } from "@/lib/dateUtils";
 import type { Task, Category, Group } from "@/types";
 
 export interface TaskEditData {
@@ -50,7 +47,6 @@ export function TaskEditDialog({
   const [recentIds] = useState(() => getRecentIds());
   const titleTextareaRef = useRef<HTMLTextAreaElement>(null);
   const memoTextareaRef = useRef<HTMLTextAreaElement>(null);
-  const dateInputRef = useRef<HTMLInputElement>(null);
 
   useEffect(() => {
     if (!open) return;
@@ -63,21 +59,6 @@ export function TaskEditDialog({
       el.select();
     });
   }, [open]);
-
-  const todayString = getTodayInJST();
-  const tomorrowString = addDaysJST(todayString, 1);
-
-  const handleDateSelect = (type: "none" | "today" | "tomorrow" | "custom") => {
-    if (type === "none") {
-      setScheduledAt("");
-    } else if (type === "today") {
-      setScheduledAt(todayString);
-    } else if (type === "tomorrow") {
-      setScheduledAt(tomorrowString);
-    } else if (type === "custom") {
-      dateInputRef.current?.showPicker();
-    }
-  };
 
   const handleSubmit = (e: React.FormEvent) => {
     e.preventDefault();
@@ -118,124 +99,26 @@ export function TaskEditDialog({
           }}
           className="flex flex-col"
         >
-          <div className="overflow-y-auto p-4 space-y-5">
-            {/* タスク名 */}
-            <div>
-              <label className="text-sm font-medium block mb-1">タスク名</label>
-              <Textarea
-                ref={titleTextareaRef}
-                id="edit-task-title"
-                value={title}
-                onChange={(e) => {
-                  setTitle(e.target.value);
-                  setError(null);
-                  e.target.style.height = "auto";
-                  e.target.style.height = `${e.target.scrollHeight}px`;
-                }}
-                onKeyDown={(e) => {
-                  if (e.key === "Enter" && !e.shiftKey && !e.ctrlKey) {
-                    e.preventDefault();
-                    if (window.matchMedia("(pointer: coarse)").matches) {
-                      e.currentTarget.form?.requestSubmit();
-                    } else {
-                      memoTextareaRef.current?.focus();
-                    }
-                  }
-                }}
-                placeholder="タスクの内容"
-                rows={1}
-                className="text-base resize-none overflow-hidden min-h-0"
-              />
-              {error && <p className="text-sm text-destructive">{error}</p>}
-            </div>
+          <TaskFormFields
+            title={title}
+            onTitleChange={(val) => { setTitle(val); setError(null); }}
+            memo={memo}
+            onMemoChange={setMemo}
+            scheduledAt={scheduledAt}
+            onScheduledAtChange={setScheduledAt}
+            categoryId={categoryId}
+            onCategoryIdChange={setCategoryId}
+            categories={categories}
+            groups={groups}
+            recentCategoryIds={recentIds}
+            mode="edit"
+            titleError={error}
+            titleRef={titleTextareaRef}
+            memoRef={memoTextareaRef}
+          />
 
-            {/* メモ */}
-            <div>
-              <label className="text-sm font-medium block mb-1">メモ</label>
-              <Textarea
-                ref={memoTextareaRef}
-                id="edit-task-memo"
-                value={memo}
-                onChange={(e) => setMemo(e.target.value)}
-                placeholder="タスクの詳細やメモ"
-                rows={3}
-                className="resize-none overflow-y-auto max-h-32"
-              />
-            </div>
-
-            {/* カテゴリ */}
-            <div>
-              <label className="text-sm font-medium block mb-1">カテゴリ</label>
-              <CategorySelector
-                categories={categories}
-                groups={groups}
-                selectedCategoryId={categoryId}
-                onChange={setCategoryId}
-                mode="edit"
-                recentCategoryIds={recentIds}
-              />
-            </div>
-
-            {/* 予定日 */}
-            <div>
-              <label className="text-sm font-medium block mb-1">予定日</label>
-              <div className="grid grid-cols-4 gap-1.5">
-                <Button
-                  type="button"
-                  size="sm"
-                  variant={!scheduledAt ? "default" : "outline"}
-                  onClick={() => handleDateSelect("none")}
-                >
-                  なし
-                </Button>
-                <Button
-                  type="button"
-                  size="sm"
-                  variant={scheduledAt === todayString ? "default" : "outline"}
-                  onClick={() => handleDateSelect("today")}
-                >
-                  今日
-                </Button>
-                <Button
-                  type="button"
-                  size="sm"
-                  variant={scheduledAt === tomorrowString ? "default" : "outline"}
-                  onClick={() => handleDateSelect("tomorrow")}
-                >
-                  明日
-                </Button>
-                <Button
-                  type="button"
-                  size="sm"
-                  variant="outline"
-                  onClick={() => handleDateSelect("custom")}
-                >
-                  <Calendar className="size-4" />
-                  選択
-                </Button>
-                <input
-                  ref={dateInputRef}
-                  type="date"
-                  value={scheduledAt}
-                  onChange={(e) => setScheduledAt(e.target.value)}
-                  className="sr-only"
-                />
-              </div>
-              {scheduledAt && (
-                <p className="text-xs text-muted-foreground">
-                  選択中: {scheduledAt.replace(/-/g, "/")}
-                </p>
-              )}
-            </div>
-          </div>
-
-          {/* フッター */}
           <div className="border-t p-4 flex justify-end gap-2">
-            <Button
-              type="button"
-              variant="outline"
-              onClick={() => onOpenChange(false)}
-            >
+            <Button type="button" variant="outline" onClick={() => onOpenChange(false)}>
               キャンセル
             </Button>
             <Button type="submit">保存する</Button>
