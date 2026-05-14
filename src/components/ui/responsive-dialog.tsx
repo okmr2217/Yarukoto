@@ -80,13 +80,13 @@ const ResponsiveDialogHeader = ({ className, children, ...props }: ResponsiveDia
   const isDesktop = useMediaQuery(SM);
   if (isDesktop) {
     return (
-      <DialogHeader className={cn("p-6 text-left", className)} {...props}>
+      <DialogHeader className={cn("p-6", className)} {...props}>
         {children}
       </DialogHeader>
     );
   }
   return (
-    <DrawerHeader className={cn("text-left", className)} {...props}>
+    <DrawerHeader className={cn("pb-6", className)} {...props}>
       {children}
     </DrawerHeader>
   );

@@ -4,7 +4,6 @@ import { MobileHeader } from "@/components/layout";
 
 const MENU_ITEMS = [
   { href: "/settings", label: "設定", description: "アカウント・パスワードの管理", icon: Settings },
-  { href: "/groups", label: "グループ", description: "カテゴリグループの管理", icon: Layers },
   { href: "/help", label: "ヘルプ", description: "使い方・ショートカットの説明", icon: HelpCircle },
 ] as const;
 
