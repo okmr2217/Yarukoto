@@ -21,78 +21,45 @@ import type {
 } from "@/lib/validations";
 import type { Task, Category } from "@/types";
 
-/**
- * クエリキーの型
- */
 type QueryKey = readonly unknown[];
 
-/**
- * キャッシュのスナップショット型
- */
 type CacheSnapshot = {
   previousAllTasks: Array<[QueryKey, unknown]>;
 };
 
-/**
- * 共通のタスク操作mutation hooks
- * 楽観的更新対応
- */
 export function useTaskMutations() {
   const queryClient = useQueryClient();
 
-  /**
-   * すべてのクエリを無効化
-   */
   const invalidateAll = () => {
     queryClient.invalidateQueries({ queryKey: ["allTasks"] });
   };
 
-  /**
-   * すべてのクエリをキャンセル
-   */
   const cancelAllQueries = async () => {
     await queryClient.cancelQueries({ queryKey: ["allTasks"] });
   };
 
-  /**
-   * 現在のキャッシュ状態をスナップショット
-   */
-  const snapshotCache = (): CacheSnapshot => {
-    return {
-      previousAllTasks: queryClient.getQueriesData({ queryKey: ["allTasks"] }),
-    };
-  };
+  const snapshotCache = (): CacheSnapshot => ({
+    previousAllTasks: queryClient.getQueriesData({ queryKey: ["allTasks"] }),
+  });
 
-  /**
-   * キャッシュをロールバック
-   */
   const rollbackCache = (snapshot: CacheSnapshot) => {
     snapshot.previousAllTasks.forEach(([queryKey, data]) => {
       queryClient.setQueryData(queryKey, data);
     });
   };
 
-  /**
-   * allTasksキャッシュ内のタスクを更新（ステータスフィルタを考慮しない更新用）
-   */
   const updateAllTasksCache = (updater: (task: Task) => Task | null) => {
     queryClient.setQueriesData({ queryKey: ["allTasks"] }, (old: Task[] | undefined) => {
       if (!old) return old;
       const updated: Task[] = [];
       for (const task of old) {
         const result = updater(task);
-        if (result !== null) {
-          updated.push(result);
-        }
+        if (result !== null) updated.push(result);
       }
       return updated;
     });
   };
 
-  /**
-   * allTasksキャッシュ内のタスクを、各クエリのフィルタ条件を考慮して更新
-   * ステータス変化を伴う操作（完了・スキップ等）に使用
-   */
   const updateAllTasksCacheWithFilters = (updater: (task: Task, filters: GetAllTasksInput) => Task | null) => {
     const queries = queryClient.getQueriesData<Task[]>({ queryKey: ["allTasks"] });
     for (const [queryKey, data] of queries) {
@@ -107,18 +74,34 @@ export function useTaskMutations() {
     }
   };
 
+  // Builds the standard onMutate/onError/onSettled triad for optimistic mutations.
+  // `updateFn` runs after cancel+snapshot; its return value is merged into context.
+  function withOptimistic<TInput, TExtra = Record<never, never>>(
+    updateFn: (input: TInput) => TExtra | void,
+    extraOnError?: (err: Error, input: TInput) => void,
+  ) {
+    return {
+      onMutate: async (input: TInput): Promise<CacheSnapshot & TExtra> => {
+        await cancelAllQueries();
+        const snapshot = snapshotCache();
+        const extra = updateFn(input);
+        return { ...snapshot, ...(extra ?? {}) } as CacheSnapshot & TExtra;
+      },
+      onError: (err: Error, input: TInput, context: (CacheSnapshot & TExtra) | undefined) => {
+        if (context) rollbackCache(context);
+        extraOnError?.(err, input);
+      },
+      onSettled: invalidateAll,
+    };
+  }
+
   const create = useMutation({
     mutationFn: async (input: CreateTaskInput) => {
       const result = await createTask(input);
-      if (!result.success) {
-        throw new Error(result.error);
-      }
+      if (!result.success) throw new Error(result.error);
       return result.data.task;
     },
-    onMutate: async (input) => {
-      await cancelAllQueries();
-      const snapshot = snapshotCache();
-
+    ...withOptimistic<CreateTaskInput, { tempId: string }>((input) => {
       const tempId = `temp-${Date.now()}`;
       const categories = queryClient.getQueryData<Category[]>(["categories"]);
       const foundCategory = categories?.find((c) => c.id === input.categoryId) ?? null;
@@ -138,7 +121,6 @@ export function useTaskMutations() {
         category: foundCategory ? { id: foundCategory.id, name: foundCategory.name, color: foundCategory.color } : null,
       };
 
-      // 新規タスクは PENDING なので、PENDING を含むキャッシュにのみ追加
       const queries = queryClient.getQueriesData<Task[]>({ queryKey: ["allTasks"] });
       for (const [queryKey, data] of queries) {
         if (!data) continue;
@@ -147,12 +129,8 @@ export function useTaskMutations() {
         queryClient.setQueryData(queryKey, [tempTask, ...data]);
       }
 
-      return { ...snapshot, tempId };
-    },
-    onError: (_err, _input, context) => {
-      if (context) rollbackCache(context);
-    },
-    onSettled: invalidateAll,
+      return { tempId };
+    }),
   });
 
   const update = useMutation({
@@ -164,298 +142,169 @@ export function useTaskMutations() {
         categoryId: input.categoryId,
         memo: input.memo,
       });
-      if (!result.success) {
-        throw new Error(result.error);
-      }
+      if (!result.success) throw new Error(result.error);
       return result.data.task;
     },
-    onMutate: async (input) => {
-      await cancelAllQueries();
-      const snapshot = snapshotCache();
+    ...withOptimistic<UpdateTaskInput>(
+      (input) => {
+        const categories = queryClient.getQueryData<Category[]>(["categories"]);
+        const newCategoryId = input.categoryId === undefined ? undefined : input.categoryId;
+        const newCategory =
+          newCategoryId === undefined
+            ? undefined
+            : newCategoryId === null
+              ? null
+              : (categories?.find((c) => c.id === newCategoryId) ?? undefined);
 
-      const categories = queryClient.getQueryData<Category[]>(["categories"]);
-      const newCategoryId = input.categoryId === undefined ? undefined : input.categoryId;
-      const newCategory =
-        newCategoryId === undefined
-          ? undefined
-          : newCategoryId === null
-            ? null
-            : (categories?.find((c) => c.id === newCategoryId) ?? undefined);
-
-      updateAllTasksCache((task) =>
-        task.id === input.id
-          ? {
-              ...task,
-              title: input.title ?? task.title,
-              memo: input.memo === undefined ? task.memo : input.memo,
-              scheduledAt: input.scheduledAt === undefined ? task.scheduledAt : input.scheduledAt,
-              categoryId: newCategoryId === undefined ? task.categoryId : newCategoryId,
-              category:
-                newCategory === undefined
-                  ? task.category
-                  : newCategory === null
-                    ? null
-                    : { id: newCategory.id, name: newCategory.name, color: newCategory.color },
-              updatedAt: new Date().toISOString(),
-            }
-          : task
-      );
-
-      return snapshot;
-    },
-    onError: (_err, _input, context) => {
-      if (context) rollbackCache(context);
-      toast.error("タスクの更新に失敗しました");
-    },
-    onSettled: invalidateAll,
+        updateAllTasksCache((task) =>
+          task.id === input.id
+            ? {
+                ...task,
+                title: input.title ?? task.title,
+                memo: input.memo === undefined ? task.memo : input.memo,
+                scheduledAt: input.scheduledAt === undefined ? task.scheduledAt : input.scheduledAt,
+                categoryId: newCategoryId === undefined ? task.categoryId : newCategoryId,
+                category:
+                  newCategory === undefined
+                    ? task.category
+                    : newCategory === null
+                      ? null
+                      : { id: newCategory.id, name: newCategory.name, color: newCategory.color },
+                updatedAt: new Date().toISOString(),
+              }
+            : task,
+        );
+      },
+      () => toast.error("タスクの更新に失敗しました"),
+    ),
   });
 
   const complete = useMutation({
     mutationFn: async (id: string) => {
       const result = await completeTask({ id });
-      if (!result.success) {
-        throw new Error(result.error);
-      }
+      if (!result.success) throw new Error(result.error);
       return result.data.task;
     },
-    onMutate: async (id) => {
-      await cancelAllQueries();
-      const snapshot = snapshotCache();
-
+    ...withOptimistic<string, { taskTitle?: string }>((id) => {
       const allTasks = queryClient.getQueriesData<Task[]>({ queryKey: ["allTasks"] });
       let taskTitle: string | undefined;
       for (const [, tasks] of allTasks) {
         const found = tasks?.find((t) => t.id === id);
-        if (found) {
-          taskTitle = found.title;
-          break;
-        }
+        if (found) { taskTitle = found.title; break; }
       }
 
       updateAllTasksCacheWithFilters((task, filters) => {
         if (task.id !== id) return task;
         const updated = { ...task, status: "COMPLETED" as const, completedAt: new Date().toISOString() };
-        // pending フィルタのキャッシュからは除外（完了タスクは pending に含まれない）
         if (filters.status === "pending") return null;
         return updated;
       });
 
-      return { ...snapshot, taskTitle };
-    },
+      return { taskTitle };
+    }),
     onSuccess: (_data, id, context) => {
       const title = context?.taskTitle;
       toast.success(title ? `"${title}" を完了しました` : "タスクを完了しました", {
-        action: {
-          label: "元に戻す",
-          onClick: () => uncomplete.mutate(id),
-        },
+        action: { label: "元に戻す", onClick: () => uncomplete.mutate(id) },
       });
     },
-    onError: (_err, _id, context) => {
-      if (context) rollbackCache(context);
-    },
-    onSettled: invalidateAll,
   });
 
   const uncomplete = useMutation({
     mutationFn: async (id: string) => {
       const result = await uncompleteTask({ id });
-      if (!result.success) {
-        throw new Error(result.error);
-      }
+      if (!result.success) throw new Error(result.error);
       return result.data.task;
     },
-    onMutate: async (id) => {
-      await cancelAllQueries();
-      const snapshot = snapshotCache();
-
+    ...withOptimistic<string>((id) => {
       updateAllTasksCacheWithFilters((task, filters) => {
         if (task.id !== id) return task;
         const updated = { ...task, status: "PENDING" as const, completedAt: null };
-        // completed フィルタのキャッシュからは除外
         if (filters.status === "completed") return null;
         return updated;
       });
-
-      return snapshot;
-    },
-    onError: (_err, _id, context) => {
-      if (context) rollbackCache(context);
-    },
-    onSettled: invalidateAll,
+    }),
   });
 
   const skip = useMutation({
     mutationFn: async (input: SkipTaskInput) => {
       const result = await skipTask(input);
-      if (!result.success) {
-        throw new Error(result.error);
-      }
+      if (!result.success) throw new Error(result.error);
       return result.data.task;
     },
-    onMutate: async (input) => {
-      await cancelAllQueries();
-      const snapshot = snapshotCache();
-
+    ...withOptimistic<SkipTaskInput>((input) => {
       updateAllTasksCacheWithFilters((task, filters) => {
         if (task.id !== input.id) return task;
-        const updated = {
-          ...task,
-          status: "SKIPPED" as const,
-          skippedAt: new Date().toISOString(),
-          skipReason: input.reason || null,
-        };
-        // pending フィルタのキャッシュからは除外
+        const updated = { ...task, status: "SKIPPED" as const, skippedAt: new Date().toISOString(), skipReason: input.reason || null };
         if (filters.status === "pending") return null;
         return updated;
       });
-
-      return snapshot;
-    },
-    onError: (_err, _input, context) => {
-      if (context) rollbackCache(context);
-    },
-    onSettled: invalidateAll,
+    }),
   });
 
   const unskip = useMutation({
     mutationFn: async (id: string) => {
       const result = await unskipTask({ id });
-      if (!result.success) {
-        throw new Error(result.error);
-      }
+      if (!result.success) throw new Error(result.error);
       return result.data.task;
     },
-    onMutate: async (id) => {
-      await cancelAllQueries();
-      const snapshot = snapshotCache();
-
+    ...withOptimistic<string>((id) => {
       updateAllTasksCacheWithFilters((task, filters) => {
         if (task.id !== id) return task;
         const updated = { ...task, status: "PENDING" as const, skippedAt: null, skipReason: null };
-        // skipped フィルタのキャッシュからは除外
         if (filters.status === "skipped") return null;
         return updated;
       });
-
-      return snapshot;
-    },
-    onError: (_err, _id, context) => {
-      if (context) rollbackCache(context);
-    },
-    onSettled: invalidateAll,
+    }),
   });
 
   const remove = useMutation({
     mutationFn: async (id: string) => {
       const result = await deleteTask({ id });
-      if (!result.success) {
-        throw new Error(result.error);
-      }
+      if (!result.success) throw new Error(result.error);
       return result.data.id;
     },
-    onMutate: async (id) => {
-      await cancelAllQueries();
-      const snapshot = snapshotCache();
-
+    ...withOptimistic<string>((id) => {
       updateAllTasksCache((task) => (task.id === id ? null : task));
-
-      return snapshot;
-    },
-    onError: (_err, _id, context) => {
-      if (context) rollbackCache(context);
-    },
-    onSettled: invalidateAll,
+    }),
   });
 
   const reorder = useMutation({
-    mutationFn: async (input: {
-      taskId: string;
-      beforeTaskId?: string;
-      afterTaskId?: string;
-    }) => {
+    mutationFn: async (input: { taskId: string; beforeTaskId?: string; afterTaskId?: string }) => {
       const result = await reorderTasks(input);
-      if (!result.success) {
-        throw new Error(result.error);
-      }
+      if (!result.success) throw new Error(result.error);
       return result.data;
     },
-    onMutate: async (input) => {
-      await queryClient.cancelQueries({ queryKey: ["allTasks"] });
-
-      const previousData: Array<[QueryKey, unknown]> = [];
-      const queries = queryClient.getQueriesData({ queryKey: ["allTasks"] });
-      queries.forEach(([key, data]) => {
-        previousData.push([key, data]);
-      });
-
-      queries.forEach(([queryKey]) => {
-        queryClient.setQueryData(queryKey, (old: Task[] | undefined) => {
-          if (!old || !Array.isArray(old)) return old;
-
-          const { taskId, beforeTaskId, afterTaskId } = input;
-
-          const task = old.find((t) => t.id === taskId);
-          if (!task) return old;
-
-          const withoutTask = old.filter((t) => t.id !== taskId);
-
-          let newIndex: number;
-          if (beforeTaskId && afterTaskId) {
-            const beforeIndex = withoutTask.findIndex((t) => t.id === beforeTaskId);
-            newIndex = beforeIndex + 1;
-          } else if (beforeTaskId) {
-            const beforeIndex = withoutTask.findIndex((t) => t.id === beforeTaskId);
-            newIndex = beforeIndex + 1;
-          } else if (afterTaskId) {
-            const afterIndex = withoutTask.findIndex((t) => t.id === afterTaskId);
-            newIndex = afterIndex;
-          } else {
-            newIndex = 0;
-          }
-
-          return [
-            ...withoutTask.slice(0, newIndex),
-            task,
-            ...withoutTask.slice(newIndex),
-          ];
-        });
-      });
-
-      return { previousData };
-    },
-    onError: (_err, _input, context) => {
-      if (context?.previousData) {
-        context.previousData.forEach(([queryKey, data]) => {
-          queryClient.setQueryData(queryKey, data);
-        });
+    ...withOptimistic<{ taskId: string; beforeTaskId?: string; afterTaskId?: string }>((input) => {
+      const queries = queryClient.getQueriesData<Task[]>({ queryKey: ["allTasks"] });
+      for (const [queryKey, old] of queries) {
+        if (!old || !Array.isArray(old)) continue;
+        const { taskId, beforeTaskId, afterTaskId } = input;
+        const task = old.find((t) => t.id === taskId);
+        if (!task) continue;
+        const withoutTask = old.filter((t) => t.id !== taskId);
+        let newIndex: number;
+        if (beforeTaskId) {
+          newIndex = withoutTask.findIndex((t) => t.id === beforeTaskId) + 1;
+        } else if (afterTaskId) {
+          newIndex = withoutTask.findIndex((t) => t.id === afterTaskId);
+        } else {
+          newIndex = 0;
+        }
+        queryClient.setQueryData(queryKey, [...withoutTask.slice(0, newIndex), task, ...withoutTask.slice(newIndex)]);
       }
-    },
-    onSettled: invalidateAll,
+    }),
   });
 
   const toggleFav = useMutation({
     mutationFn: async (id: string) => {
       const result = await toggleFavorite({ id });
-      if (!result.success) {
-        throw new Error(result.error);
-      }
+      if (!result.success) throw new Error(result.error);
       return result.data.task;
     },
-    onMutate: async (id) => {
-      await cancelAllQueries();
-      const snapshot = snapshotCache();
-
-      updateAllTasksCache((task) =>
-        task.id === id ? { ...task, isFavorite: !task.isFavorite } : task
-      );
-
-      return snapshot;
-    },
-    onError: (_err, _id, context) => {
-      if (context) rollbackCache(context);
-    },
-    onSettled: invalidateAll,
+    ...withOptimistic<string>((id) => {
+      updateAllTasksCache((task) => (task.id === id ? { ...task, isFavorite: !task.isFavorite } : task));
+    }),
   });
 
   return {
