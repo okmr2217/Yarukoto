@@ -2,7 +2,7 @@
 
 import { prisma } from "@/lib/prisma";
 import { getRequiredSession } from "@/lib/auth-server";
-import { success, failure, type ActionResult } from "@/types/action-result";
+import { success, failure, type ActionResult } from "@/types";
 
 export async function changeEmail(
   newEmail: string
