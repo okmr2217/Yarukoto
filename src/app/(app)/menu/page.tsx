@@ -1,5 +1,6 @@
 import Link from "next/link";
 import { Settings, HelpCircle, Layers } from "lucide-react";
+import { MobileHeader } from "@/components/layout";
 
 const MENU_ITEMS = [
   { href: "/settings", label: "設定", description: "アカウント・パスワードの管理", icon: Settings },
@@ -10,11 +11,8 @@ const MENU_ITEMS = [
 export default function MenuPage() {
   return (
     <div className="flex-1 bg-background">
-      <main className="px-4 pt-4 pb-20 md:pb-4 md:max-w-190 space-y-4">
-        <div>
-          <h1 className="text-lg font-semibold mb-1.5">メニュー</h1>
-        </div>
-
+      <MobileHeader title="メニュー" />
+      <main className="px-4 pt-4 pb-20 md:pb-4 md:max-w-190">
         <nav className="bg-card rounded-lg border border-border overflow-hidden">
           {MENU_ITEMS.map(({ href, label, description, icon: Icon }, i) => (
             <Link

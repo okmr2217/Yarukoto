@@ -28,6 +28,7 @@ import {
 import { signOut, useSession, changePassword } from "@/lib/auth-client";
 import { deleteAccount, changeEmail } from "@/actions";
 import { useTheme } from "@/hooks";
+import { MobileHeader } from "@/components/layout";
 
 export default function SettingsPage() {
   const router = useRouter();
@@ -138,13 +139,11 @@ export default function SettingsPage() {
 
   return (
     <div className="flex-1 bg-background">
+      <MobileHeader title="設定" />
       <main className="px-4 pt-4 pb-20 md:pb-4 md:max-w-190 space-y-4">
-          <div>
-            <h1 className="text-lg font-semibold mb-1.5">設定</h1>
-            <p className="text-xs text-muted-foreground">
-              アカウント情報の確認・変更やパスワードの更新ができます。
-            </p>
-          </div>
+          <p className="text-xs text-muted-foreground">
+            アカウント情報の確認・変更やパスワードの更新ができます。
+          </p>
           {/* Account Section */}
           <section>
             <h2 className="text-xs font-medium text-muted-foreground mb-2">
