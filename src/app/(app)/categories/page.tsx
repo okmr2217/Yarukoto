@@ -36,8 +36,8 @@ import {
   useArchiveCategory,
   useUnarchiveCategory,
   useGroups,
+  useSortableDnd,
 } from "@/hooks";
-import { useSortableDnd } from "@/hooks/use-sortable-dnd";
 import type { Category } from "@/types";
 
 interface SortableCategoryRowProps {

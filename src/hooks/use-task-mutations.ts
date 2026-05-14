@@ -102,7 +102,7 @@ export function useTaskMutations() {
       return result.data.task;
     },
     ...withOptimistic<CreateTaskInput, { tempId: string }>((input) => {
-      const tempId = `temp-${Date.now()}`;
+      const tempId = `temp-${crypto.randomUUID()}`;
       const categories = queryClient.getQueryData<Category[]>(["categories"]);
       const foundCategory = categories?.find((c) => c.id === input.categoryId) ?? null;
       const tempTask: Task = {

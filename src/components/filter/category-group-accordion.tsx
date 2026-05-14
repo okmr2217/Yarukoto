@@ -3,7 +3,7 @@
 import { ChevronRight, ChevronDown } from "lucide-react";
 import { cn } from "@/lib/utils";
 import type { Category } from "@/types";
-import type { GroupSelectionState } from "@/hooks/use-category-group-filter";
+import type { GroupSelectionState } from "@/hooks";
 
 interface CategoryGroupAccordionProps {
   groupId: string;

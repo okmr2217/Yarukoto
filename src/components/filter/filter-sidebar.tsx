@@ -9,8 +9,7 @@ import { type CategoryFilter, UNGROUPED_VIRTUAL_ID } from "@/lib/category-filter
 import { FilterSectionInfo } from "./filter-section-info";
 import { FilterStatusChips, FilterViewModeToggle, FilterDateNav, FilterFavoriteToggle, FilterSortChips, FilterKeywordInput } from "./filter-controls";
 import { FilterCategoryTree } from "./filter-category-tree";
-import { useFilterSearchParams } from "@/hooks/use-filter-search-params";
-import { useDebouncedKeyword } from "@/hooks/use-debounced-keyword";
+import { useFilterSearchParams, useDebouncedKeyword } from "@/hooks";
 import {
   type StatusFilter,
   type ViewMode,

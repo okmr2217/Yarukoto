@@ -26,8 +26,7 @@ import {
   AlertDialogTitle,
 } from "@/components/ui/alert-dialog";
 import { GroupEditDialog } from "@/components/group";
-import { useGroups, useCreateGroup, useUpdateGroup, useDeleteGroup, useReorderGroups } from "@/hooks";
-import { useSortableDnd } from "@/hooks/use-sortable-dnd";
+import { useGroups, useCreateGroup, useUpdateGroup, useDeleteGroup, useReorderGroups, useSortableDnd } from "@/hooks";
 import type { Group } from "@/types";
 
 interface SortableGroupRowProps {

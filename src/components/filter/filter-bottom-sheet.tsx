@@ -2,8 +2,7 @@
 
 import { X } from "lucide-react";
 import { useAllTasks } from "@/hooks";
-import { useFilterSearchParams } from "@/hooks/use-filter-search-params";
-import { useDebouncedKeyword } from "@/hooks/use-debounced-keyword";
+import { useFilterSearchParams, useDebouncedKeyword } from "@/hooks";
 import { FilterSectionInfo } from "./filter-section-info";
 import { FilterStatusChips, FilterViewModeToggle, FilterDateNav, FilterFavoriteToggle, FilterSortChips, FilterKeywordInput } from "./filter-controls";
 import type { StatusFilter, ViewMode, ListSortOrder, ScheduledSortOrder } from "@/lib/filter-types";

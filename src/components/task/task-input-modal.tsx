@@ -9,7 +9,7 @@ import {
 } from "@/components/ui/dialog";
 import { Button } from "@/components/ui/button";
 import { TaskFormFields } from "./task-form-fields";
-import { useRecentCategories } from "@/hooks/use-recent-categories";
+import { useRecentCategories } from "@/hooks";
 import type { Category, Group } from "@/types";
 
 export interface TaskInputData {
