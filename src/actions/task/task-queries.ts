@@ -3,6 +3,8 @@
 import { prisma } from "@/lib/prisma";
 import type { Prisma } from "@/generated/prisma/client";
 import { getRequiredUser } from "@/lib/auth-server";
+
+type TaskWithCategory = Prisma.TaskGetPayload<{ include: { category: true } }>;
 import {
   type ActionResult,
   success,
@@ -120,6 +122,63 @@ export async function getAllTasks(input?: GetAllTasksInput): Promise<ActionResul
  * - 遅延は、今日時点で未完了かつ過去に予定されたタスクです
  * - すべての日付処理はJST（日本標準時）基準で行われます
  */
+function aggregateMonthlyStats(tasks: TaskWithCategory[], firstDay: Date, lastDay: Date, today: string): MonthlyTaskStats {
+  const stats: MonthlyTaskStats = {};
+  const completedCategoriesMap = new Map<string, Map<string, { id: string; name: string; color: string | null }>>();
+
+  for (const task of tasks) {
+    const dates = new Set<string>();
+
+    if (task.scheduledAt && task.scheduledAt >= firstDay && task.scheduledAt <= lastDay) {
+      dates.add(formatDateToJST(task.scheduledAt));
+    }
+    if (task.completedAt && task.completedAt >= firstDay && task.completedAt <= lastDay) {
+      dates.add(formatDateToJST(task.completedAt));
+    }
+    if (task.skippedAt && task.skippedAt >= firstDay && task.skippedAt <= lastDay) {
+      dates.add(formatDateToJST(task.skippedAt));
+    }
+    if (task.createdAt >= firstDay && task.createdAt <= lastDay) {
+      dates.add(formatDateToJST(task.createdAt));
+    }
+
+    for (const dateStr of dates) {
+      if (!stats[dateStr]) {
+        stats[dateStr] = { total: 0, completed: 0, createdCount: 0, overdue: 0, skipped: 0 };
+      }
+
+      const scheduledDateStr = task.scheduledAt ? formatDateToJST(task.scheduledAt) : null;
+      if (scheduledDateStr === dateStr) {
+        stats[dateStr].total++;
+        if (task.status === "PENDING" && dateStr < today) stats[dateStr].overdue++;
+      }
+
+      const completedDateStr = task.completedAt ? formatDateToJST(task.completedAt) : null;
+      if (completedDateStr === dateStr) {
+        stats[dateStr].completed++;
+        if (task.category) {
+          if (!completedCategoriesMap.has(dateStr)) completedCategoriesMap.set(dateStr, new Map());
+          const catMap = completedCategoriesMap.get(dateStr)!;
+          if (!catMap.has(task.category.id)) {
+            catMap.set(task.category.id, { id: task.category.id, name: task.category.name, color: task.category.color });
+          }
+        }
+      }
+
+      const skippedDateStr = task.skippedAt ? formatDateToJST(task.skippedAt) : null;
+      if (skippedDateStr === dateStr) stats[dateStr].skipped++;
+
+      if (formatDateToJST(task.createdAt) === dateStr) stats[dateStr].createdCount++;
+    }
+  }
+
+  for (const [dateStr, catMap] of completedCategoriesMap.entries()) {
+    if (stats[dateStr]) stats[dateStr].completedCategories = Array.from(catMap.values());
+  }
+
+  return stats;
+}
+
 export async function getMonthlyTaskStats(
   input: GetMonthlyTaskStatsInput,
 ): Promise<ActionResult<MonthlyTaskStats>> {
@@ -132,161 +191,22 @@ export async function getMonthlyTaskStats(
     const user = await getRequiredUser();
     const { month } = parsed.data;
     const today = getTodayInJST();
-
-    // 月範囲を取得（YYYY-MM形式からJSTベースで月の開始と終了を計算）
     const { start: firstDay, end: lastDay } = getMonthRangeInJST(month);
 
-    // この月に関連するすべてのタスクを取得
     const tasks = await prisma.task.findMany({
       where: {
         userId: user.id,
         OR: [
-          // この月に予定されたタスク
-          {
-            scheduledAt: {
-              gte: firstDay,
-              lte: lastDay,
-            },
-          },
-          // この月に完了したタスク
-          {
-            completedAt: {
-              gte: firstDay,
-              lte: lastDay,
-            },
-          },
-          // この月にスキップしたタスク
-          {
-            skippedAt: {
-              gte: firstDay,
-              lte: lastDay,
-            },
-          },
-          // この月に作成したタスク
-          {
-            createdAt: {
-              gte: firstDay,
-              lte: lastDay,
-            },
-          },
+          { scheduledAt: { gte: firstDay, lte: lastDay } },
+          { completedAt: { gte: firstDay, lte: lastDay } },
+          { skippedAt: { gte: firstDay, lte: lastDay } },
+          { createdAt: { gte: firstDay, lte: lastDay } },
         ],
       },
-      include: {
-        category: true,
-      },
+      include: { category: true },
     });
 
-    // 日付別の統計を構築（JSTベースで日付を計算）
-    const stats: MonthlyTaskStats = {};
-    // 日付ごとの完了タスクのカテゴリを追跡
-    const completedCategoriesMap = new Map<
-      string,
-      Map<string, { id: string; name: string; color: string | null }>
-    >();
-
-    for (const task of tasks) {
-      const dates = new Set<string>();
-
-      // 予定日を追加（JSTで日付を取得）
-      if (
-        task.scheduledAt &&
-        task.scheduledAt >= firstDay &&
-        task.scheduledAt <= lastDay
-      ) {
-        dates.add(formatDateToJST(task.scheduledAt));
-      }
-
-      // 完了日を追加（JSTで日付を取得）
-      if (
-        task.completedAt &&
-        task.completedAt >= firstDay &&
-        task.completedAt <= lastDay
-      ) {
-        dates.add(formatDateToJST(task.completedAt));
-      }
-
-      // スキップ日を追加（JSTで日付を取得）
-      if (
-        task.skippedAt &&
-        task.skippedAt >= firstDay &&
-        task.skippedAt <= lastDay
-      ) {
-        dates.add(formatDateToJST(task.skippedAt));
-      }
-
-      // 作成日を追加（JSTで日付を取得）
-      if (task.createdAt >= firstDay && task.createdAt <= lastDay) {
-        dates.add(formatDateToJST(task.createdAt));
-      }
-
-      // 各関連日付の統計を更新
-      for (const dateStr of dates) {
-        if (!stats[dateStr]) {
-          stats[dateStr] = { total: 0, completed: 0, createdCount: 0, overdue: 0, skipped: 0 };
-        }
-
-        // この日に予定されたタスクの場合、合計に加算（JSTで比較）
-        const scheduledDateStr = task.scheduledAt
-          ? formatDateToJST(task.scheduledAt)
-          : null;
-        const isScheduledForThisDay = scheduledDateStr === dateStr;
-
-        if (isScheduledForThisDay) {
-          stats[dateStr].total++;
-
-          // 遅延チェック（今日時点で未完了かつ過去の日付）
-          if (task.status === "PENDING" && dateStr < today) {
-            stats[dateStr].overdue++;
-          }
-        }
-
-        // この日に完了した場合、完了数に加算（JSTで比較）
-        const completedDateStr = task.completedAt
-          ? formatDateToJST(task.completedAt)
-          : null;
-        if (completedDateStr === dateStr) {
-          stats[dateStr].completed++;
-
-          // 完了タスクのカテゴリを追跡
-          if (task.category) {
-            if (!completedCategoriesMap.has(dateStr)) {
-              completedCategoriesMap.set(dateStr, new Map());
-            }
-            const categoryMap = completedCategoriesMap.get(dateStr)!;
-            if (!categoryMap.has(task.category.id)) {
-              categoryMap.set(task.category.id, {
-                id: task.category.id,
-                name: task.category.name,
-                color: task.category.color,
-              });
-            }
-          }
-        }
-
-        // この日にスキップした場合、スキップ数に加算（JSTで比較）
-        const skippedDateStr = task.skippedAt
-          ? formatDateToJST(task.skippedAt)
-          : null;
-        if (skippedDateStr === dateStr) {
-          stats[dateStr].skipped++;
-        }
-
-        // この日に作成した場合、作成数に加算（JSTで比較）
-        const createdDateStr = formatDateToJST(task.createdAt);
-        if (createdDateStr === dateStr) {
-          stats[dateStr].createdCount++;
-        }
-      }
-    }
-
-    // 完了カテゴリをstatsに追加
-    for (const [dateStr, categoryMap] of completedCategoriesMap.entries()) {
-      if (stats[dateStr]) {
-        stats[dateStr].completedCategories = Array.from(categoryMap.values());
-      }
-    }
-
-    return success(stats);
+    return success(aggregateMonthlyStats(tasks, firstDay, lastDay, today));
   } catch (error) {
     console.error("getMonthlyTaskStats error:", error);
     return failure(ERROR_MESSAGES.TASK_STATS_FAILED, "INTERNAL_ERROR");
