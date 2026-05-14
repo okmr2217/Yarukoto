@@ -6,7 +6,7 @@ import { ListTodo, Tags, Settings, BarChart2, HelpCircle } from "lucide-react";
 import Image from "next/image";
 import { NAV_ITEMS } from "@/lib/constants";
 import { cn } from "@/lib/utils";
-import { DueDateAlertChip } from "./due-date-alert-chip";
+import { DueDateAlertChip } from "@/components/filter";
 
 const iconMap = {
   ListTodo,

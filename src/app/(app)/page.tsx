@@ -2,7 +2,7 @@
 
 import { useState, useEffect, useCallback } from "react";
 import { useRouter, useSearchParams } from "next/navigation";
-import { FilterArea, FilterFab, FilterBottomSheet, type FilterValues } from "@/components/layout";
+import { FilterArea, FilterFab, FilterBottomSheet, FilterSidebar, type FilterValues } from "@/components/filter";
 import {
   TaskSection,
   TaskInputModal,
@@ -11,7 +11,6 @@ import {
   SkipReasonDialog,
   type TaskEditData,
 } from "@/components/task";
-import { FilterSidebar } from "@/components/layout";
 import {
   useAllTasks,
   useTaskMutations,
