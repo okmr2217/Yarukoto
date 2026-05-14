@@ -104,6 +104,59 @@ REFACTOR_PLAN.md から振る舞いを変えない項目を自律実行した記
 
 ---
 
+---
+
+## 実行したコミット（セッション3: 7件）
+
+### 20. `getMonthlyTaskStats` の集計ロジックを `aggregateMonthlyStats` に抽出 `e382d9e`
+- 新規: `aggregateMonthlyStats(tasks, firstDay, lastDay, today)` プライベート関数（task-queries.ts 内）
+- `getMonthlyTaskStats` 本体を ~170行 → ~35行に縮小、DB クエリと集計ロジックの責務を分離
+- 対応: 計画書 2.3
+
+### 21. DnD 並び替えロジックを `useSortableDnd` hook に抽出 `717c053`
+- 新規: `src/hooks/use-sortable-dnd.ts`（sensors / activeItem / handleDragStart / handleDragEnd）
+- `categories/page.tsx` と `groups/page.tsx` の重複するドラッグ実装を共通化
+- 対応: 計画書 1.3
+
+### 22. `TaskInputModal`/`TaskEditDialog` の共通フォーム部分を `TaskFormFields` に抽出 `55d3b61`
+- 新規: `src/components/task/task-form-fields.tsx`（タスク名 / メモ / カテゴリ / 予定日の 4 フィールド）
+- 両 dialog から重複 JSX・auto-resize ロジック・日付選択ロジックを除去
+- 対応: 計画書 1.2
+
+### 23. フィルター UI の共通フック・コンポーネントを抽出 `458d211`
+- 新規: `src/hooks/use-filter-search-params.ts`（URL params 読み書き hook）
+- 新規: `src/hooks/use-debounced-keyword.ts`（IME 対応デバウンスキーワード hook）
+- 新規: `src/components/layout/filter-controls.tsx`（FilterStatusChips / FilterViewModeToggle / FilterDateNav / FilterFavoriteToggle / FilterSortChips / FilterKeywordInput）
+- 新規: `src/components/layout/filter-category-tree.tsx`（FilterSidebar から カテゴリツリーを抽出）
+- `filter-sidebar.tsx`: 666行 → 224行 / `filter-bottom-sheet.tsx`: 376行 → 169行
+- 対応: 計画書 1.1 / 2.1
+
+### 24. `useTaskMutations` の楽観更新ボイラープレートを `withOptimistic` helper で集約 `9656eed`
+- `onMutate: cancel+snapshot+return` / `onError: rollback` / `onSettled: invalidate` の 3 点セットを helper に統一
+- `reorder` も共通 helper を使用するよう統一（独自のスナップショット実装を廃止）
+- `use-task-mutations.ts`: 472行 → 321行
+- 対応: 計画書 1.4
+
+### 25. `page.tsx` のローディング/通常レンダーの重複を解消 `2d432b3`
+- ローディング時の early return を廃止し、isLoading/error/data を main render 内で条件分岐
+- FilterSidebar・FilterFab・FilterBottomSheet・TaskInputModal の二重定義を削除
+- sidebarProps / bottomSheetProps オブジェクトで props の重複書きを解消
+- `page.tsx`: 471行 → 389行
+- 対応: 計画書 2.2
+
+---
+
+## スキップした項目と理由（セッション3）
+
+| 項目 | 理由 |
+|---|---|
+| **4.2 フォーカス処理** / **4.3 キーボード useEffect** / **4.4 派生 state 同期** | 振る舞い変更リスク（前セッションの判断を踏襲） |
+| **4.5 Props バケツリレー** | listSort/scheduledSort の URL 化が必要で設計変更 |
+| **5.2 layout/ ディレクトリ再編** | ディレクトリ全面変更禁止 |
+| **8.x DB クエリ最適化** | raw SQL / スキーマ変更が禁止条件 |
+
+---
+
 ## スキップした項目と理由（セッション2）
 
 | 項目 | 理由 |
