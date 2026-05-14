@@ -65,7 +65,7 @@ export function SignupForm() {
           </div>
         )}
 
-        <div className="space-y-2">
+        <div className="space-y-1.5">
           <Label htmlFor="name">お名前</Label>
           <Input
             id="name"
@@ -78,7 +78,7 @@ export function SignupForm() {
           />
         </div>
 
-        <div className="space-y-2">
+        <div className="space-y-1.5">
           <Label htmlFor="email">メールアドレス</Label>
           <Input
             id="email"
@@ -91,7 +91,7 @@ export function SignupForm() {
           />
         </div>
 
-        <div className="space-y-2">
+        <div className="space-y-1.5">
           <Label htmlFor="password">パスワード</Label>
           <Input
             id="password"
@@ -105,7 +105,7 @@ export function SignupForm() {
           />
         </div>
 
-        <div className="space-y-2">
+        <div className="space-y-1.5">
           <Label htmlFor="confirmPassword">パスワード（確認）</Label>
           <Input
             id="confirmPassword"

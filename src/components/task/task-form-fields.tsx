@@ -4,6 +4,7 @@ import { useRef } from "react";
 import { Calendar } from "lucide-react";
 import { Textarea } from "@/components/ui/textarea";
 import { Button } from "@/components/ui/button";
+import { Label } from "@/components/ui/label";
 import { getTodayInJST, addDaysJST } from "@/lib/dateUtils";
 import { CategorySelector } from "./category-selector";
 import type { Category, Group } from "@/types";
@@ -64,8 +65,8 @@ export function TaskFormFields({
   return (
     <div className="space-y-5">
       {/* タスク名 */}
-      <div>
-        <label className="text-sm font-medium block mb-1">タスク名</label>
+      <div className="space-y-1.5">
+        <Label>タスク名</Label>
         <Textarea
           ref={titleRef}
           value={title}
@@ -93,8 +94,8 @@ export function TaskFormFields({
       </div>
 
       {/* メモ */}
-      <div>
-        <label className="text-sm font-medium block mb-1">メモ</label>
+      <div className="space-y-1.5">
+        <Label>メモ</Label>
         <Textarea
           ref={memoRef}
           value={memo}
@@ -106,8 +107,8 @@ export function TaskFormFields({
       </div>
 
       {/* カテゴリ */}
-      <div>
-        <label className="text-sm font-medium block mb-1">カテゴリ</label>
+      <div className="space-y-1.5">
+        <Label>カテゴリ</Label>
         <CategorySelector
           categories={categories}
           groups={groups}
@@ -119,8 +120,8 @@ export function TaskFormFields({
       </div>
 
       {/* 予定日 */}
-      <div>
-        <label className="text-sm font-medium block mb-1">予定日</label>
+      <div className="space-y-1.5">
+        <Label>予定日</Label>
         <div className="grid grid-cols-4 gap-1.5">
           <Button type="button" size="sm" variant={!scheduledAt ? "default" : "outline"} onClick={() => handleDateSelect("none")}>
             なし

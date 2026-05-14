@@ -1,7 +1,7 @@
 "use client";
 
 import { useState } from "react";
-import { Plus, GripVertical, Archive, Pencil, Trash2 } from "lucide-react";
+import { Plus, GripVertical, Archive } from "lucide-react";
 import {
   DndContext,
   closestCenter,
@@ -32,7 +32,7 @@ import {
 } from "@/components/ui/alert-dialog";
 import { Button } from "@/components/ui/button";
 import { CategoryEditDialog, CategoryDetailDialog } from "@/components/category";
-import { GroupEditDialog } from "@/components/group";
+import { GroupEditDialog, GroupDetailDialog } from "@/components/group";
 import {
   useCategories,
   useArchivedCategories,
@@ -136,7 +136,7 @@ function GroupCategoryList({
       }}
     >
       <SortableContext items={activeCategories.map((c) => c.id)} strategy={verticalListSortingStrategy}>
-        <div className="space-y-1.5 px-3 pb-3 pt-1">
+        <div className="space-y-1.5 py-2 px-3">
           {activeCategories.map((cat) => (
             <SortableCategoryCard key={cat.id} category={cat} onClick={() => onCategoryClick(cat, false)} />
           ))}
@@ -159,24 +159,27 @@ interface SortableGroupSectionProps {
   group: Group;
   activeCategories: Category[];
   archivedCategories: Category[];
-  onEdit: () => void;
-  onDelete: () => void;
+  onHeaderClick: () => void;
   onDragEnd: (event: DragEndEvent) => void;
   onCategoryClick: (cat: Category, archived: boolean) => void;
 }
 
-function SortableGroupSection({ group, activeCategories, archivedCategories, onEdit, onDelete, onDragEnd, onCategoryClick }: SortableGroupSectionProps) {
+function SortableGroupSection({ group, activeCategories, archivedCategories, onHeaderClick, onDragEnd, onCategoryClick }: SortableGroupSectionProps) {
   const { attributes, listeners, setNodeRef, transform, transition, isDragging } = useSortable({ id: group.id });
   const style = { transform: CSS.Transform.toString(transform), transition, opacity: isDragging ? 0.3 : 1 };
 
   return (
     <div ref={setNodeRef} style={style} className="rounded-lg border border-border bg-card overflow-hidden">
-      <div className="flex items-center gap-2 px-3 py-2.5 bg-muted/40 border-b border-border">
+      <div
+        className="flex items-center gap-2 px-3 py-2.5 bg-muted/40 border-b border-border cursor-pointer hover:bg-muted/60 transition-colors"
+        onClick={onHeaderClick}
+      >
         <button
           {...attributes}
           {...listeners}
           className="touch-none cursor-grab active:cursor-grabbing text-muted-foreground hover:text-foreground shrink-0"
           aria-label="ドラッグして並び替え"
+          onClick={(e) => e.stopPropagation()}
         >
           <GripVertical className="h-4 w-4" />
         </button>
@@ -188,13 +191,7 @@ function SortableGroupSection({ group, activeCategories, archivedCategories, onE
           <div className="w-3.5 h-3.5 rounded-full shrink-0 border border-border" />
         )}
         <span className="font-medium text-sm flex-1 truncate">{group.name}</span>
-        <span className="text-xs text-muted-foreground shrink-0 mr-1">{activeCategories.length + archivedCategories.length}個</span>
-        <Button variant="ghost" size="icon-sm" onClick={onEdit} aria-label="編集">
-          <Pencil className="h-3.5 w-3.5" />
-        </Button>
-        <Button variant="ghost" size="icon-sm" onClick={onDelete} aria-label="削除" className="text-destructive hover:text-destructive">
-          <Trash2 className="h-3.5 w-3.5" />
-        </Button>
+        <span className="text-xs text-muted-foreground shrink-0">{activeCategories.length + archivedCategories.length}個</span>
       </div>
       <GroupCategoryList
         activeCategories={activeCategories}
@@ -251,6 +248,8 @@ export default function CategoriesPage() {
 
   const [editingGroup, setEditingGroup] = useState<Group | null>(null);
   const [isGroupDialogOpen, setIsGroupDialogOpen] = useState(false);
+  const [detailGroup, setDetailGroup] = useState<Group | null>(null);
+  const [isGroupDetailOpen, setIsGroupDetailOpen] = useState(false);
   const [deletingGroup, setDeletingGroup] = useState<Group | null>(null);
 
   // Group-level DnD (outer context)
@@ -342,9 +341,20 @@ export default function CategoriesPage() {
   };
 
   // Group handlers
-  const handleEditGroup = (group: Group) => {
-    setEditingGroup(group);
+  const handleOpenGroupDetail = (group: Group) => {
+    setDetailGroup(group);
+    setIsGroupDetailOpen(true);
+  };
+
+  const handleGroupDetailEdit = () => {
+    setIsGroupDetailOpen(false);
+    setEditingGroup(detailGroup);
     setIsGroupDialogOpen(true);
+  };
+
+  const handleGroupDetailDelete = () => {
+    setIsGroupDetailOpen(false);
+    setDeletingGroup(detailGroup);
   };
 
   const handleSaveGroup = async (data: { name: string; emoji?: string | null; color?: string }) => {
@@ -427,8 +437,7 @@ export default function CategoriesPage() {
                     group={group}
                     activeCategories={activeByGroup[group.id] ?? []}
                     archivedCategories={archivedByGroup[group.id] ?? []}
-                    onEdit={() => handleEditGroup(group)}
-                    onDelete={() => setDeletingGroup(group)}
+                    onHeaderClick={() => handleOpenGroupDetail(group)}
                     onDragEnd={(e) => handleCategoryDragEnd(e, group.id)}
                     onCategoryClick={handleOpenDetail}
                   />
@@ -498,8 +507,18 @@ export default function CategoriesPage() {
         </AlertDialogContent>
       </AlertDialog>
 
+      <GroupDetailDialog
+        key={detailGroup?.id ? `detail-${detailGroup.id}` : undefined}
+        open={isGroupDetailOpen}
+        onOpenChange={setIsGroupDetailOpen}
+        group={detailGroup}
+        categoryCount={(activeByGroup[detailGroup?.id ?? ""] ?? []).length + (archivedByGroup[detailGroup?.id ?? ""] ?? []).length}
+        onEdit={handleGroupDetailEdit}
+        onDelete={handleGroupDetailDelete}
+      />
+
       <GroupEditDialog
-        key={editingGroup?.id ?? "group-new"}
+        key={editingGroup?.id ? `edit-${editingGroup.id}` : "group-new"}
         open={isGroupDialogOpen}
         onOpenChange={setIsGroupDialogOpen}
         group={editingGroup}

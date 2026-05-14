@@ -48,12 +48,12 @@ export function SkipReasonDialog({
           <ResponsiveDialogTitle>やらないにする</ResponsiveDialogTitle>
         </ResponsiveDialogHeader>
 
-        <ResponsiveDialogBody className="px-6 py-4 space-y-4">
+        <ResponsiveDialogBody className="space-y-4">
           <p className="text-sm text-muted-foreground">
             「<span className="font-medium text-foreground">{taskTitle}</span>」をやらないにしますか？
           </p>
 
-          <div className="space-y-2">
+          <div className="space-y-1.5">
             <Label htmlFor="skip-reason">理由（任意）</Label>
             <Textarea
               id="skip-reason"

@@ -68,8 +68,8 @@ export function CategoryEditDialog({
         </ResponsiveDialogHeader>
 
         <form onSubmit={handleSubmit} className="flex flex-col flex-1 min-h-0">
-          <ResponsiveDialogBody className="px-6 py-4 space-y-6">
-            <div className="space-y-2">
+          <ResponsiveDialogBody className="space-y-6">
+            <div className="space-y-1.5">
               <Label htmlFor="category-name">カテゴリ名</Label>
               <Input
                 id="category-name"
@@ -85,7 +85,7 @@ export function CategoryEditDialog({
               {error && <p className="text-sm text-destructive">{error}</p>}
             </div>
 
-            <div className="space-y-2">
+            <div className="space-y-1.5">
               <Label htmlFor="category-description">説明文</Label>
               <Textarea
                 id="category-description"
@@ -98,7 +98,7 @@ export function CategoryEditDialog({
             </div>
 
             {groups && groups.length > 0 && (
-              <div className="space-y-2">
+              <div className="space-y-1.5">
                 <Label>グループ</Label>
                 <Select value={groupId ?? "__none__"} onValueChange={(v) => setGroupId(v === "__none__" ? null : v)}>
                   <SelectTrigger>
@@ -119,7 +119,7 @@ export function CategoryEditDialog({
               </div>
             )}
 
-            <div className="space-y-2">
+            <div className="space-y-1.5">
               <Label>カラー</Label>
               <ColorPicker value={color} onChange={(v) => setColor(v ?? COLOR_PRESETS[4].value)} />
             </div>

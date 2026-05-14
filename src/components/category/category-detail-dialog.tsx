@@ -49,7 +49,7 @@ export function CategoryDetailDialog({
           </div>
         </ResponsiveDialogHeader>
 
-        <ResponsiveDialogBody className="px-6 py-4 space-y-3">
+        <ResponsiveDialogBody className="space-y-3">
           {category.group && (
             <div>
               <span className="inline-flex items-center gap-1.5 text-xs px-2 py-0.5 rounded bg-muted text-muted-foreground">

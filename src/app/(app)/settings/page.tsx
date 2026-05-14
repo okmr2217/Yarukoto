@@ -188,7 +188,7 @@ export default function SettingsPage() {
                       </DialogDescription>
                     </DialogHeader>
                     <div className="space-y-4 py-4">
-                      <div className="space-y-2">
+                      <div className="space-y-1.5">
                         <Label htmlFor="new-email">新しいメールアドレス</Label>
                         <Input
                           id="new-email"
@@ -259,7 +259,7 @@ export default function SettingsPage() {
                       </DialogDescription>
                     </DialogHeader>
                     <div className="space-y-4 py-4">
-                      <div className="space-y-2">
+                      <div className="space-y-1.5">
                         <Label htmlFor="current-password">現在のパスワード</Label>
                         <Input
                           id="current-password"
@@ -269,7 +269,7 @@ export default function SettingsPage() {
                           disabled={isChangingPassword}
                         />
                       </div>
-                      <div className="space-y-2">
+                      <div className="space-y-1.5">
                         <Label htmlFor="new-password">新しいパスワード</Label>
                         <Input
                           id="new-password"
@@ -279,7 +279,7 @@ export default function SettingsPage() {
                           disabled={isChangingPassword}
                         />
                       </div>
-                      <div className="space-y-2">
+                      <div className="space-y-1.5">
                         <Label htmlFor="confirm-password">
                           新しいパスワード（確認）
                         </Label>

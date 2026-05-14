@@ -67,8 +67,8 @@ export function GroupEditDialog({ open, onOpenChange, group, onSave, isLoading =
         </ResponsiveDialogHeader>
 
         <form onSubmit={handleSubmit} className="flex flex-col flex-1 min-h-0">
-          <ResponsiveDialogBody className="px-6 py-4 space-y-6">
-            <div className="space-y-2">
+          <ResponsiveDialogBody className="space-y-6">
+            <div className="space-y-1.5">
               <Label htmlFor="group-name">グループ名</Label>
               <Input
                 id="group-name"
@@ -81,7 +81,7 @@ export function GroupEditDialog({ open, onOpenChange, group, onSave, isLoading =
               {nameError && <p className="text-sm text-destructive">{nameError}</p>}
             </div>
 
-            <div className="space-y-2">
+            <div className="space-y-1.5">
               <Label>絵文字（任意）</Label>
               <div className="flex flex-wrap gap-1.5 mb-2">
                 <button
@@ -119,7 +119,7 @@ export function GroupEditDialog({ open, onOpenChange, group, onSave, isLoading =
               {emojiError && <p className="text-sm text-destructive">{emojiError}</p>}
             </div>
 
-            <div className="space-y-2">
+            <div className="space-y-1.5">
               <Label>カラー（任意）</Label>
               <ColorPicker value={color} onChange={setColor} />
             </div>
