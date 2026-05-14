@@ -157,17 +157,10 @@ export default function HomePage() {
     mutations.reorderTasks.mutate({ taskId, beforeTaskId, afterTaskId });
   };
 
-  const handleComplete = (id: string) => {
-    mutations.completeTask.mutate(id);
-  };
-
-  const handleUncomplete = (id: string) => {
-    mutations.uncompleteTask.mutate(id);
-  };
-
-  const handleOpen = (task: Task) => {
-    setEditingTask(task);
-  };
+  const handleComplete = (id: string) => mutations.completeTask.mutate(id);
+  const handleUncomplete = (id: string) => mutations.uncompleteTask.mutate(id);
+  const handleOpen = (task: Task) => setEditingTask(task);
+  const handleToggleFavorite = (id: string) => mutations.toggleFavorite.mutate(id);
 
   const handleEditTaskWithDetails = (data: TaskEditData) => {
     setEditingTask(null);
@@ -188,13 +181,7 @@ export default function HomePage() {
     }
   };
 
-  const handleUnskip = (id: string) => {
-    mutations.unskipTask.mutate(id);
-  };
-
-  const handleDelete = (id: string) => {
-    setDeletingTaskId(id);
-  };
+  const handleDelete = (id: string) => setDeletingTaskId(id);
 
   const handleDeleteConfirm = () => {
     if (deletingTaskId) {
@@ -203,16 +190,12 @@ export default function HomePage() {
     }
   };
 
-  const handleToggleFavorite = (id: string) => {
-    mutations.toggleFavorite.mutate(id);
-  };
-
   const taskHandlers = {
     onOpen: handleOpen,
     onComplete: handleComplete,
     onUncomplete: handleUncomplete,
     onSkip: handleSkip,
-    onUnskip: handleUnskip,
+    onUnskip: (id: string) => mutations.unskipTask.mutate(id),
     onDelete: handleDelete,
     onToggleFavorite: handleToggleFavorite,
   };
@@ -226,7 +209,6 @@ export default function HomePage() {
         setTaskInputOpen(true);
       }
     };
-
     document.addEventListener("keydown", handleKeyDown);
     return () => document.removeEventListener("keydown", handleKeyDown);
   }, []);
@@ -248,7 +230,6 @@ export default function HomePage() {
         handleCategoryFilterChange({ type: "category", categoryId });
       }
     };
-
     document.addEventListener("keydown", handleKeyDown);
     return () => document.removeEventListener("keydown", handleKeyDown);
   }, [categories, categoryFilter, taskInputOpen, editingTask, handleCategoryFilterChange]);
@@ -257,103 +238,38 @@ export default function HomePage() {
     if (!dateFilter) return [];
     const reasons: string[] = [];
     if (task.scheduledAt === dateFilter) reasons.push("予定日");
-    if (task.completedAt && formatDateToJST(new Date(task.completedAt)) === dateFilter) {
-      reasons.push("この日に完了");
-    }
-    if (task.skippedAt && formatDateToJST(new Date(task.skippedAt)) === dateFilter) {
-      reasons.push("この日にやらない");
-    }
-    if (formatDateToJST(new Date(task.createdAt)) === dateFilter && task.scheduledAt !== dateFilter) {
-      reasons.push("この日に作成");
-    }
+    if (task.completedAt && formatDateToJST(new Date(task.completedAt)) === dateFilter) reasons.push("この日に完了");
+    if (task.skippedAt && formatDateToJST(new Date(task.skippedAt)) === dateFilter) reasons.push("この日にやらない");
+    if (formatDateToJST(new Date(task.createdAt)) === dateFilter && task.scheduledAt !== dateFilter) reasons.push("この日に作成");
     return reasons;
   };
 
   const defaultCategoryId =
     categoryFilter.type === "category" && categoryFilter.categoryId !== "none" ? categoryFilter.categoryId : undefined;
 
-  if (isLoading) {
-    return (
-      <div className="flex-1 bg-background flex flex-col">
-        <div className="md:hidden sticky top-0 z-10">
-          <FilterArea categories={categories} categoriesLoading={categoriesLoading} />
-        </div>
-        <div className="flex flex-1 min-h-0">
-          <FilterSidebar
-            categories={categories}
-            categoriesLoading={categoriesLoading}
-            categoryFilter={categoryFilter}
-            onCategoryFilterChange={handleCategoryFilterChange}
-            viewMode={viewMode}
-            onViewModeChange={(mode) => updateSearchParams({ view: mode === "list" ? null : mode })}
-            listSort={listSort}
-            onListSortChange={setListSort}
-            scheduledSort={scheduledSort}
-            onScheduledSortChange={setScheduledSort}
-          />
-          <div className="flex-1 flex flex-col min-w-0">
-            <div className="flex-1 px-4 pt-2 pb-20 md:pb-4">
-              <div className="rounded-lg border border-border overflow-hidden bg-card">
-                {[0, 1, 2, 3].map((i) => (
-                  <div key={i}>
-                    {i > 0 && <div className="border-t border-border" />}
-                    <div className="flex p-3 gap-3">
-                      <div className="h-4 w-4 rounded bg-muted animate-pulse mt-0.5 shrink-0" />
-                      <div className="flex-1 min-w-0 space-y-2">
-                        <div className="flex items-center gap-2">
-                          <div className="h-4 rounded bg-muted animate-pulse" style={{ width: `${[55, 72, 40, 63][i]}%` }} />
-                          <div className="h-3 w-8 rounded bg-muted animate-pulse ml-auto shrink-0" />
-                          <div className="h-6 w-6 rounded bg-muted animate-pulse shrink-0" />
-                        </div>
-                        {i % 2 === 0 && <div className="h-3 w-20 rounded-full bg-muted animate-pulse" />}
-                      </div>
-                    </div>
-                  </div>
-                ))}
-              </div>
-            </div>
-            <TaskFab onClick={() => setTaskInputOpen(true)} />
-          </div>
-        </div>
+  const sidebarProps = {
+    categories,
+    categoriesLoading,
+    categoryFilter,
+    onCategoryFilterChange: handleCategoryFilterChange,
+    viewMode,
+    onViewModeChange: (mode: ViewMode) => updateSearchParams({ view: mode === "list" ? null : mode }),
+    listSort,
+    onListSortChange: setListSort,
+    scheduledSort,
+    onScheduledSortChange: setScheduledSort,
+  };
 
-        <FilterFab onClick={() => setFilterSheetOpen(true)} activeFilterCount={countActiveFilters(filterValues)} />
-
-        <FilterBottomSheet
-          open={filterSheetOpen}
-          onClose={() => setFilterSheetOpen(false)}
-          viewMode={viewMode}
-          onViewModeChange={(mode) => updateSearchParams({ view: mode === "list" ? null : mode })}
-          listSort={listSort}
-          onListSortChange={setListSort}
-          scheduledSort={scheduledSort}
-          onScheduledSortChange={setScheduledSort}
-        />
-
-        <TaskInputModal
-          key={taskInputOpen ? "task-input-open" : "task-input-closed"}
-          open={taskInputOpen}
-          onOpenChange={setTaskInputOpen}
-          onSubmit={handleCreateTask}
-          categories={categories}
-          groups={groups}
-          defaultCategoryId={defaultCategoryId}
-          isLoading={mutations.createTask.isPending}
-        />
-      </div>
-    );
-  }
-
-  if (error) {
-    return (
-      <div className="flex-1 bg-background">
-        <div className="flex items-center justify-center h-screen">
-          <div className="text-destructive">エラーが発生しました: {error.message}</div>
-        </div>
-      </div>
-    );
-  }
-
-  const hasNoTasks = sortedTasks.length === 0;
+  const bottomSheetProps = {
+    open: filterSheetOpen,
+    onClose: () => setFilterSheetOpen(false),
+    viewMode,
+    onViewModeChange: (mode: ViewMode) => updateSearchParams({ view: mode === "list" ? null : mode }),
+    listSort,
+    onListSortChange: setListSort,
+    scheduledSort,
+    onScheduledSortChange: setScheduledSort,
+  };
 
   return (
     <div className="flex-1 bg-background flex flex-col">
@@ -362,22 +278,34 @@ export default function HomePage() {
       </div>
 
       <div className="flex flex-1 min-h-0">
-        <FilterSidebar
-          categories={categories}
-          categoriesLoading={categoriesLoading}
-          categoryFilter={categoryFilter}
-          onCategoryFilterChange={handleCategoryFilterChange}
-          viewMode={viewMode}
-          onViewModeChange={(mode) => updateSearchParams({ view: mode === "list" ? null : mode })}
-          listSort={listSort}
-          onListSortChange={setListSort}
-          scheduledSort={scheduledSort}
-          onScheduledSortChange={setScheduledSort}
-        />
+        <FilterSidebar {...sidebarProps} />
         <div className="flex-1 flex flex-col min-w-0">
           <main className="flex-1">
             <div className="px-4 pt-2 pb-20 md:pb-4">
-              {hasNoTasks ? (
+              {isLoading ? (
+                <div className="rounded-lg border border-border overflow-hidden bg-card">
+                  {[0, 1, 2, 3].map((i) => (
+                    <div key={i}>
+                      {i > 0 && <div className="border-t border-border" />}
+                      <div className="flex p-3 gap-3">
+                        <div className="h-4 w-4 rounded bg-muted animate-pulse mt-0.5 shrink-0" />
+                        <div className="flex-1 min-w-0 space-y-2">
+                          <div className="flex items-center gap-2">
+                            <div className="h-4 rounded bg-muted animate-pulse" style={{ width: `${[55, 72, 40, 63][i]}%` }} />
+                            <div className="h-3 w-8 rounded bg-muted animate-pulse ml-auto shrink-0" />
+                            <div className="h-6 w-6 rounded bg-muted animate-pulse shrink-0" />
+                          </div>
+                          {i % 2 === 0 && <div className="h-3 w-20 rounded-full bg-muted animate-pulse" />}
+                        </div>
+                      </div>
+                    </div>
+                  ))}
+                </div>
+              ) : error ? (
+                <div className="flex items-center justify-center h-48">
+                  <div className="text-destructive">エラーが発生しました: {error.message}</div>
+                </div>
+              ) : sortedTasks.length === 0 ? (
                 <div className="text-center py-12 text-muted-foreground">
                   {hasActiveFilters ? (
                     <p>条件に一致するタスクがありません</p>
@@ -410,17 +338,7 @@ export default function HomePage() {
       </div>
 
       <FilterFab onClick={() => setFilterSheetOpen(true)} activeFilterCount={countActiveFilters(filterValues)} />
-
-      <FilterBottomSheet
-        open={filterSheetOpen}
-        onClose={() => setFilterSheetOpen(false)}
-        viewMode={viewMode}
-        onViewModeChange={(mode) => updateSearchParams({ view: mode === "list" ? null : mode })}
-        listSort={listSort}
-        onListSortChange={setListSort}
-        scheduledSort={scheduledSort}
-        onScheduledSortChange={setScheduledSort}
-      />
+      <FilterBottomSheet {...bottomSheetProps} />
 
       <TaskInputModal
         key={taskInputOpen ? "task-input-open" : "task-input-closed"}
