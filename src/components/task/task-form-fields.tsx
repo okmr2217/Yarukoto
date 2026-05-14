@@ -62,7 +62,7 @@ export function TaskFormFields({
   };
 
   return (
-    <div className="overflow-y-auto p-4 space-y-5">
+    <div className="space-y-5">
       {/* タスク名 */}
       <div>
         <label className="text-sm font-medium block mb-1">タスク名</label>

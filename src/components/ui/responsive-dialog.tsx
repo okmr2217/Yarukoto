@@ -70,17 +70,23 @@ const ResponsiveDialogContent = ({ className, children }: ResponsiveDialogProps)
   return <DrawerContent className={className}>{children}</DrawerContent>;
 };
 
-const ResponsiveDialogHeader = ({ className, children, ...props }: Omit<ResponsiveDialogProps, "asChild">) => {
+const ResponsiveDialogDescription = ({ className, children, ...props }: ResponsiveDialogProps) => {
+  const isDesktop = useMediaQuery(SM);
+  const Component = isDesktop ? DialogDescription : DrawerDescription;
+  return <Component className={className} {...props}>{children}</Component>;
+};
+
+const ResponsiveDialogHeader = ({ className, children, ...props }: ResponsiveDialogProps) => {
   const isDesktop = useMediaQuery(SM);
   if (isDesktop) {
     return (
-      <DialogHeader className={cn("px-6 py-4 border-b text-left shrink-0", className)} {...props}>
+      <DialogHeader className={cn("p-6 text-left", className)} {...props}>
         {children}
       </DialogHeader>
     );
   }
   return (
-    <DrawerHeader className={cn("border-b shrink-0", className)} {...props}>
+    <DrawerHeader className={cn("text-left", className)} {...props}>
       {children}
     </DrawerHeader>
   );
@@ -92,31 +98,25 @@ const ResponsiveDialogTitle = ({ className, children, ...props }: ResponsiveDial
   return <Component className={className} {...props}>{children}</Component>;
 };
 
-const ResponsiveDialogDescription = ({ className, children, ...props }: ResponsiveDialogProps) => {
-  const isDesktop = useMediaQuery(SM);
-  const Component = isDesktop ? DialogDescription : DrawerDescription;
-  return <Component className={className} {...props}>{children}</Component>;
-};
-
 const ResponsiveDialogBody = ({ className, children, ...props }: Omit<ResponsiveDialogProps, "asChild">) => {
   return (
-    <div className={cn("flex-1 overflow-y-auto", className)} {...props}>
+    <div className={cn("px-4 md:px-6", className)} {...props}>
       {children}
     </div>
   );
 };
 
-const ResponsiveDialogFooter = ({ className, children, ...props }: Omit<ResponsiveDialogProps, "asChild">) => {
+const ResponsiveDialogFooter = ({ className, children, ...props }: ResponsiveDialogProps) => {
   const isDesktop = useMediaQuery(SM);
   if (isDesktop) {
     return (
-      <DialogFooter className={cn("px-6 py-4 border-t shrink-0", className)} {...props}>
+      <DialogFooter className={cn("p-6", className)} {...props}>
         {children}
       </DialogFooter>
     );
   }
   return (
-    <DrawerFooter className={cn("border-t shrink-0", className)} {...props}>
+    <DrawerFooter className={className} {...props}>
       {children}
     </DrawerFooter>
   );
