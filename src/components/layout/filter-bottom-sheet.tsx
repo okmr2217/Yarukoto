@@ -1,23 +1,12 @@
 "use client";
 
-import { useRef, useState } from "react";
-import { useRouter, useSearchParams } from "next/navigation";
-import { Search, X, Star, ChevronLeft, ChevronRight } from "lucide-react";
-import { Input } from "@/components/ui/input";
-import { getTodayInJST, addDaysJST } from "@/lib/dateUtils";
-import { cn } from "@/lib/utils";
+import { X } from "lucide-react";
 import { useAllTasks } from "@/hooks";
+import { useFilterSearchParams } from "@/hooks/use-filter-search-params";
+import { useDebouncedKeyword } from "@/hooks/use-debounced-keyword";
 import { FilterSectionInfo } from "./filter-section-info";
-import {
-  type StatusFilter,
-  type ViewMode,
-  type ListSortOrder,
-  type ScheduledSortOrder,
-  STATUS_OPTIONS,
-  LIST_SORT_OPTIONS,
-  SCHEDULED_SORT_OPTIONS,
-  KEYWORD_DEBOUNCE_MS,
-} from "@/lib/filter-types";
+import { FilterStatusChips, FilterViewModeToggle, FilterDateNav, FilterFavoriteToggle, FilterSortChips, FilterKeywordInput } from "./filter-controls";
+import type { StatusFilter, ViewMode, ListSortOrder, ScheduledSortOrder } from "@/lib/filter-types";
 
 export type FilterValues = {
   keyword: string;
@@ -47,27 +36,11 @@ interface FilterBottomSheetProps {
 }
 
 export function FilterBottomSheet({ open, onClose, viewMode, onViewModeChange, listSort, onListSortChange, scheduledSort, onScheduledSortChange }: FilterBottomSheetProps) {
-  const router = useRouter();
-  const searchParams = useSearchParams();
-  const today = getTodayInJST();
-
-  const dateFilter = searchParams.get("date") || "";
-  const keyword = searchParams.get("keyword") || "";
-  const statusFilter = (searchParams.get("status") || "pending") as StatusFilter;
-  const favoriteFilter = searchParams.get("favorite") === "true";
+  const { dateFilter, keyword, statusFilter, favoriteFilter, updateSearchParams, today } = useFilterSearchParams();
 
   const hasActiveFilters = !!(dateFilter || keyword || statusFilter !== "pending" || favoriteFilter);
 
-  const [localKeyword, setLocalKeyword] = useState(keyword);
-  const [syncedKeyword, setSyncedKeyword] = useState(keyword);
-  const isComposingRef = useRef(false);
-  const debounceTimerRef = useRef<ReturnType<typeof setTimeout> | null>(null);
-
-
-  if (keyword !== syncedKeyword) {
-    setSyncedKeyword(keyword);
-    setLocalKeyword(keyword);
-  }
+  const { localKeyword, isComposingRef, handleKeywordChange, handleCompositionEnd, handleKeywordClear } = useDebouncedKeyword(keyword, updateSearchParams);
 
   const { data: allFilteredTasks } = useAllTasks({
     date: dateFilter || undefined,
@@ -83,47 +56,9 @@ export function FilterBottomSheet({ open, onClose, viewMode, onViewModeChange, l
     return { all: allFilteredTasks.length, pending, completed, skipped };
   })();
 
-  const updateSearchParams = (updates: Record<string, string | null>) => {
-    const params = new URLSearchParams(searchParams.toString());
-    for (const [key, value] of Object.entries(updates)) {
-      if (value === null || value === "") {
-        params.delete(key);
-      } else {
-        params.set(key, value);
-      }
-    }
-    const qs = params.toString();
-    router.push(qs ? `/?${qs}` : "/");
-  };
-
-  const commitKeyword = (value: string) => {
-    if (debounceTimerRef.current) clearTimeout(debounceTimerRef.current);
-    debounceTimerRef.current = setTimeout(() => {
-      updateSearchParams({ keyword: value || null });
-    }, KEYWORD_DEBOUNCE_MS);
-  };
-
-  const handleKeywordChange = (e: React.ChangeEvent<HTMLInputElement>) => {
-    const value = e.target.value;
-    setLocalKeyword(value);
-    if (!isComposingRef.current) commitKeyword(value);
-  };
-
-  const handleCompositionEnd = (e: React.CompositionEvent<HTMLInputElement>) => {
-    isComposingRef.current = false;
-    commitKeyword(e.currentTarget.value);
-  };
-
-  const handleKeywordClear = () => {
-    if (debounceTimerRef.current) clearTimeout(debounceTimerRef.current);
-    setLocalKeyword("");
-    updateSearchParams({ keyword: null });
-  };
-
   const handleClearFilters = () => {
-    if (debounceTimerRef.current) clearTimeout(debounceTimerRef.current);
-    setLocalKeyword("");
-    updateSearchParams({ keyword: null, status: null, favorite: null, date: null });
+    handleKeywordClear();
+    updateSearchParams({ status: null, favorite: null, date: null });
   };
 
   if (!open) return null;
@@ -144,7 +79,6 @@ export function FilterBottomSheet({ open, onClose, viewMode, onViewModeChange, l
         </div>
 
         <div className="px-4 pb-2">
-          {/* ヘッダー */}
           <div className="flex items-center justify-between mb-4">
             <span className="text-sm font-semibold">絞り込み</span>
             {hasActiveFilters && (
@@ -163,199 +97,58 @@ export function FilterBottomSheet({ open, onClose, viewMode, onViewModeChange, l
             {/* キーワード */}
             <section>
               <SectionLabel tooltip="タスク名・メモに含まれる文字列でリアルタイムに絞り込みます。他のフィルターと組み合わせて使えます。">キーワード</SectionLabel>
-              <div className="relative">
-                <Search className="absolute left-2.5 top-1/2 -translate-y-1/2 size-3 text-muted-foreground" />
-                <Input
-                  type="text"
-                  placeholder="キーワード..."
-                  value={localKeyword}
-                  onChange={handleKeywordChange}
-                  onCompositionStart={() => { isComposingRef.current = true; }}
-                  onCompositionEnd={handleCompositionEnd}
-                  className="pl-8 pr-7 h-8 text-xs focus-visible:ring-1"
-                />
-                {localKeyword && (
-                  <button
-                    type="button"
-                    onClick={handleKeywordClear}
-                    className="absolute right-2.5 top-1/2 -translate-y-1/2 text-muted-foreground hover:text-foreground"
-                  >
-                    <X className="size-3.5" />
-                  </button>
-                )}
-              </div>
+              <FilterKeywordInput
+                localKeyword={localKeyword}
+                isComposingRef={isComposingRef}
+                onKeywordChange={handleKeywordChange}
+                onCompositionEnd={handleCompositionEnd}
+                onKeywordClear={handleKeywordClear}
+              />
             </section>
 
             {/* ステータス */}
             <section>
               <SectionLabel tooltip="タスクの進捗状態で絞り込みます。1つだけ選択できます。デフォルトは「未完了」で、完了済みやスキップしたタスクの確認にも使えます。">ステータス</SectionLabel>
-              <div className="flex rounded-md border border-input overflow-hidden divide-x divide-border text-xs bg-background">
-                {STATUS_OPTIONS.map((option) => {
-                  const count = statusCounts[option.value];
-                  const active = statusFilter === option.value;
-                  return (
-                    <button
-                      key={option.value}
-                      type="button"
-                      className={cn(
-                        "flex-1 flex flex-col items-center justify-center py-1 px-0.5 min-h-[2rem] transition-colors",
-                        active ? "bg-primary text-primary-foreground font-medium" : "text-muted-foreground hover:bg-muted",
-                      )}
-                      onClick={() => updateSearchParams({ status: option.value === "pending" ? null : option.value })}
-                    >
-                      <span className="whitespace-nowrap leading-none">{option.label}</span>
-                      {allFilteredTasks !== undefined && (
-                        <span className={cn("tabular-nums leading-none mt-0.5 text-[10px]", active ? "opacity-70" : "opacity-50")}>{count}</span>
-                      )}
-                    </button>
-                  );
-                })}
-              </div>
+              <FilterStatusChips
+                statusFilter={statusFilter}
+                statusCounts={statusCounts}
+                allFilteredTasks={allFilteredTasks}
+                onUpdate={updateSearchParams}
+              />
             </section>
 
             {/* ビュー */}
             <section>
               <SectionLabel tooltip="表示形式を切り替えます。「一覧」は日付セクション別のリスト表示、「予定」は予定日が設定されたタスクを日付順に表示します。">ビュー</SectionLabel>
-              <div className="flex rounded-md border border-input overflow-hidden divide-x divide-border text-xs bg-background">
-                <button
-                  type="button"
-                  className={cn(
-                    "flex-1 flex items-center justify-center py-1.5 transition-colors",
-                    viewMode === "list" ? "bg-primary text-primary-foreground font-medium" : "text-muted-foreground hover:bg-muted",
-                  )}
-                  onClick={() => onViewModeChange("list")}
-                >
-                  一覧
-                </button>
-                <button
-                  type="button"
-                  className={cn(
-                    "flex-1 flex items-center justify-center py-1.5 transition-colors",
-                    viewMode === "schedule" ? "bg-primary text-primary-foreground font-medium" : "text-muted-foreground hover:bg-muted",
-                  )}
-                  onClick={() => onViewModeChange("schedule")}
-                >
-                  予定
-                </button>
-              </div>
+              <FilterViewModeToggle viewMode={viewMode} onViewModeChange={onViewModeChange} />
             </section>
 
             {/* 日付 */}
             <section>
               <SectionLabel tooltip="特定の日付のタスクだけを表示します。未設定の場合は全期間が対象。前後の矢印ボタンで1日ずつ移動できます。">日付</SectionLabel>
-              <div className="flex items-center gap-1">
-                <button
-                  type="button"
-                  onClick={() => updateSearchParams({ date: addDaysJST(dateFilter || today, -1) })}
-                  className="shrink-0 h-8 w-7 flex items-center justify-center rounded-md border border-input bg-background text-muted-foreground hover:text-foreground hover:bg-muted transition-colors"
-                  aria-label="前日"
-                >
-                  <ChevronLeft className="size-3.5" />
-                </button>
-                <Input
-                  type="date"
-                  value={dateFilter}
-                  onChange={(e) => updateSearchParams({ date: e.target.value || null })}
-                  className="h-8 text-xs flex-1 min-w-0"
-                />
-                <button
-                  type="button"
-                  onClick={() => updateSearchParams({ date: addDaysJST(dateFilter || today, 1) })}
-                  className="shrink-0 h-8 w-7 flex items-center justify-center rounded-md border border-input bg-background text-muted-foreground hover:text-foreground hover:bg-muted transition-colors"
-                  aria-label="翌日"
-                >
-                  <ChevronRight className="size-3.5" />
-                </button>
-                <button
-                  type="button"
-                  className={cn(
-                    "shrink-0 h-8 px-2 text-xs rounded-md border border-input bg-background transition-colors",
-                    dateFilter === today
-                      ? "text-muted-foreground/40 cursor-default"
-                      : "text-muted-foreground hover:bg-muted hover:text-foreground",
-                  )}
-                  onClick={() => updateSearchParams({ date: today })}
-                  disabled={dateFilter === today}
-                >
-                  今日
-                </button>
-                {dateFilter && (
-                  <button
-                    type="button"
-                    onClick={() => updateSearchParams({ date: null })}
-                    className="shrink-0 text-muted-foreground hover:text-foreground"
-                    aria-label="日付フィルタを解除"
-                  >
-                    <X className="size-3.5" />
-                  </button>
-                )}
-              </div>
+              <FilterDateNav dateFilter={dateFilter} today={today} onUpdate={updateSearchParams} />
             </section>
 
             {/* お気に入り */}
             <section>
               <SectionLabel tooltip="★マークをつけたタスクだけを表示します。重要なタスクをすばやく確認したいときに使います。">お気に入り</SectionLabel>
-              <button
-                type="button"
-                onClick={() => updateSearchParams({ favorite: favoriteFilter ? null : "true" })}
-                className={cn(
-                  "w-full flex items-center gap-2 px-2.5 h-8 rounded-md border text-xs transition-colors",
-                  favoriteFilter
-                    ? "bg-yellow-50 border-yellow-300 text-yellow-700 font-medium dark:bg-yellow-950/30 dark:border-yellow-700 dark:text-yellow-400"
-                    : "border-input text-muted-foreground hover:bg-muted hover:text-foreground",
-                )}
-              >
-                <Star
-                  className={cn("size-3.5 shrink-0", favoriteFilter ? "text-yellow-500" : "text-muted-foreground/40")}
-                  fill={favoriteFilter ? "currentColor" : "none"}
-                />
-                お気に入りのみ
-                {allFilteredTasks !== undefined && (
-                  <span className={cn("ml-auto tabular-nums text-xs", favoriteFilter ? "opacity-70" : "opacity-50")}>
-                    {allFilteredTasks.filter((t) => t.isFavorite).length}
-                  </span>
-                )}
-              </button>
+              <FilterFavoriteToggle
+                favoriteFilter={favoriteFilter}
+                favoriteCount={allFilteredTasks?.filter((t) => t.isFavorite).length}
+                onUpdate={updateSearchParams}
+              />
             </section>
 
             {/* 並び順 */}
             <section>
               <SectionLabel tooltip="タスクの並び順を変更します。「表示順」はドラッグ＆ドロップで設定したカスタム順、「作成日時」は新しい順に並びます。">並び順</SectionLabel>
-              <div className="grid grid-cols-2 gap-1">
-                {viewMode === "list"
-                  ? LIST_SORT_OPTIONS.map((option) => {
-                      const active = listSort === option.value;
-                      return (
-                        <button
-                          key={option.value}
-                          type="button"
-                          className={cn(
-                            "flex items-center justify-center px-2 py-1.5 rounded-md text-xs transition-colors border",
-                            active ? "bg-primary text-primary-foreground font-medium border-primary" : "border-input text-muted-foreground hover:bg-muted hover:text-foreground",
-                          )}
-                          onClick={() => onListSortChange(option.value)}
-                        >
-                          {option.label}
-                        </button>
-                      );
-                    })
-                  : SCHEDULED_SORT_OPTIONS.map((option) => {
-                      const active = scheduledSort === option.value;
-                      return (
-                        <button
-                          key={option.value}
-                          type="button"
-                          className={cn(
-                            "flex items-center justify-center px-2 py-1.5 rounded-md text-xs transition-colors border",
-                            active ? "bg-primary text-primary-foreground font-medium border-primary" : "border-input text-muted-foreground hover:bg-muted hover:text-foreground",
-                          )}
-                          onClick={() => onScheduledSortChange(option.value)}
-                        >
-                          {option.label}
-                        </button>
-                      );
-                    })}
-              </div>
+              <FilterSortChips
+                viewMode={viewMode}
+                listSort={listSort}
+                scheduledSort={scheduledSort}
+                onListSortChange={onListSortChange}
+                onScheduledSortChange={onScheduledSortChange}
+              />
             </section>
           </div>
         </div>
