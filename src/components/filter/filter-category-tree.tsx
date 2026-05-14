@@ -5,6 +5,7 @@ import { cn } from "@/lib/utils";
 import { useGroups, useGroupExpanded } from "@/hooks";
 import type { Category } from "@/types";
 import { type CategoryFilter, UNGROUPED_VIRTUAL_ID } from "@/lib/category-filter";
+import { categoryTreeItemStyle } from "@/lib/category-color";
 
 interface FilterCategoryTreeProps {
   categories: Category[];
@@ -67,7 +68,7 @@ export function FilterCategoryTree({
         )}
         style={
           isCatSelected && catColor
-            ? { backgroundColor: `${catColor}20`, borderLeft: `3px solid ${catColor}`, paddingLeft: "calc(6px - 3px)" }
+            ? { ...categoryTreeItemStyle(catColor), paddingLeft: "calc(6px - 3px)" }
             : {}
         }
       >
@@ -96,7 +97,7 @@ export function FilterCategoryTree({
               className="flex items-center w-full rounded-md text-[11px] overflow-hidden"
               style={
                 isGroupSelected && groupColor
-                  ? { backgroundColor: `${groupColor}26`, borderLeft: `3px solid ${groupColor}`, paddingLeft: "calc(0.375rem - 3px)" }
+                  ? { ...categoryTreeItemStyle(groupColor), paddingLeft: "calc(0.375rem - 3px)" }
                   : {}
               }
             >
