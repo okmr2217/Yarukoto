@@ -18,16 +18,7 @@ import {
   useGroups,
   useRecentCategories,
 } from "@/hooks";
-import {
-  AlertDialog,
-  AlertDialogAction,
-  AlertDialogCancel,
-  AlertDialogContent,
-  AlertDialogDescription,
-  AlertDialogFooter,
-  AlertDialogHeader,
-  AlertDialogTitle,
-} from "@/components/ui/alert-dialog";
+import { DeleteConfirmDialog } from "@/components/ui/delete-confirm-dialog";
 import { parseCategoryParam, categoryFilterToParam, type CategoryFilter, UNGROUPED_VIRTUAL_ID } from "@/lib/category-filter";
 import type { Task } from "@/types";
 import { formatDateToJST } from "@/lib/dateUtils";
@@ -369,20 +360,13 @@ export default function HomePage() {
         isLoading={mutations.skipTask.isPending}
       />
 
-      <AlertDialog open={deletingTaskId !== null} onOpenChange={(open) => !open && setDeletingTaskId(null)}>
-        <AlertDialogContent>
-          <AlertDialogHeader>
-            <AlertDialogTitle>タスクを削除しますか？</AlertDialogTitle>
-            <AlertDialogDescription>この操作は元に戻せません。</AlertDialogDescription>
-          </AlertDialogHeader>
-          <AlertDialogFooter>
-            <AlertDialogCancel>キャンセル</AlertDialogCancel>
-            <AlertDialogAction onClick={handleDeleteConfirm} className="bg-destructive text-destructive-foreground hover:bg-destructive/90">
-              削除
-            </AlertDialogAction>
-          </AlertDialogFooter>
-        </AlertDialogContent>
-      </AlertDialog>
+      <DeleteConfirmDialog
+        open={deletingTaskId !== null}
+        onOpenChange={(open) => !open && setDeletingTaskId(null)}
+        title="タスクを削除しますか？"
+        description="この操作は元に戻せません。"
+        onConfirm={handleDeleteConfirm}
+      />
     </div>
   );
 }

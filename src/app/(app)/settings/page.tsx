@@ -15,17 +15,7 @@ import {
 import { Button } from "@/components/ui/button";
 import { Label } from "@/components/ui/label";
 import { Input } from "@/components/ui/input";
-import {
-  AlertDialog,
-  AlertDialogAction,
-  AlertDialogCancel,
-  AlertDialogContent,
-  AlertDialogDescription,
-  AlertDialogFooter,
-  AlertDialogHeader,
-  AlertDialogTitle,
-  AlertDialogTrigger,
-} from "@/components/ui/alert-dialog";
+import { DeleteConfirmDialog } from "@/components/ui/delete-confirm-dialog";
 import {
   Dialog,
   DialogContent,
@@ -46,6 +36,7 @@ export default function SettingsPage() {
   const [isLoggingOut, setIsLoggingOut] = useState(false);
   const [isDeleting, startDeleteTransition] = useTransition();
   const [deleteError, setDeleteError] = useState<string | null>(null);
+  const [isDeleteAlertOpen, setIsDeleteAlertOpen] = useState(false);
 
   // Email change states
   const [isEmailDialogOpen, setIsEmailDialogOpen] = useState(false);
@@ -396,44 +387,29 @@ export default function SettingsPage() {
                 </span>
               </button>
 
-              <AlertDialog>
-                <AlertDialogTrigger asChild>
-                  <button className="w-full flex items-center justify-between p-4 text-left hover:bg-accent transition-colors">
-                    <div className="flex items-center gap-3">
-                      <Trash2 className="h-5 w-5 text-destructive" />
-                      <span className="text-sm font-medium text-destructive">
-                        アカウント削除
-                      </span>
-                    </div>
-                    <span className="text-xs px-2 py-0.5 bg-destructive/10 text-destructive rounded">
-                      危険
-                    </span>
-                  </button>
-                </AlertDialogTrigger>
-                <AlertDialogContent>
-                  <AlertDialogHeader>
-                    <AlertDialogTitle>
-                      アカウントを削除しますか？
-                    </AlertDialogTitle>
-                    <AlertDialogDescription>
-                      この操作は取り消せません。すべてのタスク、カテゴリ、アカウント情報が完全に削除されます。
-                    </AlertDialogDescription>
-                  </AlertDialogHeader>
-                  {deleteError && (
-                    <p className="text-sm text-destructive">{deleteError}</p>
-                  )}
-                  <AlertDialogFooter>
-                    <AlertDialogCancel>キャンセル</AlertDialogCancel>
-                    <AlertDialogAction
-                      onClick={handleDeleteAccount}
-                      disabled={isDeleting}
-                      className="bg-destructive text-destructive-foreground hover:bg-destructive/90"
-                    >
-                      {isDeleting ? "削除中..." : "削除する"}
-                    </AlertDialogAction>
-                  </AlertDialogFooter>
-                </AlertDialogContent>
-              </AlertDialog>
+              <button
+                onClick={() => { setDeleteError(null); setIsDeleteAlertOpen(true); }}
+                className="w-full flex items-center justify-between p-4 text-left hover:bg-accent transition-colors"
+              >
+                <div className="flex items-center gap-3">
+                  <Trash2 className="h-5 w-5 text-destructive" />
+                  <span className="text-sm font-medium text-destructive">
+                    アカウント削除
+                  </span>
+                </div>
+                <span className="text-xs px-2 py-0.5 bg-destructive/10 text-destructive rounded">
+                  危険
+                </span>
+              </button>
+              <DeleteConfirmDialog
+                open={isDeleteAlertOpen}
+                onOpenChange={(open) => { if (!open) setDeleteError(null); setIsDeleteAlertOpen(open); }}
+                title="アカウントを削除しますか？"
+                description="この操作は取り消せません。すべてのタスク、カテゴリ、アカウント情報が完全に削除されます。"
+                onConfirm={handleDeleteAccount}
+                isLoading={isDeleting}
+                errorMessage={deleteError ?? undefined}
+              />
             </div>
           </section>
 

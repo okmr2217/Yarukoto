@@ -20,16 +20,7 @@ import {
 } from "@dnd-kit/sortable";
 import { CSS } from "@dnd-kit/utilities";
 import { useQueryClient } from "@tanstack/react-query";
-import {
-  AlertDialog,
-  AlertDialogAction,
-  AlertDialogCancel,
-  AlertDialogContent,
-  AlertDialogDescription,
-  AlertDialogFooter,
-  AlertDialogHeader,
-  AlertDialogTitle,
-} from "@/components/ui/alert-dialog";
+import { DeleteConfirmDialog } from "@/components/ui/delete-confirm-dialog";
 import { Button } from "@/components/ui/button";
 import { CategoryEditDialog, CategoryDetailDialog } from "@/components/category";
 import { GroupEditDialog, GroupDetailDialog } from "@/components/group";
@@ -490,22 +481,14 @@ export default function CategoriesPage() {
         isLoading={createCategory.isPending || updateCategory.isPending}
       />
 
-      <AlertDialog open={!!deletingCategory} onOpenChange={(open) => !open && setDeletingCategory(null)}>
-        <AlertDialogContent>
-          <AlertDialogHeader>
-            <AlertDialogTitle>カテゴリを削除しますか？</AlertDialogTitle>
-            <AlertDialogDescription>
-              「{deletingCategory?.name}」を削除します。このカテゴリに紐づいているタスクはカテゴリなしになります。
-            </AlertDialogDescription>
-          </AlertDialogHeader>
-          <AlertDialogFooter>
-            <AlertDialogCancel>キャンセル</AlertDialogCancel>
-            <AlertDialogAction onClick={handleDeleteCategory} disabled={deleteCategory.isPending} className="bg-destructive text-destructive-foreground hover:bg-destructive/90">
-              {deleteCategory.isPending ? "削除中..." : "削除する"}
-            </AlertDialogAction>
-          </AlertDialogFooter>
-        </AlertDialogContent>
-      </AlertDialog>
+      <DeleteConfirmDialog
+        open={!!deletingCategory}
+        onOpenChange={(open) => !open && setDeletingCategory(null)}
+        title="カテゴリを削除しますか？"
+        description={`「${deletingCategory?.name}」を削除します。このカテゴリに紐づいているタスクはカテゴリなしになります。`}
+        onConfirm={handleDeleteCategory}
+        isLoading={deleteCategory.isPending}
+      />
 
       <GroupDetailDialog
         key={detailGroup?.id ? `detail-${detailGroup.id}` : undefined}
@@ -526,22 +509,14 @@ export default function CategoriesPage() {
         isLoading={createGroup.isPending || updateGroup.isPending}
       />
 
-      <AlertDialog open={!!deletingGroup} onOpenChange={(open) => !open && setDeletingGroup(null)}>
-        <AlertDialogContent>
-          <AlertDialogHeader>
-            <AlertDialogTitle>グループを削除しますか？</AlertDialogTitle>
-            <AlertDialogDescription>
-              「{deletingGroup?.name}」を削除します。このグループに紐づいているカテゴリはグループなしになります。
-            </AlertDialogDescription>
-          </AlertDialogHeader>
-          <AlertDialogFooter>
-            <AlertDialogCancel>キャンセル</AlertDialogCancel>
-            <AlertDialogAction onClick={handleDeleteGroup} disabled={deleteGroup.isPending} className="bg-destructive text-destructive-foreground hover:bg-destructive/90">
-              {deleteGroup.isPending ? "削除中..." : "削除する"}
-            </AlertDialogAction>
-          </AlertDialogFooter>
-        </AlertDialogContent>
-      </AlertDialog>
+      <DeleteConfirmDialog
+        open={!!deletingGroup}
+        onOpenChange={(open) => !open && setDeletingGroup(null)}
+        title="グループを削除しますか？"
+        description={`「${deletingGroup?.name}」を削除します。このグループに紐づいているカテゴリはグループなしになります。`}
+        onConfirm={handleDeleteGroup}
+        isLoading={deleteGroup.isPending}
+      />
     </div>
   );
 }
