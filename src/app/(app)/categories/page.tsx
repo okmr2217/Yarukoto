@@ -472,7 +472,7 @@ export default function CategoriesPage() {
       />
 
       <CategoryEditDialog
-        key={editingCategory?.id ?? "new"}
+        key={editingCategory?.id ?? "cat-new"}
         open={isEditDialogOpen}
         onOpenChange={setIsEditDialogOpen}
         category={editingCategory}
@@ -499,7 +499,7 @@ export default function CategoriesPage() {
       </AlertDialog>
 
       <GroupEditDialog
-        key={editingGroup?.id ?? "new"}
+        key={editingGroup?.id ?? "group-new"}
         open={isGroupDialogOpen}
         onOpenChange={setIsGroupDialogOpen}
         group={editingGroup}
