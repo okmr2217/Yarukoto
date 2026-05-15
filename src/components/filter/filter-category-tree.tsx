@@ -64,14 +64,16 @@ export function FilterCategoryTree({
         onClick={() => onCategoryFilterChange(isCatSelected ? { type: "all" } : { type: "category", categoryId: cat.id })}
         aria-pressed={isCatSelected}
         className={cn(
-          "flex items-center gap-1.5 w-full py-[3px] rounded-md text-[11px] transition-colors min-w-0 text-left",
-          isCatSelected ? "font-medium text-foreground" : "text-muted-foreground hover:bg-accent/40",
+          "flex items-center gap-1.5 w-full py-[3px] rounded-md text-[11px] transition-all min-w-0 text-left",
+          isCatSelected ? "font-medium text-foreground" : catColor ? "hover:opacity-90" : "text-muted-foreground hover:bg-accent/40",
           !isCatSelected && "px-1.5",
           indent && "pr-1.5",
         )}
         style={
           isCatSelected && catColor
             ? { ...categoryTreeItemStyle(catColor), paddingLeft: "calc(6px - 3px)" }
+            : catColor
+            ? { backgroundColor: `${catColor}20`, color: catColor }
             : {}
         }
       >
@@ -102,6 +104,8 @@ export function FilterCategoryTree({
               style={
                 isGroupSelected && groupColor
                   ? { ...categoryTreeItemStyle(groupColor), paddingLeft: "calc(0.375rem - 3px)" }
+                  : !isGroupSelected && groupColor
+                  ? { backgroundColor: `${groupColor}18` }
                   : {}
               }
             >
@@ -109,10 +113,11 @@ export function FilterCategoryTree({
                 type="button"
                 onClick={() => onCategoryFilterChange(isGroupSelected ? { type: "all" } : { type: "group", groupId: group.id })}
                 className={cn(
-                  "flex items-center gap-1.5 flex-1 py-[3px] transition-colors min-w-0",
-                  isGroupSelected ? "font-medium text-foreground" : "text-muted-foreground hover:bg-accent/40",
+                  "flex items-center gap-1.5 flex-1 py-[3px] transition-all min-w-0",
+                  isGroupSelected ? "font-medium text-foreground" : groupColor ? "hover:opacity-90" : "text-muted-foreground hover:bg-accent/40",
                   !isGroupSelected && "px-1.5",
                 )}
+                style={!isGroupSelected && groupColor ? { color: groupColor } : undefined}
               >
                 <span className="truncate flex-1">{group.name}</span>
                 {groupCount > 0 && <span className="text-[10px] tabular-nums shrink-0 opacity-70">{groupCount}</span>}

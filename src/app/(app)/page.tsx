@@ -2,7 +2,8 @@
 
 import { useState, useEffect, useCallback } from "react";
 import { useRouter, useSearchParams } from "next/navigation";
-import { FilterArea, FilterFab, FilterBottomSheet, FilterSidebar, type FilterValues } from "@/components/filter";
+import { FilterFab, FilterBottomSheet, FilterSidebar, DueDateAlertChip, type FilterValues } from "@/components/filter";
+import { MobileHeader } from "@/components/layout/mobile-header";
 import {
   TaskSection,
   TaskInputModal,
@@ -267,13 +268,10 @@ export default function HomePage() {
 
   return (
     <div className="flex-1 bg-background flex flex-col">
-      <div className="md:hidden sticky top-0 z-10">
-        <FilterArea categories={categories} categoriesLoading={categoriesLoading} />
-      </div>
-
       <div className="flex flex-1 min-h-0">
         <FilterSidebar {...sidebarProps} />
         <div className="flex-1 flex flex-col min-w-0">
+          <MobileHeader title="タスク" actions={<DueDateAlertChip />} />
           <main className="flex-1">
             <div className="px-4 pt-2 pb-20 md:pb-4">
               {isLoading ? (
