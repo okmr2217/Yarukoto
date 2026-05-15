@@ -1,5 +1,6 @@
 export { FilterSidebar } from "./filter-sidebar";
-export { FilterBottomSheet, type FilterValues } from "./filter-bottom-sheet";
+export { FilterBottomSheet } from "./filter-bottom-sheet";
+export type { FilterValues } from "@/lib/filter-types";
 export { FilterArea } from "./filter-area";
 export { FilterFab } from "./filter-fab";
 export { CategoryChip } from "./category-chip";

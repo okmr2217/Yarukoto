@@ -1,31 +1,27 @@
 "use client";
 
 import { X } from "lucide-react";
-import { useAllTasks } from "@/hooks";
-import { useFilterSearchParams, useDebouncedKeyword } from "@/hooks";
-import { FilterSectionInfo } from "./filter-section-info";
-import { FilterStatusChips, FilterViewModeToggle, FilterDateNav, FilterFavoriteToggle, FilterSortChips, FilterKeywordInput } from "./filter-controls";
-import type { StatusFilter, ViewMode, ListSortOrder, ScheduledSortOrder } from "@/lib/filter-types";
-
-export type FilterValues = {
-  keyword: string;
-  status: StatusFilter;
-  isFavorite: boolean;
-  date: string;
-};
-
-function SectionLabel({ children, tooltip }: { children: React.ReactNode; tooltip?: string }) {
-  return (
-    <span className="flex items-center gap-1 text-[11px] font-semibold text-muted-foreground/60 tracking-wider mb-0.5">
-      {children}
-      {tooltip && <FilterSectionInfo content={tooltip} />}
-    </span>
-  );
-}
+import type { Category } from "@/types";
+import type { CategoryFilter } from "@/lib/category-filter";
+import type { ViewMode, ListSortOrder, ScheduledSortOrder } from "@/lib/filter-types";
+import { useFilterState } from "@/hooks/useFilterState";
+import {
+  StatusSection,
+  ViewSection,
+  DateSection,
+  CategorySection,
+  KeywordSection,
+  FavoriteSection,
+  SortSection,
+} from "./filter-sections";
 
 interface FilterBottomSheetProps {
   open: boolean;
   onClose: () => void;
+  categories: Category[];
+  categoriesLoading: boolean;
+  categoryFilter: CategoryFilter;
+  onCategoryFilterChange: (filter: CategoryFilter) => void;
   viewMode: ViewMode;
   onViewModeChange: (mode: ViewMode) => void;
   listSort: ListSortOrder;
@@ -34,31 +30,21 @@ interface FilterBottomSheetProps {
   onScheduledSortChange: (sort: ScheduledSortOrder) => void;
 }
 
-export function FilterBottomSheet({ open, onClose, viewMode, onViewModeChange, listSort, onListSortChange, scheduledSort, onScheduledSortChange }: FilterBottomSheetProps) {
-  const { dateFilter, keyword, statusFilter, favoriteFilter, updateSearchParams, today } = useFilterSearchParams();
-
-  const hasActiveFilters = !!(dateFilter || keyword || statusFilter !== "pending" || favoriteFilter);
-
-  const { localKeyword, isComposingRef, handleKeywordChange, handleCompositionEnd, handleKeywordClear } = useDebouncedKeyword(keyword, updateSearchParams);
-
-  const { data: allFilteredTasks } = useAllTasks({
-    date: dateFilter || undefined,
-    keyword: keyword || undefined,
-    isFavorite: favoriteFilter || undefined,
-  });
-
-  const statusCounts: Record<StatusFilter, number> = (() => {
-    if (!allFilteredTasks) return { all: 0, pending: 0, completed: 0, skipped: 0 };
-    const pending = allFilteredTasks.filter((t) => t.status === "PENDING").length;
-    const completed = allFilteredTasks.filter((t) => t.status === "COMPLETED").length;
-    const skipped = allFilteredTasks.filter((t) => t.status === "SKIPPED").length;
-    return { all: allFilteredTasks.length, pending, completed, skipped };
-  })();
-
-  const handleClearFilters = () => {
-    handleKeywordClear();
-    updateSearchParams({ status: null, favorite: null, date: null });
-  };
+export function FilterBottomSheet({
+  open,
+  onClose,
+  categories,
+  categoriesLoading,
+  categoryFilter,
+  onCategoryFilterChange,
+  viewMode,
+  onViewModeChange,
+  listSort,
+  onListSortChange,
+  scheduledSort,
+  onScheduledSortChange,
+}: FilterBottomSheetProps) {
+  const state = useFilterState(categories, categoryFilter);
 
   if (!open) return null;
 
@@ -78,12 +64,13 @@ export function FilterBottomSheet({ open, onClose, viewMode, onViewModeChange, l
         </div>
 
         <div className="px-4 pb-2">
+          {/* ヘッダー */}
           <div className="flex items-center justify-between mb-4">
             <span className="text-sm font-semibold">絞り込み</span>
-            {hasActiveFilters && (
+            {state.hasActiveFilters && (
               <button
                 type="button"
-                onClick={handleClearFilters}
+                onClick={state.handleClearFilters}
                 className="text-[11px] text-muted-foreground hover:text-foreground transition-colors flex items-center gap-0.5"
               >
                 <X className="size-3" />
@@ -92,63 +79,28 @@ export function FilterBottomSheet({ open, onClose, viewMode, onViewModeChange, l
             )}
           </div>
 
+          {/* セクション群 */}
           <div className="flex flex-col gap-4">
-            {/* キーワード */}
-            <section>
-              <SectionLabel tooltip="タスク名・メモに含まれる文字列でリアルタイムに絞り込みます。他のフィルターと組み合わせて使えます。">キーワード</SectionLabel>
-              <FilterKeywordInput
-                localKeyword={localKeyword}
-                isComposingRef={isComposingRef}
-                onKeywordChange={handleKeywordChange}
-                onCompositionEnd={handleCompositionEnd}
-                onKeywordClear={handleKeywordClear}
-              />
-            </section>
-
-            {/* ステータス */}
-            <section>
-              <SectionLabel tooltip="タスクの進捗状態で絞り込みます。1つだけ選択できます。デフォルトは「未完了」で、完了済みやスキップしたタスクの確認にも使えます。">ステータス</SectionLabel>
-              <FilterStatusChips
-                statusFilter={statusFilter}
-                statusCounts={statusCounts}
-                allFilteredTasks={allFilteredTasks}
-                onUpdate={updateSearchParams}
-              />
-            </section>
-
-            {/* ビュー */}
-            <section>
-              <SectionLabel tooltip="表示形式を切り替えます。「一覧」は日付セクション別のリスト表示、「予定」は予定日が設定されたタスクを日付順に表示します。">ビュー</SectionLabel>
-              <FilterViewModeToggle viewMode={viewMode} onViewModeChange={onViewModeChange} />
-            </section>
-
-            {/* 日付 */}
-            <section>
-              <SectionLabel tooltip="特定の日付のタスクだけを表示します。未設定の場合は全期間が対象。前後の矢印ボタンで1日ずつ移動できます。">日付</SectionLabel>
-              <FilterDateNav dateFilter={dateFilter} today={today} onUpdate={updateSearchParams} />
-            </section>
-
-            {/* お気に入り */}
-            <section>
-              <SectionLabel tooltip="★マークをつけたタスクだけを表示します。重要なタスクをすばやく確認したいときに使います。">お気に入り</SectionLabel>
-              <FilterFavoriteToggle
-                favoriteFilter={favoriteFilter}
-                favoriteCount={allFilteredTasks?.filter((t) => t.isFavorite).length}
-                onUpdate={updateSearchParams}
-              />
-            </section>
-
-            {/* 並び順 */}
-            <section>
-              <SectionLabel tooltip="タスクの並び順を変更します。「表示順」はドラッグ＆ドロップで設定したカスタム順、「作成日時」は新しい順に並びます。">並び順</SectionLabel>
-              <FilterSortChips
-                viewMode={viewMode}
-                listSort={listSort}
-                scheduledSort={scheduledSort}
-                onListSortChange={onListSortChange}
-                onScheduledSortChange={onScheduledSortChange}
-              />
-            </section>
+            <KeywordSection state={state} />
+            <StatusSection state={state} />
+            <ViewSection viewMode={viewMode} onViewModeChange={onViewModeChange} />
+            <DateSection state={state} />
+            <CategorySection
+              categories={categories}
+              categoriesLoading={categoriesLoading}
+              categoryFilter={categoryFilter}
+              onCategoryFilterChange={onCategoryFilterChange}
+              countByCategory={state.countByCategory}
+            />
+            <FavoriteSection state={state} />
+            <SortSection
+              state={state}
+              viewMode={viewMode}
+              listSort={listSort}
+              onListSortChange={onListSortChange}
+              scheduledSort={scheduledSort}
+              onScheduledSortChange={onScheduledSortChange}
+            />
           </div>
         </div>
 

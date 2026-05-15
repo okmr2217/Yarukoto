@@ -22,3 +22,10 @@ export const SCHEDULED_SORT_OPTIONS: { value: ScheduledSortOrder; label: string 
 ];
 
 export const KEYWORD_DEBOUNCE_MS = 300;
+
+export type FilterValues = {
+  keyword: string;
+  status: StatusFilter;
+  isFavorite: boolean;
+  date: string;
+};

@@ -253,6 +253,10 @@ export default function HomePage() {
   const bottomSheetProps = {
     open: filterSheetOpen,
     onClose: () => setFilterSheetOpen(false),
+    categories,
+    categoriesLoading,
+    categoryFilter,
+    onCategoryFilterChange: handleCategoryFilterChange,
     viewMode,
     onViewModeChange: (mode: ViewMode) => updateSearchParams({ view: mode === "list" ? null : mode }),
     listSort,
