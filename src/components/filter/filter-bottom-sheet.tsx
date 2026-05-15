@@ -14,6 +14,14 @@ import {
   FavoriteSection,
   SortSection,
 } from "./filter-sections";
+import {
+  ResponsiveDialog,
+  ResponsiveDialogContent,
+  ResponsiveDialogHeader,
+  ResponsiveDialogTitle,
+  ResponsiveDialogBody,
+  ResponsiveDialogFooter,
+} from "@/components/ui/responsive-dialog";
 
 interface FilterBottomSheetProps {
   open: boolean;
@@ -46,27 +54,12 @@ export function FilterBottomSheet({
 }: FilterBottomSheetProps) {
   const state = useFilterState(categories, categoryFilter);
 
-  if (!open) return null;
-
   return (
-    <>
-      {/* Overlay */}
-      <div className="md:hidden fixed inset-0 z-50 bg-black/40" onClick={onClose} />
-
-      {/* Sheet */}
-      <div
-        className="md:hidden fixed bottom-0 left-0 right-0 z-50 bg-background rounded-t-2xl max-h-[80vh] overflow-y-auto animate-in slide-in-from-bottom duration-300"
-        style={{ paddingBottom: "env(safe-area-inset-bottom)" }}
-      >
-        {/* Drag handle */}
-        <div className="flex justify-center py-3 shrink-0">
-          <div className="w-10 h-1 rounded-full bg-muted-foreground/30" />
-        </div>
-
-        <div className="px-4 pb-2">
-          {/* ヘッダー */}
-          <div className="flex items-center justify-between mb-4">
-            <span className="text-sm font-semibold">絞り込み</span>
+    <ResponsiveDialog open={open} onOpenChange={(o) => !o && onClose()}>
+      <ResponsiveDialogContent>
+        <ResponsiveDialogHeader>
+          <div className="flex items-center justify-between">
+            <ResponsiveDialogTitle>絞り込み</ResponsiveDialogTitle>
             {state.hasActiveFilters && (
               <button
                 type="button"
@@ -78,9 +71,10 @@ export function FilterBottomSheet({
               </button>
             )}
           </div>
+        </ResponsiveDialogHeader>
 
-          {/* セクション群 */}
-          <div className="flex flex-col gap-4">
+        <ResponsiveDialogBody className="overflow-y-auto">
+          <div className="flex flex-col gap-4 pb-4">
             <KeywordSection state={state} />
             <StatusSection state={state} />
             <ViewSection viewMode={viewMode} onViewModeChange={onViewModeChange} />
@@ -102,10 +96,9 @@ export function FilterBottomSheet({
               onScheduledSortChange={onScheduledSortChange}
             />
           </div>
-        </div>
+        </ResponsiveDialogBody>
 
-        {/* Footer */}
-        <div className="px-4 py-3 border-t border-border mt-2">
+        <ResponsiveDialogFooter>
           <button
             type="button"
             onClick={onClose}
@@ -113,8 +106,8 @@ export function FilterBottomSheet({
           >
             閉じる
           </button>
-        </div>
-      </div>
-    </>
+        </ResponsiveDialogFooter>
+      </ResponsiveDialogContent>
+    </ResponsiveDialog>
   );
 }
