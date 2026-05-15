@@ -37,3 +37,5 @@ export { useDebouncedKeyword } from "./use-debounced-keyword";
 export { useMediaQuery } from "./use-media-query";
 
 export { useFilterState } from "./useFilterState";
+
+export { useCategoryTaskCounts } from "./use-category-task-counts";

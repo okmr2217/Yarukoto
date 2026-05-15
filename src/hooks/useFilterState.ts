@@ -1,6 +1,6 @@
 "use client";
 
-import { useAllTasks } from "@/hooks";
+import { useAllTasks, useCategoryTaskCounts } from "@/hooks";
 import { useFilterSearchParams, useDebouncedKeyword } from "@/hooks";
 import type { StatusFilter } from "@/lib/filter-types";
 import type { Category } from "@/types";
@@ -25,23 +25,16 @@ export function useFilterState(categories: Category[], categoryFilter: CategoryF
     return [categoryFilter.categoryId];
   })();
 
-  // カテゴリ別カウント用（カテゴリ以外のフィルターを適用した状態）
-  const { data: tasksForCategoryCounts } = useAllTasks({
+  // カテゴリ別・グループ別カウント用（カテゴリフィルター以外を適用した状態）
+  const { data: categoryCounts } = useCategoryTaskCounts({
     date: dateFilter || undefined,
     keyword: keyword || undefined,
     status: statusFilter !== "all" ? statusFilter : undefined,
     isFavorite: favoriteFilter || undefined,
   });
 
-  const countByCategory = (() => {
-    if (!tasksForCategoryCounts) return {} as Record<string, number>;
-    const counts: Record<string, number> = {};
-    for (const task of tasksForCategoryCounts) {
-      const key = task.categoryId ?? "none";
-      counts[key] = (counts[key] ?? 0) + 1;
-    }
-    return counts;
-  })();
+  const countByCategory = categoryCounts?.byCategoryId ?? {};
+  const countByGroup = categoryCounts?.byGroupId ?? {};
 
   // ステータス別カウント用（カテゴリフィルターを適用した状態）
   const { data: allFilteredTasks } = useAllTasks({
@@ -83,6 +76,7 @@ export function useFilterState(categories: Category[], categoryFilter: CategoryF
     // task data
     allFilteredTasks,
     countByCategory,
+    countByGroup,
     statusCounts,
     // helpers
     hasActiveFilters,

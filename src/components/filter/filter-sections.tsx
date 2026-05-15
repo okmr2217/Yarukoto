@@ -89,12 +89,14 @@ export function CategorySection({
   categoryFilter,
   onCategoryFilterChange,
   countByCategory,
+  countByGroup,
 }: {
   categories: Category[];
   categoriesLoading: boolean;
   categoryFilter: CategoryFilter;
   onCategoryFilterChange: (filter: CategoryFilter) => void;
   countByCategory: Record<string, number>;
+  countByGroup: Record<string, number>;
 }) {
   return (
     <section>
@@ -118,6 +120,7 @@ export function CategorySection({
         categoryFilter={categoryFilter}
         onCategoryFilterChange={onCategoryFilterChange}
         countByCategory={countByCategory}
+        countByGroup={countByGroup}
       />
     </section>
   );

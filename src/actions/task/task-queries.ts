@@ -11,12 +11,15 @@ import {
   failure,
   type Task,
   type MonthlyTaskStats,
+  type CategoryTaskCounts,
 } from "@/types";
 import {
   getMonthlyTaskStatsSchema,
   getAllTasksSchema,
+  getCategoryTaskCountsSchema,
   type GetMonthlyTaskStatsInput,
   type GetAllTasksInput,
+  type GetCategoryTaskCountsInput,
 } from "@/lib/validations";
 import {
   getTodayInJST,
@@ -107,6 +110,77 @@ export async function getAllTasks(input?: GetAllTasksInput): Promise<ActionResul
     return success(tasks.map(toTask));
   } catch (error) {
     console.error("getAllTasks error:", error);
+    return failure(ERROR_MESSAGES.TASK_FETCH_FAILED, "INTERNAL_ERROR");
+  }
+}
+
+export async function getCategoryTaskCounts(input: GetCategoryTaskCountsInput): Promise<ActionResult<CategoryTaskCounts>> {
+  try {
+    const parsed = getCategoryTaskCountsSchema.safeParse(input);
+    if (!parsed.success) {
+      return failure(parsed.error.issues[0].message, "VALIDATION_ERROR");
+    }
+
+    const user = await getRequiredUser();
+    const { date, keyword, status, isFavorite } = parsed.data;
+
+    const andConditions: Prisma.TaskWhereInput[] = [
+      { OR: [{ categoryId: null }, { category: { archivedAt: null } }] },
+    ];
+
+    if (date) {
+      const { start, end } = getDateRangeInJST(date);
+      const dateObj = new Date(date);
+      andConditions.push({
+        OR: [
+          { scheduledAt: dateObj },
+          { completedAt: { gte: start, lte: end } },
+          { skippedAt: { gte: start, lte: end } },
+          { createdAt: { gte: start, lte: end } },
+        ],
+      });
+    }
+
+    if (keyword?.trim()) {
+      andConditions.push({
+        OR: [
+          { title: { contains: keyword.trim(), mode: "insensitive" } },
+          { memo: { contains: keyword.trim(), mode: "insensitive" } },
+        ],
+      });
+    }
+
+    const where: Prisma.TaskWhereInput = {
+      userId: user.id,
+      AND: andConditions,
+      ...(status && status !== "all" ? { status: status.toUpperCase() as Prisma.EnumTaskStatusFilter["equals"] } : {}),
+      ...(isFavorite !== undefined ? { isFavorite } : {}),
+    };
+
+    const [tasks, categories] = await Promise.all([
+      prisma.task.findMany({ where, select: { categoryId: true } }),
+      prisma.category.findMany({ where: { userId: user.id }, select: { id: true, groupId: true } }),
+    ]);
+
+    const byCategoryId: Record<string, number> = {};
+    for (const task of tasks) {
+      const key = task.categoryId ?? "none";
+      byCategoryId[key] = (byCategoryId[key] ?? 0) + 1;
+    }
+
+    const categoryGroupMap = new Map<string, string | null>(categories.map((c) => [c.id, c.groupId]));
+
+    const byGroupId: Record<string, number> = {};
+    for (const task of tasks) {
+      if (!task.categoryId) continue;
+      const groupId = categoryGroupMap.get(task.categoryId) ?? null;
+      const key = groupId ?? "ungrouped";
+      byGroupId[key] = (byGroupId[key] ?? 0) + 1;
+    }
+
+    return success({ byCategoryId, byGroupId });
+  } catch (error) {
+    console.error("getCategoryTaskCounts error:", error);
     return failure(ERROR_MESSAGES.TASK_FETCH_FAILED, "INTERNAL_ERROR");
   }
 }

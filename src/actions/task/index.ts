@@ -6,7 +6,7 @@
  */
 
 // クエリ操作（データ取得）
-export { getAllTasks, getMonthlyTaskStats } from "./task-queries";
+export { getAllTasks, getMonthlyTaskStats, getCategoryTaskCounts } from "./task-queries";
 
 // ミューテーション操作（データ更新）
 export {

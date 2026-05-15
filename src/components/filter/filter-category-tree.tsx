@@ -13,6 +13,7 @@ interface FilterCategoryTreeProps {
   categoryFilter: CategoryFilter;
   onCategoryFilterChange: (filter: CategoryFilter) => void;
   countByCategory: Record<string, number>;
+  countByGroup: Record<string, number>;
 }
 
 export function FilterCategoryTree({
@@ -21,6 +22,7 @@ export function FilterCategoryTree({
   categoryFilter,
   onCategoryFilterChange,
   countByCategory,
+  countByGroup,
 }: FilterCategoryTreeProps) {
   const { data: groups = [] } = useGroups();
   const { isExpanded, toggle } = useGroupExpanded();
@@ -52,6 +54,7 @@ export function FilterCategoryTree({
 
   const CategoryItem = ({ cat, indent = false }: { cat: Category; indent?: boolean }) => {
     const count = countByCategory[cat.id] ?? 0;
+    if (count === 0) return null;
     const isCatSelected = categoryFilter.type === "category" && categoryFilter.categoryId === cat.id;
     const catColor = cat.color;
     return (
@@ -73,23 +76,24 @@ export function FilterCategoryTree({
         }
       >
         <span
-          className={cn("w-1.5 h-1.5 rounded-full shrink-0", !isCatSelected && "opacity-40")}
+          className={cn("w-1.5 h-1.5 rounded-full shrink-0", catColor ? "" : "bg-muted-foreground opacity-40")}
           style={catColor ? { backgroundColor: catColor } : {}}
         />
         <span className="truncate flex-1">{cat.name}</span>
-        {count > 0 && <span className="text-[10px] tabular-nums shrink-0 opacity-70">{count}</span>}
+        <span className="text-[10px] tabular-nums shrink-0 opacity-70">{count}</span>
       </button>
     );
   };
 
   return (
     <div>
-      {groups.map((group) => {
+      {hasGroups && groups.map((group) => {
         const groupCats = groupedCategories.byGroup[group.id] ?? [];
         if (groupCats.length === 0) return null;
         const isGroupSelected = categoryFilter.type === "group" && categoryFilter.groupId === group.id;
         const expanded = isExpanded(group.id);
         const groupColor = group.color;
+        const groupCount = countByGroup[group.id] ?? 0;
 
         return (
           <div key={group.id} className="mb-0.5">
@@ -110,8 +114,8 @@ export function FilterCategoryTree({
                   !isGroupSelected && "px-1.5",
                 )}
               >
-                {group.emoji && <span className="shrink-0 text-sm leading-none">{group.emoji}</span>}
-                <span className="truncate">{group.name}</span>
+                <span className="truncate flex-1">{group.name}</span>
+                {groupCount > 0 && <span className="text-[10px] tabular-nums shrink-0 opacity-70">{groupCount}</span>}
               </button>
               <button
                 type="button"
@@ -132,51 +136,48 @@ export function FilterCategoryTree({
         );
       })}
 
-      {groupedCategories.ungrouped.length > 0 && hasGroups && (
-        <div className="mb-0.5">
-          {(() => {
-            const isUngroupedSelected = categoryFilter.type === "group" && categoryFilter.groupId === UNGROUPED_VIRTUAL_ID;
-            return (
-              <>
-                <div
-                  className="flex items-center w-full rounded-md text-[11px] overflow-hidden"
-                  style={
-                    isUngroupedSelected
-                      ? { backgroundColor: "var(--muted)", borderLeft: `3px solid color-mix(in oklch, var(--muted-foreground) 40%, transparent)`, paddingLeft: "calc(0.375rem - 3px)" }
-                      : {}
-                  }
-                >
-                  <button
-                    type="button"
-                    onClick={() => onCategoryFilterChange(isUngroupedSelected ? { type: "all" } : { type: "group", groupId: UNGROUPED_VIRTUAL_ID })}
-                    className={cn(
-                      "flex items-center gap-1.5 flex-1 py-[3px] transition-colors min-w-0",
-                      isUngroupedSelected ? "font-medium text-foreground" : "text-muted-foreground hover:bg-accent/40",
-                      !isUngroupedSelected && "px-1.5",
-                    )}
-                  >
-                    <span className="shrink-0 text-sm leading-none">🗂️</span>
-                    <span className="truncate">グループなし</span>
-                  </button>
-                  <button
-                    type="button"
-                    onClick={() => toggle(UNGROUPED_VIRTUAL_ID)}
-                    className="shrink-0 flex items-center justify-center w-4 h-4 rounded-full bg-muted text-muted-foreground hover:bg-accent hover:text-foreground transition-colors mr-0.5"
-                    aria-label={isExpanded(UNGROUPED_VIRTUAL_ID) ? "折りたたむ" : "展開する"}
-                  >
-                    <ChevronDown className={cn("size-2.5 transition-transform duration-150", isExpanded(UNGROUPED_VIRTUAL_ID) && "rotate-180")} />
-                  </button>
-                </div>
-                {isExpanded(UNGROUPED_VIRTUAL_ID) && (
-                  <div className="ml-3">
-                    {groupedCategories.ungrouped.map((cat) => <CategoryItem key={cat.id} cat={cat} indent />)}
-                  </div>
+      {groupedCategories.ungrouped.length > 0 && hasGroups && (() => {
+        const isUngroupedSelected = categoryFilter.type === "group" && categoryFilter.groupId === UNGROUPED_VIRTUAL_ID;
+        const ungroupedCount = countByGroup["ungrouped"] ?? 0;
+        return (
+          <div className="mb-0.5">
+            <div
+              className="flex items-center w-full rounded-md text-[11px] overflow-hidden"
+              style={
+                isUngroupedSelected
+                  ? { backgroundColor: "var(--muted)", borderLeft: `3px solid color-mix(in oklch, var(--muted-foreground) 40%, transparent)`, paddingLeft: "calc(0.375rem - 3px)" }
+                  : {}
+              }
+            >
+              <button
+                type="button"
+                onClick={() => onCategoryFilterChange(isUngroupedSelected ? { type: "all" } : { type: "group", groupId: UNGROUPED_VIRTUAL_ID })}
+                className={cn(
+                  "flex items-center gap-1.5 flex-1 py-[3px] transition-colors min-w-0",
+                  isUngroupedSelected ? "font-medium text-foreground" : "text-muted-foreground hover:bg-accent/40",
+                  !isUngroupedSelected && "px-1.5",
                 )}
-              </>
-            );
-          })()}
-        </div>
-      )}
+              >
+                <span className={cn("truncate flex-1 italic opacity-60")}>グループなし</span>
+                {ungroupedCount > 0 && <span className="text-[10px] tabular-nums shrink-0 opacity-70">{ungroupedCount}</span>}
+              </button>
+              <button
+                type="button"
+                onClick={() => toggle(UNGROUPED_VIRTUAL_ID)}
+                className="shrink-0 flex items-center justify-center w-4 h-4 rounded-full bg-muted text-muted-foreground hover:bg-accent hover:text-foreground transition-colors mr-0.5"
+                aria-label={isExpanded(UNGROUPED_VIRTUAL_ID) ? "折りたたむ" : "展開する"}
+              >
+                <ChevronDown className={cn("size-2.5 transition-transform duration-150", isExpanded(UNGROUPED_VIRTUAL_ID) && "rotate-180")} />
+              </button>
+            </div>
+            {isExpanded(UNGROUPED_VIRTUAL_ID) && (
+              <div className="ml-3">
+                {groupedCategories.ungrouped.map((cat) => <CategoryItem key={cat.id} cat={cat} indent />)}
+              </div>
+            )}
+          </div>
+        );
+      })()}
 
       {groupedCategories.ungrouped.length > 0 && !hasGroups && (
         <div className="mt-0.5">
@@ -184,10 +185,9 @@ export function FilterCategoryTree({
         </div>
       )}
 
-      {(groups.length > 0 || groupedCategories.ungrouped.length > 0) && <div className="my-1 border-t border-border" />}
-
       {(() => {
         const count = countByCategory["none"] ?? 0;
+        if (count === 0) return null;
         const isNoneSelected = categoryFilter.type === "category" && categoryFilter.categoryId === "none";
         return (
           <div className="mb-0.5">
@@ -209,9 +209,8 @@ export function FilterCategoryTree({
                   !isNoneSelected && "px-1.5",
                 )}
               >
-                <span className="shrink-0 text-sm leading-none">🏷️</span>
-                <span className="truncate">カテゴリなし</span>
-                {count > 0 && <span className="ml-auto shrink-0 text-[10px] tabular-nums opacity-70">{count}</span>}
+                <span className="truncate flex-1 italic opacity-60">カテゴリなし</span>
+                <span className="ml-auto shrink-0 text-[10px] tabular-nums opacity-70">{count}</span>
               </button>
             </div>
           </div>

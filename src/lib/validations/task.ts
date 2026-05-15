@@ -88,3 +88,12 @@ export type GetMonthlyTaskStatsInput = z.infer<
   typeof getMonthlyTaskStatsSchema
 >;
 export type GetAllTasksInput = z.infer<typeof getAllTasksSchema>;
+
+export const getCategoryTaskCountsSchema = z.object({
+  date: z.string().optional(),
+  keyword: z.string().optional(),
+  status: z.enum(["all", "pending", "completed", "skipped"]).optional(),
+  isFavorite: z.boolean().optional(),
+});
+
+export type GetCategoryTaskCountsInput = z.infer<typeof getCategoryTaskCountsSchema>;

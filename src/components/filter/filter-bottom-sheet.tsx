@@ -85,6 +85,7 @@ export function FilterBottomSheet({
               categoryFilter={categoryFilter}
               onCategoryFilterChange={onCategoryFilterChange}
               countByCategory={state.countByCategory}
+              countByGroup={state.countByGroup}
             />
             <FavoriteSection state={state} />
             <SortSection

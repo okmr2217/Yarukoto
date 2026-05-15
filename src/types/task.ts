@@ -42,3 +42,8 @@ export type MonthlyTaskStats = {
   [date: string]: DayTaskStats;
 };
 
+export type CategoryTaskCounts = {
+  byCategoryId: Record<string, number>;
+  byGroupId: Record<string, number>;
+};
+

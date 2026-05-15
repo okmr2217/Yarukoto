@@ -70,6 +70,7 @@ export function FilterSidebar({
           categoryFilter={categoryFilter}
           onCategoryFilterChange={onCategoryFilterChange}
           countByCategory={state.countByCategory}
+          countByGroup={state.countByGroup}
         />
       </div>
     </aside>
