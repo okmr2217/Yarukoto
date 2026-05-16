@@ -2,34 +2,25 @@
 
 import { useState, useMemo } from "react";
 import { Checkbox } from "@/components/ui/checkbox";
-import {
-  DropdownMenu,
-  DropdownMenuContent,
-  DropdownMenuItem,
-  DropdownMenuTrigger,
-} from "@/components/ui/dropdown-menu";
 import { cn } from "@/lib/utils";
 import { LinkText } from "@/components/ui/link-text";
-import { Tooltip, TooltipTrigger, TooltipContent } from "@/components/ui/tooltip";
 import type { Task } from "@/types";
 import {
   Ban,
-  Trash2,
-  MoreVertical,
   GripVertical,
-  Star,
   AlertCircle,
   Calendar,
   CheckCircle2,
-  Clock,
-  Undo2,
-  type LucideIcon,
+  PlusCircle,
+  PenLine,
 } from "lucide-react";
 import type { DraggableAttributes, DraggableSyntheticListeners } from "@dnd-kit/core";
 import { getScheduledDateStatus, formatCompactTime, formatRelativeScheduledDate } from "@/lib/dateUtils";
+import { useLongPress } from "@/hooks/useLongPress";
 
 export interface TaskCardHandlers {
-  onOpen: (task: Task) => void;
+  onOpenDetail: (task: Task) => void;
+  onOpenEdit: (task: Task) => void;
   onComplete: (id: string) => void;
   onUncomplete: (id: string) => void;
   onSkip: (id: string) => void;
@@ -56,135 +47,19 @@ function StopPropagation({ children }: { children: React.ReactNode }) {
   );
 }
 
-type ActionKey = "skip" | "unskip" | "delete" | "favorite" | "unfavorite";
-
-interface ActionDef {
-  key: ActionKey;
-  label: string;
-  Icon: LucideIcon;
-  className: string;
-  destructive?: boolean;
-}
-
-const BASE_ACTIONS: ActionDef[] = [
-  { key: "skip", label: "やらない", Icon: Ban, className: "hover:text-yellow-600" },
-  { key: "delete", label: "削除", Icon: Trash2, className: "hover:text-destructive", destructive: true },
-];
-
-const SKIPPED_BASE_ACTIONS: ActionDef[] = [
-  { key: "unskip", label: "やらないを取り消す", Icon: Undo2, className: "hover:text-foreground" },
-  { key: "delete", label: "削除", Icon: Trash2, className: "hover:text-destructive", destructive: true },
-];
-
-const FAVORITE_ACTION: ActionDef = { key: "favorite", label: "お気に入りにする", Icon: Star, className: "hover:text-yellow-500" };
-const UNFAVORITE_ACTION: ActionDef = { key: "unfavorite", label: "お気に入りを解除", Icon: Star, className: "hover:text-yellow-600" };
-
-interface TaskCardActionsProps {
-  task: Task;
-  handlers: TaskCardHandlers;
-}
-
-function TaskCardActions({ task, handlers }: TaskCardActionsProps) {
-  const isSkipped = task.status === "SKIPPED";
-  const actionHandlers: Record<ActionKey, () => void> = {
-    skip: () => handlers.onSkip(task.id),
-    unskip: () => handlers.onUnskip(task.id),
-    delete: () => handlers.onDelete(task.id),
-    favorite: () => handlers.onToggleFavorite(task.id),
-    unfavorite: () => handlers.onToggleFavorite(task.id),
-  };
-  const baseActions = isSkipped ? SKIPPED_BASE_ACTIONS : BASE_ACTIONS;
-  const favoriteAction = task.isFavorite ? UNFAVORITE_ACTION : FAVORITE_ACTION;
-  const actions = [favoriteAction, ...baseActions];
-
+function CategoryChip({ category }: { category: Task["category"] }) {
+  if (!category) return null;
+  const bgHex = category.groupColor ?? category.color;
   return (
-    <div className="flex items-center gap-0.5">
-      {task.isFavorite && (
-        <StopPropagation>
-          <button
-            onClick={() => handlers.onToggleFavorite(task.id)}
-            className="p-1.5 rounded transition-colors text-yellow-500 hover:text-yellow-600 hover:bg-accent"
-            aria-label="お気に入りを解除"
-          >
-            <Star className="h-3.5 w-3.5" fill="currentColor" />
-          </button>
-        </StopPropagation>
+    <span
+      className="flex items-center gap-1 px-2 py-0.25 rounded-full text-xs font-medium text-muted-foreground shrink-0 max-w-[128px]"
+      style={{ backgroundColor: bgHex ? `${bgHex}26` : "hsl(var(--muted))" }}
+    >
+      {category.color && (
+        <span className="w-1.5 h-1.5 rounded-full shrink-0" style={{ backgroundColor: category.color }} />
       )}
-      <StopPropagation>
-        <DropdownMenu>
-          <DropdownMenuTrigger asChild>
-            <button
-              className="p-1.5 rounded transition-colors text-muted-foreground hover:text-foreground hover:bg-accent"
-              aria-label="メニュー"
-            >
-              <MoreVertical className="h-4 w-4" />
-            </button>
-          </DropdownMenuTrigger>
-          <DropdownMenuContent align="end">
-            {actions.map((action) => (
-              <DropdownMenuItem
-                key={action.key}
-                onClick={actionHandlers[action.key]}
-                className={cn(action.destructive ? "text-destructive" : "")}
-              >
-                <span className="mr-2">
-                  <action.Icon className="h-4 w-4" />
-                </span>
-                {action.label}
-              </DropdownMenuItem>
-            ))}
-          </DropdownMenuContent>
-        </DropdownMenu>
-      </StopPropagation>
-    </div>
-  );
-}
-
-interface TaskCardMetaProps {
-  task: Task;
-  showScheduledDate: boolean;
-  scheduledDateStatus: "today" | "overdue" | "future" | null;
-  hasMemo: boolean;
-}
-
-function TaskCardMeta({ task, showScheduledDate, scheduledDateStatus, hasMemo }: TaskCardMetaProps) {
-  const isSkipped = task.status === "SKIPPED";
-  const hasRow1 = (showScheduledDate && task.scheduledAt) || (isSkipped && task.skipReason);
-  if (!hasRow1) return null;
-
-  return (
-    <div className={cn("flex flex-col gap-1", hasMemo ? "mt-2" : "mt-1")}>
-      <div className="flex items-center gap-1.5 flex-wrap">
-        {showScheduledDate && task.scheduledAt && (
-          <>
-            {scheduledDateStatus === "today" && (
-              <span className="flex items-center gap-1 text-primary text-xs font-medium">
-                <Calendar className="h-3 w-3" />
-                今日
-              </span>
-            )}
-            {scheduledDateStatus === "overdue" && (
-              <span className="flex items-center gap-1 bg-destructive/10 text-destructive text-xs px-2 py-0.5 rounded-full font-medium">
-                <AlertCircle className="h-3 w-3" />
-                {formatRelativeScheduledDate(task.scheduledAt!)}
-              </span>
-            )}
-            {scheduledDateStatus === "future" && (
-              <span className="flex items-center gap-1 text-muted-foreground text-xs">
-                <Calendar className="h-3 w-3" />
-                {formatRelativeScheduledDate(task.scheduledAt!)}
-              </span>
-            )}
-          </>
-        )}
-        {isSkipped && task.skipReason && (
-          <span className="flex items-center gap-1 bg-yellow-500/10 text-yellow-600 text-xs px-2 py-0.5 rounded-full">
-            <Ban className="h-3 w-3" />
-            {task.skipReason}
-          </span>
-        )}
-      </div>
-    </div>
+      <span className="truncate">{category.name}</span>
+    </span>
   );
 }
 
@@ -198,6 +73,7 @@ export function TaskCard({
   matchReasons,
 }: TaskCardProps) {
   const [isFlashing, setIsFlashing] = useState(false);
+  const [isPressing, setIsPressing] = useState(false);
   const isCompleted = task.status === "COMPLETED";
   const isSkipped = task.status === "SKIPPED";
   const hasMemo = !!task.memo;
@@ -205,14 +81,25 @@ export function TaskCard({
   const scheduledDateStatus = useMemo(() => getScheduledDateStatus(task.scheduledAt), [task.scheduledAt]);
 
   const timeEntries = useMemo(() => {
-    const entries = [
-      {
-        Icon: Clock,
-        timestamp: task.createdAt,
+    const entries: Array<{ Icon: typeof PlusCircle; timestamp: string; className: string; bold: boolean }> = [];
+
+    entries.push({
+      Icon: PlusCircle,
+      timestamp: task.createdAt,
+      className: "text-muted-foreground/50",
+      bold: matchReasons?.includes("この日に作成") ?? false,
+    });
+
+    // PENDING かつ編集済みの場合のみ更新日時を表示
+    if (!isCompleted && !isSkipped && task.updatedAt !== task.createdAt) {
+      entries.push({
+        Icon: PenLine,
+        timestamp: task.updatedAt,
         className: "text-muted-foreground/50",
-        bold: matchReasons?.includes("この日に作成") ?? false,
-      },
-    ];
+        bold: false,
+      });
+    }
+
     if (isCompleted && task.completedAt) {
       entries.push({
         Icon: CheckCircle2,
@@ -221,6 +108,7 @@ export function TaskCard({
         bold: matchReasons?.includes("この日に完了") ?? false,
       });
     }
+
     if (isSkipped && task.skippedAt) {
       entries.push({
         Icon: Ban,
@@ -229,8 +117,18 @@ export function TaskCard({
         bold: matchReasons?.includes("この日にやらない") ?? false,
       });
     }
+
     return entries;
-  }, [isCompleted, isSkipped, task.completedAt, task.skippedAt, task.createdAt, matchReasons]);
+  }, [isCompleted, isSkipped, task.completedAt, task.skippedAt, task.createdAt, task.updatedAt, matchReasons]);
+
+  const longPress = useLongPress({
+    delay: 500,
+    disabled: enableDragAndDrop,
+    onLongPress: () => {
+      setIsPressing(false);
+      handlers.onOpenEdit(task);
+    },
+  });
 
   const handleCheckChange = (checked: boolean) => {
     if (checked) {
@@ -244,8 +142,11 @@ export function TaskCard({
 
   return (
     <div
-      className={cn("flex group hover:bg-accent/40 transition-colors duration-150 cursor-pointer", isFlashing && "bg-success/10")}
-      onClick={() => handlers.onOpen(task)}
+      className="flex group relative cursor-pointer"
+      onClick={() => {
+        if (longPress.consumeFired()) return;
+        handlers.onOpenDetail(task);
+      }}
     >
       {enableDragAndDrop && (
         <div
@@ -259,63 +160,102 @@ export function TaskCard({
           <GripVertical className="h-4 w-4" />
         </div>
       )}
-      <div className="flex-1 px-3 py-1.5">
-        {/* 上段：チェックボックス・時間・アクション */}
-        <div className="flex items-center gap-2">
-          <StopPropagation>
-            <Checkbox
-              checked={isCompleted}
-              onCheckedChange={handleCheckChange}
-              disabled={isSkipped || isFlashing}
-            />
-          </StopPropagation>
-          <div className="flex items-center gap-2 flex-wrap">
-            {timeEntries.map((entry, i) => (
-              <span key={i} className={cn("flex items-center gap-0.75 text-xs", entry.className, entry.bold && "font-bold")}>
-                <entry.Icon className="h-3 w-3 translate-y-[0.25px]" />
-                {formatCompactTime(entry.timestamp)}
-              </span>
-            ))}
-          </div>
-          <div className="flex-1" />
-          <TaskCardActions task={task} handlers={handlers} />
-        </div>
 
-        {/* 区切り線 */}
-        <div className="border-t border-border/40 my-0.5" />
-
-        {/* 下段：タスク名・メモ・メタ情報 */}
-        <div className="pl-6 pt-1 pb-0.5">
-          <div className="flex items-start gap-1.5">
-            {task.category?.color && (
-              <Tooltip>
-                <TooltipTrigger asChild>
-                  <span
-                    className="w-2 h-2 rounded-full shrink-0 mt-1.75 cursor-default"
-                    style={{ backgroundColor: task.category.color }}
-                  />
-                </TooltipTrigger>
-                <TooltipContent>{task.category.name}</TooltipContent>
-              </Tooltip>
-            )}
-            <p className={cn("text-sm font-medium", (isCompleted || isSkipped) && "text-muted-foreground")}>
+      {/* content-col: drag-handle を除く幅で flex-col */}
+      <div
+        className={cn(
+          "flex-1 flex flex-col min-w-0 transition-colors duration-150",
+          isFlashing && "bg-success/10",
+          isPressing && !enableDragAndDrop ? "bg-accent/60" : "hover:bg-accent/40",
+        )}
+        onPointerDown={() => {
+          if (!enableDragAndDrop) {
+            setIsPressing(true);
+            longPress.onPointerDown();
+          }
+        }}
+        onPointerUp={() => {
+          setIsPressing(false);
+          longPress.onPointerUp();
+        }}
+        onPointerLeave={() => {
+          setIsPressing(false);
+          longPress.onPointerLeave();
+        }}
+        onPointerCancel={() => {
+          setIsPressing(false);
+          longPress.onPointerCancel();
+        }}
+        onContextMenu={(e) => {
+          if (!enableDragAndDrop) e.preventDefault();
+        }}
+      >
+        <div className="px-3 py-2 space-y-1.5">
+          {/* 上段: チェックボックス・タスク名 */}
+          <div className="flex items-center gap-2">
+            <StopPropagation>
+              <Checkbox
+                checked={isCompleted}
+                onCheckedChange={handleCheckChange}
+                disabled={isSkipped || isFlashing}
+                className="translate-y-[1px]"
+              />
+            </StopPropagation>
+            <p className={cn("text-sm font-medium leading-snug", (isCompleted || isSkipped) && "text-muted-foreground")}>
               {task.title}
             </p>
           </div>
 
+          {/* メモ */}
           {hasMemo && (
-            <div className="text-xs text-muted-foreground whitespace-pre-wrap mt-1.5">
+            <div className="pl-6 text-xs text-muted-foreground whitespace-pre-wrap">
               <LinkText text={task.memo!} />
             </div>
           )}
 
-          <TaskCardMeta
-            task={task}
-            showScheduledDate={showScheduledDate}
-            scheduledDateStatus={scheduledDateStatus}
-            hasMemo={hasMemo}
-          />
+          {/* カテゴリチップ・時刻 */}
+          <div className="flex items-center justify-between gap-2 pl-6">
+            <CategoryChip category={task.category} />
+            <div className="flex items-center gap-2 flex-wrap ml-auto">
+              {showScheduledDate && task.scheduledAt && (
+                <>
+                  {scheduledDateStatus === "today" && (
+                    <span className="flex items-center gap-1 text-primary text-xs font-medium">
+                      <Calendar className="h-3 w-3" />
+                      今日
+                    </span>
+                  )}
+                  {scheduledDateStatus === "overdue" && (
+                    <span className="flex items-center gap-1 bg-destructive/10 text-destructive text-xs px-2 py-0.5 rounded-full font-medium">
+                      <AlertCircle className="h-3 w-3" />
+                      {formatRelativeScheduledDate(task.scheduledAt!)}
+                    </span>
+                  )}
+                  {scheduledDateStatus === "future" && (
+                    <span className="flex items-center gap-1 text-muted-foreground text-xs">
+                      <Calendar className="h-3 w-3" />
+                      {formatRelativeScheduledDate(task.scheduledAt!)}
+                    </span>
+                  )}
+                </>
+              )}
+              {timeEntries.map((entry, i) => (
+                <span key={i} className={cn("flex items-center gap-0.75 text-xs", entry.className, entry.bold && "font-bold")}>
+                  <entry.Icon className="h-3 w-3 translate-y-[0.25px]" />
+                  {formatCompactTime(entry.timestamp)}
+                </span>
+              ))}
+            </div>
+          </div>
         </div>
+
+        {/* やらない理由帯: content-col 幅いっぱい（drag-handle 除く） */}
+        {isSkipped && task.skipReason && (
+          <div className="px-3 py-1 bg-yellow-500/10 border-t border-yellow-500/20 text-xs text-yellow-700 dark:text-yellow-500">
+            <span className="font-semibold mr-1">やらない理由</span>
+            {task.skipReason}
+          </div>
+        )}
       </div>
     </div>
   );
