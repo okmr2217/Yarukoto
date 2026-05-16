@@ -6,6 +6,7 @@ export type CategorySummary = {
   id: string;
   name: string;
   color: string | null;
+  groupColor: string | null;
 };
 
 export type Task = {

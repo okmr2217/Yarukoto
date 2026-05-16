@@ -103,7 +103,7 @@ export async function getAllTasks(input?: GetAllTasksInput): Promise<ActionResul
 
     const tasks = await prisma.task.findMany({
       where,
-      include: { category: true },
+      include: { category: { include: { group: { select: { color: true } } } } },
       orderBy: { displayOrder: "desc" },
     });
 
@@ -198,7 +198,7 @@ export async function getCategoryTaskCounts(input: GetCategoryTaskCountsInput): 
  */
 function aggregateMonthlyStats(tasks: TaskWithCategory[], firstDay: Date, lastDay: Date, today: string): MonthlyTaskStats {
   const stats: MonthlyTaskStats = {};
-  const completedCategoriesMap = new Map<string, Map<string, { id: string; name: string; color: string | null }>>();
+  const completedCategoriesMap = new Map<string, Map<string, { id: string; name: string; color: string | null; groupColor: string | null }>>();
 
   for (const task of tasks) {
     const dates = new Set<string>();
@@ -234,7 +234,7 @@ function aggregateMonthlyStats(tasks: TaskWithCategory[], firstDay: Date, lastDa
           if (!completedCategoriesMap.has(dateStr)) completedCategoriesMap.set(dateStr, new Map());
           const catMap = completedCategoriesMap.get(dateStr)!;
           if (!catMap.has(task.category.id)) {
-            catMap.set(task.category.id, { id: task.category.id, name: task.category.name, color: task.category.color });
+            catMap.set(task.category.id, { id: task.category.id, name: task.category.name, color: task.category.color, groupColor: null });
           }
         }
       }

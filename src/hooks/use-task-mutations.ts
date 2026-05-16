@@ -118,7 +118,7 @@ export function useTaskMutations() {
         createdAt: new Date().toISOString(),
         updatedAt: new Date().toISOString(),
         categoryId: input.categoryId || null,
-        category: foundCategory ? { id: foundCategory.id, name: foundCategory.name, color: foundCategory.color } : null,
+        category: foundCategory ? { id: foundCategory.id, name: foundCategory.name, color: foundCategory.color, groupColor: foundCategory.group?.color ?? null } : null,
       };
 
       const queries = queryClient.getQueriesData<Task[]>({ queryKey: ["allTasks"] });
@@ -169,7 +169,7 @@ export function useTaskMutations() {
                     ? task.category
                     : newCategory === null
                       ? null
-                      : { id: newCategory.id, name: newCategory.name, color: newCategory.color },
+                      : { id: newCategory.id, name: newCategory.name, color: newCategory.color, groupColor: newCategory.group?.color ?? null },
                 updatedAt: new Date().toISOString(),
               }
             : task,

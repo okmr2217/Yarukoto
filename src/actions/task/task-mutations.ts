@@ -73,7 +73,7 @@ export async function createTask(
         displayOrder: newDisplayOrder,
         userId: user.id,
       },
-      include: { category: true },
+      include: { category: { include: { group: { select: { color: true } } } } },
     });
 
     return success({ task: toTask(task) });
@@ -135,7 +135,7 @@ export async function updateTask(
     const task = await prisma.task.update({
       where: { id },
       data: updateData,
-      include: { category: true },
+      include: { category: { include: { group: { select: { color: true } } } } },
     });
 
     return success({ task: toTask(task) });
@@ -184,7 +184,7 @@ export async function completeTask(input: {
         skippedAt: null,
         skipReason: null,
       },
-      include: { category: true },
+      include: { category: { include: { group: { select: { color: true } } } } },
     });
 
     return success({ task: toTask(task) });
@@ -230,7 +230,7 @@ export async function uncompleteTask(input: {
         status: "PENDING",
         completedAt: null,
       },
-      include: { category: true },
+      include: { category: { include: { group: { select: { color: true } } } } },
     });
 
     return success({ task: toTask(task) });
@@ -280,7 +280,7 @@ export async function skipTask(
         skipReason: reason?.trim() || null,
         completedAt: null,
       },
-      include: { category: true },
+      include: { category: { include: { group: { select: { color: true } } } } },
     });
 
     return success({ task: toTask(task) });
@@ -327,7 +327,7 @@ export async function unskipTask(input: {
         skippedAt: null,
         skipReason: null,
       },
-      include: { category: true },
+      include: { category: { include: { group: { select: { color: true } } } } },
     });
 
     return success({ task: toTask(task) });
@@ -487,7 +487,7 @@ export async function toggleFavorite(
     const task = await prisma.task.update({
       where: { id },
       data: { isFavorite: !existingTask.isFavorite },
-      include: { category: true },
+      include: { category: { include: { group: { select: { color: true } } } } },
     });
 
     return success({ task: toTask(task) });

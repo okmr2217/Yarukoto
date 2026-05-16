@@ -395,10 +395,11 @@ export default function CategoriesPage() {
 
   return (
     <div className="flex-1 bg-background">
-      <MobileHeader
-        title="カテゴリ"
-        actions={
-          <div className="flex items-center gap-2">
+      <MobileHeader title="カテゴリ" />
+      <main className="px-4 pt-4 pb-20 md:pb-4 md:max-w-190">
+        <div className="flex items-center justify-between mb-4">
+          <h1 className="hidden md:block text-lg font-semibold">カテゴリ</h1>
+          <div className="flex items-center gap-2 ml-auto">
             <Button variant="outline" size="sm" onClick={() => { setEditingGroup(null); setIsGroupDialogOpen(true); }}>
               <Plus className="h-3.5 w-3.5 mr-1" />
               グループ
@@ -408,9 +409,7 @@ export default function CategoriesPage() {
               カテゴリ
             </Button>
           </div>
-        }
-      />
-      <main className="px-4 pt-4 pb-20 md:pb-4 md:max-w-190">
+        </div>
 
         {isLoading ? (
           <div className="text-center py-12 text-muted-foreground">読み込み中...</div>
