@@ -6,11 +6,10 @@ import { FilterFab, FilterBottomSheet, FilterSidebar, DueDateAlertChip, type Fil
 import { MobileHeader } from "@/components/layout/mobile-header";
 import {
   TaskSection,
-  TaskInputModal,
+  TaskCreateModal,
   TaskFab,
-  TaskEditDialog,
+  TaskDetailModal,
   SkipReasonDialog,
-  type TaskEditData,
 } from "@/components/task";
 import {
   useAllTasks,
@@ -57,7 +56,7 @@ export default function HomePage() {
 
   const hasActiveFilters = !!(dateFilter || keyword || statusFilter !== "pending" || favoriteFilter || categoryFilter.type !== "all");
 
-  const [editingTask, setEditingTask] = useState<Task | null>(null);
+  const [detailTaskId, setDetailTaskId] = useState<string | null>(null);
   const [skippingTask, setSkippingTask] = useState<Task | null>(null);
   const [taskInputOpen, setTaskInputOpen] = useState(false);
   const [filterSheetOpen, setFilterSheetOpen] = useState(false);
@@ -148,16 +147,11 @@ export default function HomePage() {
     mutations.reorderTasks.mutate({ taskId, beforeTaskId, afterTaskId });
   };
 
+  const detailTask = tasks?.find((t) => t.id === detailTaskId) ?? null;
+
   const handleComplete = (id: string) => mutations.completeTask.mutate(id);
   const handleUncomplete = (id: string) => mutations.uncompleteTask.mutate(id);
-  const handleOpen = (task: Task) => setEditingTask(task);
   const handleToggleFavorite = (id: string) => mutations.toggleFavorite.mutate(id);
-
-  const handleEditTaskWithDetails = (data: TaskEditData) => {
-    setEditingTask(null);
-    if (data.categoryId) recordRecentCategory(data.categoryId);
-    mutations.updateTask.mutate(data);
-  };
 
   const handleSkip = (id: string) => {
     if (!tasks) return;
@@ -182,7 +176,7 @@ export default function HomePage() {
   };
 
   const taskHandlers = {
-    onOpen: handleOpen,
+    onOpenDetail: (task: Task) => setDetailTaskId(task.id),
     onComplete: handleComplete,
     onUncomplete: handleUncomplete,
     onSkip: handleSkip,
@@ -208,7 +202,7 @@ export default function HomePage() {
     const handleKeyDown = (e: KeyboardEvent) => {
       if (e.ctrlKey || e.metaKey || e.shiftKey || e.altKey) return;
       if (!/^[0-9]$/.test(e.key)) return;
-      if (taskInputOpen || editingTask !== null) return;
+      if (taskInputOpen) return;
       const target = e.target as HTMLElement;
       if (target.tagName === "INPUT" || target.tagName === "TEXTAREA" || target.tagName === "SELECT") return;
       e.preventDefault();
@@ -223,7 +217,7 @@ export default function HomePage() {
     };
     document.addEventListener("keydown", handleKeyDown);
     return () => document.removeEventListener("keydown", handleKeyDown);
-  }, [categories, categoryFilter, taskInputOpen, editingTask, handleCategoryFilterChange]);
+  }, [categories, categoryFilter, taskInputOpen, handleCategoryFilterChange]);
 
   const getMatchReasons = (task: Task): string[] => {
     if (!dateFilter) return [];
@@ -332,8 +326,8 @@ export default function HomePage() {
       <FilterFab onClick={() => setFilterSheetOpen(true)} activeFilterCount={countActiveFilters(filterValues)} />
       <FilterBottomSheet {...bottomSheetProps} />
 
-      <TaskInputModal
-        key={taskInputOpen ? "task-input-open" : "task-input-closed"}
+      <TaskCreateModal
+        key={taskInputOpen ? "task-create-open" : "task-create-closed"}
         open={taskInputOpen}
         onOpenChange={setTaskInputOpen}
         onSubmit={handleCreateTask}
@@ -343,12 +337,15 @@ export default function HomePage() {
         isLoading={mutations.createTask.isPending}
       />
 
-      <TaskEditDialog
-        key={editingTask?.id ?? "task-edit-closed"}
-        open={editingTask !== null}
-        onOpenChange={(open) => !open && setEditingTask(null)}
-        onSave={handleEditTaskWithDetails}
-        task={editingTask}
+      <TaskDetailModal
+        task={detailTask}
+        open={detailTaskId !== null}
+        onClose={() => setDetailTaskId(null)}
+        onUncomplete={handleUncomplete}
+        onSkip={(id) => { setDetailTaskId(null); handleSkip(id); }}
+        onUnskip={(id) => mutations.unskipTask.mutate(id)}
+        onDelete={(id) => { setDetailTaskId(null); handleDelete(id); }}
+        onToggleFavorite={handleToggleFavorite}
         categories={categories}
         groups={groups}
       />

@@ -8,11 +8,11 @@ import type { Task } from "@/types";
 import {
   Ban,
   GripVertical,
-  AlertCircle,
   Calendar,
   CheckCircle2,
   PlusCircle,
   PenLine,
+  Star,
 } from "lucide-react";
 import type { DraggableAttributes, DraggableSyntheticListeners } from "@dnd-kit/core";
 import { getScheduledDateStatus, formatCompactTime, formatRelativeScheduledDate } from "@/lib/dateUtils";
@@ -20,7 +20,6 @@ import { useLongPress } from "@/hooks/useLongPress";
 
 export interface TaskCardHandlers {
   onOpenDetail: (task: Task) => void;
-  onOpenEdit: (task: Task) => void;
   onComplete: (id: string) => void;
   onUncomplete: (id: string) => void;
   onSkip: (id: string) => void;
@@ -44,6 +43,18 @@ function StopPropagation({ children }: { children: React.ReactNode }) {
     <div onPointerDown={(e) => e.stopPropagation()} onClick={(e) => e.stopPropagation()}>
       {children}
     </div>
+  );
+}
+
+function ScheduledDateChip({ scheduledAt, status }: { scheduledAt: string; status: ReturnType<typeof getScheduledDateStatus> }) {
+  const textClass =
+    status === "today" ? "text-primary" : status === "overdue" ? "text-destructive" : "text-muted-foreground";
+  const label = status === "today" ? "今日" : formatRelativeScheduledDate(scheduledAt);
+  return (
+    <span className={cn("flex items-center gap-1 bg-muted/60 text-xs px-2 py-0.5 rounded-full shrink-0", textClass)}>
+      <Calendar className="h-3 w-3" />
+      {label}
+    </span>
   );
 }
 
@@ -126,7 +137,7 @@ export function TaskCard({
     disabled: enableDragAndDrop,
     onLongPress: () => {
       setIsPressing(false);
-      handlers.onOpenEdit(task);
+      handlers.onOpenDetail(task);
     },
   });
 
@@ -191,7 +202,7 @@ export function TaskCard({
         }}
       >
         <div className="px-3 py-2 space-y-1.5">
-          {/* 上段: チェックボックス・タスク名 */}
+          {/* 上段: チェックボックス・タスク名・お気に入り */}
           <div className="flex items-center gap-2">
             <StopPropagation>
               <Checkbox
@@ -201,9 +212,12 @@ export function TaskCard({
                 className="translate-y-[1px]"
               />
             </StopPropagation>
-            <p className={cn("text-sm font-medium leading-snug", (isCompleted || isSkipped) && "text-muted-foreground")}>
+            <p className={cn("flex-1 text-sm font-medium leading-snug", (isCompleted || isSkipped) && "text-muted-foreground")}>
               {task.title}
             </p>
+            {task.isFavorite && (
+              <Star className="h-3.5 w-3.5 shrink-0 text-yellow-400" fill="currentColor" />
+            )}
           </div>
 
           {/* メモ */}
@@ -215,30 +229,13 @@ export function TaskCard({
 
           {/* カテゴリチップ・時刻 */}
           <div className="flex items-center justify-between gap-2 pl-6">
-            <CategoryChip category={task.category} />
-            <div className="flex items-center gap-2 flex-wrap ml-auto">
+            <div className="flex items-center gap-1.5 flex-wrap min-w-0">
+              <CategoryChip category={task.category} />
               {showScheduledDate && task.scheduledAt && (
-                <>
-                  {scheduledDateStatus === "today" && (
-                    <span className="flex items-center gap-1 text-primary text-xs font-medium">
-                      <Calendar className="h-3 w-3" />
-                      今日
-                    </span>
-                  )}
-                  {scheduledDateStatus === "overdue" && (
-                    <span className="flex items-center gap-1 bg-destructive/10 text-destructive text-xs px-2 py-0.5 rounded-full font-medium">
-                      <AlertCircle className="h-3 w-3" />
-                      {formatRelativeScheduledDate(task.scheduledAt!)}
-                    </span>
-                  )}
-                  {scheduledDateStatus === "future" && (
-                    <span className="flex items-center gap-1 text-muted-foreground text-xs">
-                      <Calendar className="h-3 w-3" />
-                      {formatRelativeScheduledDate(task.scheduledAt!)}
-                    </span>
-                  )}
-                </>
+                <ScheduledDateChip scheduledAt={task.scheduledAt} status={scheduledDateStatus} />
               )}
+            </div>
+            <div className="flex items-center gap-2 flex-wrap ml-auto">
               {timeEntries.map((entry, i) => (
                 <span key={i} className={cn("flex items-center gap-0.75 text-xs", entry.className, entry.bold && "font-bold")}>
                   <entry.Icon className="h-3 w-3 translate-y-[0.25px]" />
