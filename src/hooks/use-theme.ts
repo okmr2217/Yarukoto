@@ -8,9 +8,7 @@ const STORAGE_KEY = "yarukoto-theme";
 
 function getSystemTheme(): "light" | "dark" {
   if (typeof window === "undefined") return "light";
-  return window.matchMedia("(prefers-color-scheme: dark)").matches
-    ? "dark"
-    : "light";
+  return window.matchMedia("(prefers-color-scheme: dark)").matches ? "dark" : "light";
 }
 
 function getResolvedTheme(theme: Theme): "light" | "dark" {

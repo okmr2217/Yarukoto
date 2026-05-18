@@ -24,8 +24,7 @@ export function ResetPasswordForm() {
       <AuthCard description="無効なリンク | パスワードリセットのリンクが無効です">
         <div className="space-y-4">
           <p className="text-sm text-muted-foreground text-center">
-            リンクが無効か、有効期限が切れている可能性があります。
-            もう一度パスワードリセットをお試しください。
+            リンクが無効か、有効期限が切れている可能性があります。 もう一度パスワードリセットをお試しください。
           </p>
           <Link href="/forgot-password">
             <Button className="w-full">パスワードリセットを再試行</Button>
@@ -73,11 +72,7 @@ export function ResetPasswordForm() {
   return (
     <AuthCard description="新しいパスワードを設定 | 新しいパスワードを入力してください">
       <form onSubmit={handleSubmit} className="space-y-4">
-        {error && (
-          <div className="p-3 text-sm text-destructive bg-destructive/10 rounded-md">
-            {error}
-          </div>
-        )}
+        {error && <div className="p-3 text-sm text-destructive bg-destructive/10 rounded-md">{error}</div>}
 
         <div className="space-y-1.5">
           <Label htmlFor="password">新しいパスワード</Label>

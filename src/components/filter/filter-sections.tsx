@@ -51,13 +51,7 @@ export function StatusSection({ state }: { state: FilterState }) {
   );
 }
 
-export function ViewSection({
-  viewMode,
-  onViewModeChange,
-}: {
-  viewMode: ViewMode;
-  onViewModeChange: (mode: ViewMode) => void;
-}) {
+export function ViewSection({ viewMode, onViewModeChange }: { viewMode: ViewMode; onViewModeChange: (mode: ViewMode) => void }) {
   return (
     <section>
       <SectionLabel tooltip="表示形式を切り替えます。「一覧」は日付セクション別のリスト表示、「予定」は予定日が設定されたタスクを日付順に表示します。">
@@ -74,11 +68,7 @@ export function DateSection({ state }: { state: FilterState }) {
       <SectionLabel tooltip="特定の日付のタスクだけを表示します。未設定の場合は全期間が対象。前後の矢印ボタンで1日ずつ移動できます。">
         日付
       </SectionLabel>
-      <FilterDateNav
-        dateFilter={state.dateFilter}
-        today={state.today}
-        onUpdate={state.updateSearchParams}
-      />
+      <FilterDateNav dateFilter={state.dateFilter} today={state.today} onUpdate={state.updateSearchParams} />
     </section>
   );
 }
@@ -159,14 +149,12 @@ export function FavoriteSection({ state }: { state: FilterState }) {
 }
 
 export function SortSection({
-  state,
   viewMode,
   listSort,
   onListSortChange,
   scheduledSort,
   onScheduledSortChange,
 }: {
-  state: FilterState;
   viewMode: ViewMode;
   listSort: ListSortOrder;
   onListSortChange: (sort: ListSortOrder) => void;

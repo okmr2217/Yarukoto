@@ -72,9 +72,7 @@ export function CategorySelector({
   recentCategoryIds = [],
   filterGroupId,
 }: CategorySelectorProps) {
-  const visibleCats = mode === "create"
-    ? categories.filter((c) => !c.archivedAt || c.id === selectedCategoryId)
-    : categories;
+  const visibleCats = mode === "create" ? categories.filter((c) => !c.archivedAt || c.id === selectedCategoryId) : categories;
 
   const hasUngrouped = visibleCats.some((c) => !c.groupId);
   const tabGroups = buildTabGroups(groups, hasUngrouped);
@@ -125,11 +123,7 @@ export function CategorySelector({
   return (
     <div className="space-y-2">
       {/* グループタブ */}
-      <div
-        role="tablist"
-        aria-label="カテゴリグループ"
-        className="flex items-center border-b border-border overflow-x-auto scrollbar-none"
-      >
+      <div role="tablist" aria-label="カテゴリグループ" className="flex items-center border-b border-border overflow-x-auto scrollbar-none">
         {tabGroups.map((group, idx) => {
           const isActive = activeGroupId === group.id;
           const emoji = group.id === UNGROUPED_ID ? "📂" : getGroupEmoji(group.emoji);
@@ -145,9 +139,7 @@ export function CategorySelector({
                   onKeyDown={(e) => handleTabKeyDown(e, idx)}
                   className={cn(
                     "shrink-0 flex items-center gap-1 px-2.5 py-1.5 text-xs font-medium transition-colors whitespace-nowrap border-b-2 -mb-px",
-                    isActive
-                      ? "border-foreground text-foreground"
-                      : "border-transparent text-muted-foreground hover:text-foreground",
+                    isActive ? "border-foreground text-foreground" : "border-transparent text-muted-foreground hover:text-foreground",
                   )}
                 >
                   <span className="text-sm leading-none">{emoji}</span>
@@ -175,12 +167,7 @@ export function CategorySelector({
           <p className="text-xs text-muted-foreground py-1 col-span-4">カテゴリがありません</p>
         ) : (
           activeCats.map((cat) => (
-            <CategoryChip
-              key={cat.id}
-              cat={cat}
-              selected={selectedCategoryId === cat.id}
-              onSelect={() => onChange(cat.id)}
-            />
+            <CategoryChip key={cat.id} cat={cat} selected={selectedCategoryId === cat.id} onSelect={() => onChange(cat.id)} />
           ))
         )}
       </div>
@@ -188,15 +175,7 @@ export function CategorySelector({
   );
 }
 
-function CategoryChip({
-  cat,
-  selected,
-  onSelect,
-}: {
-  cat: Category;
-  selected: boolean;
-  onSelect: () => void;
-}) {
+function CategoryChip({ cat, selected, onSelect }: { cat: Category; selected: boolean; onSelect: () => void }) {
   const isArchived = !!cat.archivedAt;
   return (
     <button

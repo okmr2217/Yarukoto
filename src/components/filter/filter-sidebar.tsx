@@ -4,15 +4,7 @@ import type { Category } from "@/types";
 import type { CategoryFilter } from "@/lib/category-filter";
 import type { ViewMode, ListSortOrder, ScheduledSortOrder } from "@/lib/filter-types";
 import { useFilterState } from "@/hooks/useFilterState";
-import {
-  StatusSection,
-  ViewSection,
-  DateSection,
-  CategorySection,
-  KeywordSection,
-  FavoriteSection,
-  SortSection,
-} from "./filter-sections";
+import { StatusSection, ViewSection, DateSection, CategorySection, KeywordSection, FavoriteSection, SortSection } from "./filter-sections";
 
 export type { ViewMode, ListSortOrder, ScheduledSortOrder };
 
@@ -53,7 +45,6 @@ export function FilterSidebar({
         <KeywordSection state={state} />
         <FavoriteSection state={state} />
         <SortSection
-          state={state}
           viewMode={viewMode}
           listSort={listSort}
           onListSortChange={onListSortChange}

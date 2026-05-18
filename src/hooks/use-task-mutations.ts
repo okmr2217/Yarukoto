@@ -13,12 +13,7 @@ import {
   reorderTasks,
   toggleFavorite,
 } from "@/actions";
-import type {
-  CreateTaskInput,
-  UpdateTaskInput,
-  SkipTaskInput,
-  GetAllTasksInput,
-} from "@/lib/validations";
+import type { CreateTaskInput, UpdateTaskInput, SkipTaskInput, GetAllTasksInput } from "@/lib/validations";
 import type { Task, Category } from "@/types";
 
 type QueryKey = readonly unknown[];
@@ -118,7 +113,9 @@ export function useTaskMutations() {
         createdAt: new Date().toISOString(),
         updatedAt: new Date().toISOString(),
         categoryId: input.categoryId || null,
-        category: foundCategory ? { id: foundCategory.id, name: foundCategory.name, color: foundCategory.color, groupColor: foundCategory.group?.color ?? null } : null,
+        category: foundCategory
+          ? { id: foundCategory.id, name: foundCategory.name, color: foundCategory.color, groupColor: foundCategory.group?.color ?? null }
+          : null,
       };
 
       const queries = queryClient.getQueriesData<Task[]>({ queryKey: ["allTasks"] });
@@ -169,7 +166,12 @@ export function useTaskMutations() {
                     ? task.category
                     : newCategory === null
                       ? null
-                      : { id: newCategory.id, name: newCategory.name, color: newCategory.color, groupColor: newCategory.group?.color ?? null },
+                      : {
+                          id: newCategory.id,
+                          name: newCategory.name,
+                          color: newCategory.color,
+                          groupColor: newCategory.group?.color ?? null,
+                        },
                 updatedAt: new Date().toISOString(),
               }
             : task,
@@ -190,7 +192,10 @@ export function useTaskMutations() {
       let taskTitle: string | undefined;
       for (const [, tasks] of allTasks) {
         const found = tasks?.find((t) => t.id === id);
-        if (found) { taskTitle = found.title; break; }
+        if (found) {
+          taskTitle = found.title;
+          break;
+        }
       }
 
       updateAllTasksCacheWithFilters((task, filters) => {

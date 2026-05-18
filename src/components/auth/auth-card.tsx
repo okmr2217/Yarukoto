@@ -1,12 +1,6 @@
 "use client";
 
-import {
-  Card,
-  CardContent,
-  CardDescription,
-  CardHeader,
-  CardTitle,
-} from "@/components/ui/card";
+import { Card, CardContent, CardDescription, CardHeader, CardTitle } from "@/components/ui/card";
 import Image from "next/image";
 
 interface AuthCardProps {
@@ -20,12 +14,7 @@ export function AuthCard({ description, children }: AuthCardProps) {
       <Card className="w-full border-0 shadow-none sm:max-w-md">
         <CardHeader className="text-center">
           <CardTitle className="flex items-center flex-col gap-3">
-            <Image
-              src={"/icon-192.png"}
-              alt="icon"
-              width={128}
-              height={128}
-            />
+            <Image src={"/icon-192.png"} alt="icon" width={128} height={128} />
             <h1 className="text-[32px] font-medium font-logo">Yarukoto</h1>
           </CardTitle>
           {description && <CardDescription>{description}</CardDescription>}

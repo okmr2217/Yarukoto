@@ -1,28 +1,17 @@
 import { z } from "zod";
 import { TASK_CONSTANTS } from "@/lib/constants";
 
-const dateStringSchema = z
-  .string()
-  .regex(/^\d{4}-\d{2}-\d{2}$/, "日付はYYYY-MM-DD形式で入力してください");
+const dateStringSchema = z.string().regex(/^\d{4}-\d{2}-\d{2}$/, "日付はYYYY-MM-DD形式で入力してください");
 
 export const createTaskSchema = z.object({
   title: z
     .string()
     .min(1, "タスク名を入力してください")
-    .max(
-      TASK_CONSTANTS.TITLE_MAX_LENGTH,
-      `タスク名は${TASK_CONSTANTS.TITLE_MAX_LENGTH}文字以内で入力してください`,
-    )
+    .max(TASK_CONSTANTS.TITLE_MAX_LENGTH, `タスク名は${TASK_CONSTANTS.TITLE_MAX_LENGTH}文字以内で入力してください`)
     .refine((val) => val.trim().length > 0, "タスク名を入力してください"),
   scheduledAt: dateStringSchema.optional(),
   categoryId: z.string().optional(),
-  memo: z
-    .string()
-    .max(
-      TASK_CONSTANTS.MEMO_MAX_LENGTH,
-      `メモは${TASK_CONSTANTS.MEMO_MAX_LENGTH}文字以内で入力してください`,
-    )
-    .optional(),
+  memo: z.string().max(TASK_CONSTANTS.MEMO_MAX_LENGTH, `メモは${TASK_CONSTANTS.MEMO_MAX_LENGTH}文字以内で入力してください`).optional(),
 });
 
 export const updateTaskSchema = z.object({
@@ -30,20 +19,14 @@ export const updateTaskSchema = z.object({
   title: z
     .string()
     .min(1, "タスク名を入力してください")
-    .max(
-      TASK_CONSTANTS.TITLE_MAX_LENGTH,
-      `タスク名は${TASK_CONSTANTS.TITLE_MAX_LENGTH}文字以内で入力してください`,
-    )
+    .max(TASK_CONSTANTS.TITLE_MAX_LENGTH, `タスク名は${TASK_CONSTANTS.TITLE_MAX_LENGTH}文字以内で入力してください`)
     .refine((val) => val.trim().length > 0, "タスク名を入力してください")
     .optional(),
   scheduledAt: dateStringSchema.nullable().optional(),
   categoryId: z.string().nullable().optional(),
   memo: z
     .string()
-    .max(
-      TASK_CONSTANTS.MEMO_MAX_LENGTH,
-      `メモは${TASK_CONSTANTS.MEMO_MAX_LENGTH}文字以内で入力してください`,
-    )
+    .max(TASK_CONSTANTS.MEMO_MAX_LENGTH, `メモは${TASK_CONSTANTS.MEMO_MAX_LENGTH}文字以内で入力してください`)
     .nullable()
     .optional(),
 });
@@ -56,10 +39,7 @@ export const skipTaskSchema = z.object({
   id: z.string().min(1, "タスクIDは必須です"),
   reason: z
     .string()
-    .max(
-      TASK_CONSTANTS.SKIP_REASON_MAX_LENGTH,
-      `理由は${TASK_CONSTANTS.SKIP_REASON_MAX_LENGTH}文字以内で入力してください`,
-    )
+    .max(TASK_CONSTANTS.SKIP_REASON_MAX_LENGTH, `理由は${TASK_CONSTANTS.SKIP_REASON_MAX_LENGTH}文字以内で入力してください`)
     .optional(),
 });
 
@@ -84,9 +64,7 @@ export type UpdateTaskInput = z.infer<typeof updateTaskSchema>;
 export type TaskIdInput = z.infer<typeof taskIdSchema>;
 export type SkipTaskInput = z.infer<typeof skipTaskSchema>;
 export type ToggleFavoriteInput = z.infer<typeof toggleFavoriteSchema>;
-export type GetMonthlyTaskStatsInput = z.infer<
-  typeof getMonthlyTaskStatsSchema
->;
+export type GetMonthlyTaskStatsInput = z.infer<typeof getMonthlyTaskStatsSchema>;
 export type GetAllTasksInput = z.infer<typeof getAllTasksSchema>;
 
 export const getCategoryTaskCountsSchema = z.object({

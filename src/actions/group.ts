@@ -160,9 +160,7 @@ export async function reorderGroups(input: UpdateGroupSortOrderInput): Promise<A
       return failure("グループが見つかりません", "NOT_FOUND");
     }
 
-    await prisma.$transaction(
-      updates.map(({ id, sortOrder }) => prisma.group.update({ where: { id }, data: { sortOrder } })),
-    );
+    await prisma.$transaction(updates.map(({ id, sortOrder }) => prisma.group.update({ where: { id }, data: { sortOrder } })));
 
     return success({ success: true });
   } catch (error) {

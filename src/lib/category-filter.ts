@@ -1,9 +1,6 @@
 export const UNGROUPED_VIRTUAL_ID = "__ungrouped__";
 
-export type CategoryFilter =
-  | { type: "all" }
-  | { type: "group"; groupId: string }
-  | { type: "category"; categoryId: string };
+export type CategoryFilter = { type: "all" } | { type: "group"; groupId: string } | { type: "category"; categoryId: string };
 
 export function parseCategoryParam(param: string | null): CategoryFilter {
   if (param === null) return { type: "all" };

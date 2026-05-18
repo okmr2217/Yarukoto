@@ -1,21 +1,19 @@
 import { z } from "zod";
 import { CATEGORY_CONSTANTS } from "@/lib/constants";
 
-const hexColorSchema = z
-  .string()
-  .regex(/^#[0-9A-Fa-f]{6}$/, "カラーコードは#RRGGBB形式で入力してください");
+const hexColorSchema = z.string().regex(/^#[0-9A-Fa-f]{6}$/, "カラーコードは#RRGGBB形式で入力してください");
 
 export const createCategorySchema = z.object({
   name: z
     .string()
     .min(1, "カテゴリ名を入力してください")
-    .max(
-      CATEGORY_CONSTANTS.NAME_MAX_LENGTH,
-      `カテゴリ名は${CATEGORY_CONSTANTS.NAME_MAX_LENGTH}文字以内で入力してください`,
-    )
+    .max(CATEGORY_CONSTANTS.NAME_MAX_LENGTH, `カテゴリ名は${CATEGORY_CONSTANTS.NAME_MAX_LENGTH}文字以内で入力してください`)
     .refine((val) => val.trim().length > 0, "カテゴリ名を入力してください"),
   color: hexColorSchema,
-  description: z.string().max(CATEGORY_CONSTANTS.DESCRIPTION_MAX_LENGTH, `説明文は${CATEGORY_CONSTANTS.DESCRIPTION_MAX_LENGTH}文字以内で入力してください`).optional(),
+  description: z
+    .string()
+    .max(CATEGORY_CONSTANTS.DESCRIPTION_MAX_LENGTH, `説明文は${CATEGORY_CONSTANTS.DESCRIPTION_MAX_LENGTH}文字以内で入力してください`)
+    .optional(),
   groupId: z.string().min(1).nullable().optional(),
 });
 
@@ -24,14 +22,14 @@ export const updateCategorySchema = z.object({
   name: z
     .string()
     .min(1, "カテゴリ名を入力してください")
-    .max(
-      CATEGORY_CONSTANTS.NAME_MAX_LENGTH,
-      `カテゴリ名は${CATEGORY_CONSTANTS.NAME_MAX_LENGTH}文字以内で入力してください`,
-    )
+    .max(CATEGORY_CONSTANTS.NAME_MAX_LENGTH, `カテゴリ名は${CATEGORY_CONSTANTS.NAME_MAX_LENGTH}文字以内で入力してください`)
     .refine((val) => val.trim().length > 0, "カテゴリ名を入力してください")
     .optional(),
   color: hexColorSchema.optional(),
-  description: z.string().max(CATEGORY_CONSTANTS.DESCRIPTION_MAX_LENGTH, `説明文は${CATEGORY_CONSTANTS.DESCRIPTION_MAX_LENGTH}文字以内で入力してください`).optional(),
+  description: z
+    .string()
+    .max(CATEGORY_CONSTANTS.DESCRIPTION_MAX_LENGTH, `説明文は${CATEGORY_CONSTANTS.DESCRIPTION_MAX_LENGTH}文字以内で入力してください`)
+    .optional(),
   groupId: z.string().min(1).nullable().optional(),
 });
 

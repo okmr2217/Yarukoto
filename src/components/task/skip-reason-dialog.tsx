@@ -21,13 +21,7 @@ interface SkipReasonDialogProps {
   isLoading?: boolean;
 }
 
-export function SkipReasonDialog({
-  open,
-  onOpenChange,
-  taskTitle,
-  onConfirm,
-  isLoading = false,
-}: SkipReasonDialogProps) {
+export function SkipReasonDialog({ open, onOpenChange, taskTitle, onConfirm, isLoading = false }: SkipReasonDialogProps) {
   const [reason, setReason] = useState("");
 
   const handleConfirm = () => {

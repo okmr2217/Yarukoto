@@ -2,29 +2,12 @@
 
 import { useState, useTransition } from "react";
 import { useRouter } from "next/navigation";
-import {
-  Mail,
-  LogOut,
-  Trash2,
-  Sun,
-  Moon,
-  Monitor,
-  Edit,
-  Lock,
-} from "lucide-react";
+import { Mail, LogOut, Trash2, Sun, Moon, Monitor, Edit, Lock } from "lucide-react";
 import { Button } from "@/components/ui/button";
 import { Label } from "@/components/ui/label";
 import { Input } from "@/components/ui/input";
 import { DeleteConfirmDialog } from "@/components/ui/delete-confirm-dialog";
-import {
-  Dialog,
-  DialogContent,
-  DialogDescription,
-  DialogFooter,
-  DialogHeader,
-  DialogTitle,
-  DialogTrigger,
-} from "@/components/ui/dialog";
+import { Dialog, DialogContent, DialogDescription, DialogFooter, DialogHeader, DialogTitle, DialogTrigger } from "@/components/ui/dialog";
 import { signOut, useSession, changePassword } from "@/lib/auth-client";
 import { deleteAccount, changeEmail } from "@/actions";
 import { useTheme } from "@/hooks";
@@ -130,9 +113,7 @@ export default function SettingsPage() {
           }, 1500);
         }
       } catch (error) {
-        setPasswordError(
-          error instanceof Error ? error.message : "パスワードの変更に失敗しました"
-        );
+        setPasswordError(error instanceof Error ? error.message : "パスワードの変更に失敗しました");
       }
     });
   };
@@ -141,281 +122,227 @@ export default function SettingsPage() {
     <div className="flex-1 bg-background">
       <MobileHeader title="設定" />
       <main className="px-4 pt-4 pb-20 md:pb-4 md:max-w-190 space-y-4">
-          <p className="text-xs text-muted-foreground">
-            アカウント情報の確認・変更やパスワードの更新ができます。
-          </p>
-          {/* Account Section */}
-          <section>
-            <h2 className="text-xs font-medium text-muted-foreground mb-2">
-              アカウント
-            </h2>
-            <div className="bg-card rounded-lg border border-border overflow-hidden">
-              <div className="flex items-center justify-between p-4 border-b border-border">
-                <div className="flex items-center gap-3">
-                  <Mail className="h-5 w-5 text-muted-foreground" />
-                  <div>
-                    <div className="text-sm font-medium">メールアドレス</div>
-                    <div className="text-sm text-muted-foreground">
-                      {session?.user?.email || "読み込み中..."}
-                    </div>
-                  </div>
+        <p className="text-xs text-muted-foreground">アカウント情報の確認・変更やパスワードの更新ができます。</p>
+        {/* Account Section */}
+        <section>
+          <h2 className="text-xs font-medium text-muted-foreground mb-2">アカウント</h2>
+          <div className="bg-card rounded-lg border border-border overflow-hidden">
+            <div className="flex items-center justify-between p-4 border-b border-border">
+              <div className="flex items-center gap-3">
+                <Mail className="h-5 w-5 text-muted-foreground" />
+                <div>
+                  <div className="text-sm font-medium">メールアドレス</div>
+                  <div className="text-sm text-muted-foreground">{session?.user?.email || "読み込み中..."}</div>
                 </div>
-                <Dialog open={isEmailDialogOpen} onOpenChange={setIsEmailDialogOpen}>
-                  <DialogTrigger asChild>
-                    <Button
-                      variant="ghost"
-                      size="sm"
-                      className="text-primary hover:text-primary"
-                    >
-                      <Edit className="h-4 w-4" />
-                    </Button>
-                  </DialogTrigger>
-                  <DialogContent>
-                    <DialogHeader>
-                      <DialogTitle>メールアドレスの変更</DialogTitle>
-                      <DialogDescription>
-                        新しいメールアドレスを入力してください
-                      </DialogDescription>
-                    </DialogHeader>
-                    <div className="space-y-4 py-4">
-                      <div className="space-y-1.5">
-                        <Label htmlFor="new-email">新しいメールアドレス</Label>
-                        <Input
-                          id="new-email"
-                          type="email"
-                          value={newEmail}
-                          onChange={(e) => setNewEmail(e.target.value)}
-                          placeholder="new@example.com"
-                          disabled={isChangingEmail}
-                        />
-                      </div>
-                      {emailError && (
-                        <p className="text-sm text-destructive">{emailError}</p>
-                      )}
-                      {emailSuccess && (
-                        <p className="text-sm text-green-600">
-                          メールアドレスを変更しました
-                        </p>
-                      )}
-                    </div>
-                    <DialogFooter>
-                      <Button
-                        variant="outline"
-                        onClick={() => {
-                          setIsEmailDialogOpen(false);
-                          setNewEmail("");
-                          setEmailError(null);
-                        }}
+              </div>
+              <Dialog open={isEmailDialogOpen} onOpenChange={setIsEmailDialogOpen}>
+                <DialogTrigger asChild>
+                  <Button variant="ghost" size="sm" className="text-primary hover:text-primary">
+                    <Edit className="h-4 w-4" />
+                  </Button>
+                </DialogTrigger>
+                <DialogContent>
+                  <DialogHeader>
+                    <DialogTitle>メールアドレスの変更</DialogTitle>
+                    <DialogDescription>新しいメールアドレスを入力してください</DialogDescription>
+                  </DialogHeader>
+                  <div className="space-y-4 py-4">
+                    <div className="space-y-1.5">
+                      <Label htmlFor="new-email">新しいメールアドレス</Label>
+                      <Input
+                        id="new-email"
+                        type="email"
+                        value={newEmail}
+                        onChange={(e) => setNewEmail(e.target.value)}
+                        placeholder="new@example.com"
                         disabled={isChangingEmail}
-                      >
-                        キャンセル
-                      </Button>
-                      <Button
-                        onClick={handleEmailChange}
-                        disabled={isChangingEmail || !newEmail}
-                      >
-                        {isChangingEmail ? "変更中..." : "変更する"}
-                      </Button>
-                    </DialogFooter>
-                  </DialogContent>
-                </Dialog>
-              </div>
-
-              <div className="flex items-center justify-between p-4">
-                <div className="flex items-center gap-3">
-                  <Lock className="h-5 w-5 text-muted-foreground" />
-                  <div>
-                    <div className="text-sm font-medium">パスワード</div>
-                    <div className="text-sm text-muted-foreground">
-                      ••••••••
+                      />
                     </div>
+                    {emailError && <p className="text-sm text-destructive">{emailError}</p>}
+                    {emailSuccess && <p className="text-sm text-green-600">メールアドレスを変更しました</p>}
                   </div>
-                </div>
-                <Dialog open={isPasswordDialogOpen} onOpenChange={setIsPasswordDialogOpen}>
-                  <DialogTrigger asChild>
+                  <DialogFooter>
                     <Button
-                      variant="ghost"
-                      size="sm"
-                      className="text-primary hover:text-primary"
+                      variant="outline"
+                      onClick={() => {
+                        setIsEmailDialogOpen(false);
+                        setNewEmail("");
+                        setEmailError(null);
+                      }}
+                      disabled={isChangingEmail}
                     >
-                      <Edit className="h-4 w-4" />
+                      キャンセル
                     </Button>
-                  </DialogTrigger>
-                  <DialogContent>
-                    <DialogHeader>
-                      <DialogTitle>パスワードの変更</DialogTitle>
-                      <DialogDescription>
-                        現在のパスワードと新しいパスワードを入力してください
-                      </DialogDescription>
-                    </DialogHeader>
-                    <div className="space-y-4 py-4">
-                      <div className="space-y-1.5">
-                        <Label htmlFor="current-password">現在のパスワード</Label>
-                        <Input
-                          id="current-password"
-                          type="password"
-                          value={currentPassword}
-                          onChange={(e) => setCurrentPassword(e.target.value)}
-                          disabled={isChangingPassword}
-                        />
-                      </div>
-                      <div className="space-y-1.5">
-                        <Label htmlFor="new-password">新しいパスワード</Label>
-                        <Input
-                          id="new-password"
-                          type="password"
-                          value={newPassword}
-                          onChange={(e) => setNewPassword(e.target.value)}
-                          disabled={isChangingPassword}
-                        />
-                      </div>
-                      <div className="space-y-1.5">
-                        <Label htmlFor="confirm-password">
-                          新しいパスワード（確認）
-                        </Label>
-                        <Input
-                          id="confirm-password"
-                          type="password"
-                          value={confirmPassword}
-                          onChange={(e) => setConfirmPassword(e.target.value)}
-                          disabled={isChangingPassword}
-                        />
-                      </div>
-                      {passwordError && (
-                        <p className="text-sm text-destructive">{passwordError}</p>
-                      )}
-                      {passwordSuccess && (
-                        <p className="text-sm text-green-600">
-                          パスワードを変更しました
-                        </p>
-                      )}
-                    </div>
-                    <DialogFooter>
-                      <Button
-                        variant="outline"
-                        onClick={() => {
-                          setIsPasswordDialogOpen(false);
-                          setCurrentPassword("");
-                          setNewPassword("");
-                          setConfirmPassword("");
-                          setPasswordError(null);
-                        }}
+                    <Button onClick={handleEmailChange} disabled={isChangingEmail || !newEmail}>
+                      {isChangingEmail ? "変更中..." : "変更する"}
+                    </Button>
+                  </DialogFooter>
+                </DialogContent>
+              </Dialog>
+            </div>
+
+            <div className="flex items-center justify-between p-4">
+              <div className="flex items-center gap-3">
+                <Lock className="h-5 w-5 text-muted-foreground" />
+                <div>
+                  <div className="text-sm font-medium">パスワード</div>
+                  <div className="text-sm text-muted-foreground">••••••••</div>
+                </div>
+              </div>
+              <Dialog open={isPasswordDialogOpen} onOpenChange={setIsPasswordDialogOpen}>
+                <DialogTrigger asChild>
+                  <Button variant="ghost" size="sm" className="text-primary hover:text-primary">
+                    <Edit className="h-4 w-4" />
+                  </Button>
+                </DialogTrigger>
+                <DialogContent>
+                  <DialogHeader>
+                    <DialogTitle>パスワードの変更</DialogTitle>
+                    <DialogDescription>現在のパスワードと新しいパスワードを入力してください</DialogDescription>
+                  </DialogHeader>
+                  <div className="space-y-4 py-4">
+                    <div className="space-y-1.5">
+                      <Label htmlFor="current-password">現在のパスワード</Label>
+                      <Input
+                        id="current-password"
+                        type="password"
+                        value={currentPassword}
+                        onChange={(e) => setCurrentPassword(e.target.value)}
                         disabled={isChangingPassword}
-                      >
-                        キャンセル
-                      </Button>
-                      <Button
-                        onClick={handlePasswordChange}
-                        disabled={
-                          isChangingPassword ||
-                          !currentPassword ||
-                          !newPassword ||
-                          !confirmPassword
-                        }
-                      >
-                        {isChangingPassword ? "変更中..." : "変更する"}
-                      </Button>
-                    </DialogFooter>
-                  </DialogContent>
-                </Dialog>
-              </div>
+                      />
+                    </div>
+                    <div className="space-y-1.5">
+                      <Label htmlFor="new-password">新しいパスワード</Label>
+                      <Input
+                        id="new-password"
+                        type="password"
+                        value={newPassword}
+                        onChange={(e) => setNewPassword(e.target.value)}
+                        disabled={isChangingPassword}
+                      />
+                    </div>
+                    <div className="space-y-1.5">
+                      <Label htmlFor="confirm-password">新しいパスワード（確認）</Label>
+                      <Input
+                        id="confirm-password"
+                        type="password"
+                        value={confirmPassword}
+                        onChange={(e) => setConfirmPassword(e.target.value)}
+                        disabled={isChangingPassword}
+                      />
+                    </div>
+                    {passwordError && <p className="text-sm text-destructive">{passwordError}</p>}
+                    {passwordSuccess && <p className="text-sm text-green-600">パスワードを変更しました</p>}
+                  </div>
+                  <DialogFooter>
+                    <Button
+                      variant="outline"
+                      onClick={() => {
+                        setIsPasswordDialogOpen(false);
+                        setCurrentPassword("");
+                        setNewPassword("");
+                        setConfirmPassword("");
+                        setPasswordError(null);
+                      }}
+                      disabled={isChangingPassword}
+                    >
+                      キャンセル
+                    </Button>
+                    <Button
+                      onClick={handlePasswordChange}
+                      disabled={isChangingPassword || !currentPassword || !newPassword || !confirmPassword}
+                    >
+                      {isChangingPassword ? "変更中..." : "変更する"}
+                    </Button>
+                  </DialogFooter>
+                </DialogContent>
+              </Dialog>
             </div>
-          </section>
-
-          {/* Appearance Section */}
-          <section>
-            <h2 className="text-xs font-medium text-muted-foreground mb-2">
-              外観
-            </h2>
-            <div className="bg-card rounded-lg border border-border overflow-hidden">
-              <div className="p-4">
-                <div className="text-sm font-medium mb-3">テーマ</div>
-                <div className="grid grid-cols-3 gap-2">
-                  <button
-                    onClick={() => setTheme("light")}
-                    className={`flex flex-col items-center gap-2 p-3 rounded-lg border-2 transition-colors ${
-                      theme === "light"
-                        ? "border-primary bg-primary/5"
-                        : "border-border hover:bg-accent"
-                    }`}
-                  >
-                    <Sun className="h-5 w-5" />
-                    <span className="text-xs font-medium">ライト</span>
-                  </button>
-                  <button
-                    onClick={() => setTheme("dark")}
-                    className={`flex flex-col items-center gap-2 p-3 rounded-lg border-2 transition-colors ${
-                      theme === "dark"
-                        ? "border-primary bg-primary/5"
-                        : "border-border hover:bg-accent"
-                    }`}
-                  >
-                    <Moon className="h-5 w-5" />
-                    <span className="text-xs font-medium">ダーク</span>
-                  </button>
-                  <button
-                    onClick={() => setTheme("system")}
-                    className={`flex flex-col items-center gap-2 p-3 rounded-lg border-2 transition-colors ${
-                      theme === "system"
-                        ? "border-primary bg-primary/5"
-                        : "border-border hover:bg-accent"
-                    }`}
-                  >
-                    <Monitor className="h-5 w-5" />
-                    <span className="text-xs font-medium">システム</span>
-                  </button>
-                </div>
-              </div>
-            </div>
-          </section>
-
-          {/* Other Section */}
-          <section>
-            <h2 className="text-xs font-medium text-muted-foreground mb-2">
-              その他
-            </h2>
-            <div className="bg-card rounded-lg border border-border overflow-hidden">
-              <button
-                onClick={handleLogout}
-                disabled={isLoggingOut}
-                className="w-full flex items-center gap-3 p-4 text-left hover:bg-accent transition-colors border-b border-border disabled:opacity-50"
-              >
-                <LogOut className="h-5 w-5 text-muted-foreground" />
-                <span className="text-sm font-medium">
-                  {isLoggingOut ? "ログアウト中..." : "ログアウト"}
-                </span>
-              </button>
-
-              <button
-                onClick={() => { setDeleteError(null); setIsDeleteAlertOpen(true); }}
-                className="w-full flex items-center justify-between p-4 text-left hover:bg-accent transition-colors"
-              >
-                <div className="flex items-center gap-3">
-                  <Trash2 className="h-5 w-5 text-destructive" />
-                  <span className="text-sm font-medium text-destructive">
-                    アカウント削除
-                  </span>
-                </div>
-                <span className="text-xs px-2 py-0.5 bg-destructive/10 text-destructive rounded">
-                  危険
-                </span>
-              </button>
-              <DeleteConfirmDialog
-                open={isDeleteAlertOpen}
-                onOpenChange={(open) => { if (!open) setDeleteError(null); setIsDeleteAlertOpen(open); }}
-                title="アカウントを削除しますか？"
-                description="この操作は取り消せません。すべてのタスク、カテゴリ、アカウント情報が完全に削除されます。"
-                onConfirm={handleDeleteAccount}
-                isLoading={isDeleting}
-                errorMessage={deleteError ?? undefined}
-              />
-            </div>
-          </section>
-
-          {/* Version */}
-          <div className="text-center text-sm text-muted-foreground">
-            バージョン: {process.env.NEXT_PUBLIC_APP_VERSION}
           </div>
+        </section>
+
+        {/* Appearance Section */}
+        <section>
+          <h2 className="text-xs font-medium text-muted-foreground mb-2">外観</h2>
+          <div className="bg-card rounded-lg border border-border overflow-hidden">
+            <div className="p-4">
+              <div className="text-sm font-medium mb-3">テーマ</div>
+              <div className="grid grid-cols-3 gap-2">
+                <button
+                  onClick={() => setTheme("light")}
+                  className={`flex flex-col items-center gap-2 p-3 rounded-lg border-2 transition-colors ${
+                    theme === "light" ? "border-primary bg-primary/5" : "border-border hover:bg-accent"
+                  }`}
+                >
+                  <Sun className="h-5 w-5" />
+                  <span className="text-xs font-medium">ライト</span>
+                </button>
+                <button
+                  onClick={() => setTheme("dark")}
+                  className={`flex flex-col items-center gap-2 p-3 rounded-lg border-2 transition-colors ${
+                    theme === "dark" ? "border-primary bg-primary/5" : "border-border hover:bg-accent"
+                  }`}
+                >
+                  <Moon className="h-5 w-5" />
+                  <span className="text-xs font-medium">ダーク</span>
+                </button>
+                <button
+                  onClick={() => setTheme("system")}
+                  className={`flex flex-col items-center gap-2 p-3 rounded-lg border-2 transition-colors ${
+                    theme === "system" ? "border-primary bg-primary/5" : "border-border hover:bg-accent"
+                  }`}
+                >
+                  <Monitor className="h-5 w-5" />
+                  <span className="text-xs font-medium">システム</span>
+                </button>
+              </div>
+            </div>
+          </div>
+        </section>
+
+        {/* Other Section */}
+        <section>
+          <h2 className="text-xs font-medium text-muted-foreground mb-2">その他</h2>
+          <div className="bg-card rounded-lg border border-border overflow-hidden">
+            <button
+              onClick={handleLogout}
+              disabled={isLoggingOut}
+              className="w-full flex items-center gap-3 p-4 text-left hover:bg-accent transition-colors border-b border-border disabled:opacity-50"
+            >
+              <LogOut className="h-5 w-5 text-muted-foreground" />
+              <span className="text-sm font-medium">{isLoggingOut ? "ログアウト中..." : "ログアウト"}</span>
+            </button>
+
+            <button
+              onClick={() => {
+                setDeleteError(null);
+                setIsDeleteAlertOpen(true);
+              }}
+              className="w-full flex items-center justify-between p-4 text-left hover:bg-accent transition-colors"
+            >
+              <div className="flex items-center gap-3">
+                <Trash2 className="h-5 w-5 text-destructive" />
+                <span className="text-sm font-medium text-destructive">アカウント削除</span>
+              </div>
+              <span className="text-xs px-2 py-0.5 bg-destructive/10 text-destructive rounded">危険</span>
+            </button>
+            <DeleteConfirmDialog
+              open={isDeleteAlertOpen}
+              onOpenChange={(open) => {
+                if (!open) setDeleteError(null);
+                setIsDeleteAlertOpen(open);
+              }}
+              title="アカウントを削除しますか？"
+              description="この操作は取り消せません。すべてのタスク、カテゴリ、アカウント情報が完全に削除されます。"
+              onConfirm={handleDeleteAccount}
+              isLoading={isDeleting}
+              errorMessage={deleteError ?? undefined}
+            />
+          </div>
+        </section>
+
+        {/* Version */}
+        <div className="text-center text-sm text-muted-foreground">バージョン: {process.env.NEXT_PUBLIC_APP_VERSION}</div>
       </main>
     </div>
   );

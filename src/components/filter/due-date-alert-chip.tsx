@@ -36,12 +36,14 @@ export function DueDateAlertChip({ className }: { className?: string }) {
       </Link>
 
       {/* ツールチップ */}
-      <div className={cn(
-        "absolute top-full right-0 mt-1.5 z-50",
-        "w-48 rounded-lg border border-border bg-popover px-3 py-2.5 text-xs shadow-sm",
-        "pointer-events-none",
-        "opacity-0 group-hover:opacity-100 transition-opacity duration-150",
-      )}>
+      <div
+        className={cn(
+          "absolute top-full right-0 mt-1.5 z-50",
+          "w-48 rounded-lg border border-border bg-popover px-3 py-2.5 text-xs shadow-sm",
+          "pointer-events-none",
+          "opacity-0 group-hover:opacity-100 transition-opacity duration-150",
+        )}
+      >
         {/* 吹き出し矢印 */}
         <div className="absolute -top-1 right-3 w-2 h-2 rotate-45 border-l border-t border-border bg-popover" />
 
@@ -60,9 +62,7 @@ export function DueDateAlertChip({ className }: { className?: string }) {
               <span className="font-medium text-amber-600 dark:text-amber-400">{todayCount}件</span>
             </div>
           )}
-          <p className="text-muted-foreground/70 pt-1 mt-1 border-t border-border">
-            クリックで予定ビューを表示
-          </p>
+          <p className="text-muted-foreground/70 pt-1 mt-1 border-t border-border">クリックで予定ビューを表示</p>
         </div>
       </div>
     </div>

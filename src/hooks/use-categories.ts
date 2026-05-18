@@ -30,7 +30,17 @@ export function useCreateCategory() {
   const queryClient = useQueryClient();
 
   return useMutation({
-    mutationFn: async ({ name, color, description, groupId }: { name: string; color: string; description?: string; groupId?: string | null }) => {
+    mutationFn: async ({
+      name,
+      color,
+      description,
+      groupId,
+    }: {
+      name: string;
+      color: string;
+      description?: string;
+      groupId?: string | null;
+    }) => {
       const result = await createCategory({ name, color, description, groupId });
       if (!result.success) {
         throw new Error(result.error);
@@ -108,12 +118,7 @@ export function useUpdateCategory() {
           previous.map((cat) => {
             if (cat.id !== id) return cat;
             const newGroupId = groupId !== undefined ? groupId : cat.groupId;
-            const newGroup =
-              groupId !== undefined
-                ? groupId
-                  ? (groups?.find((g) => g.id === groupId) ?? null)
-                  : null
-                : cat.group;
+            const newGroup = groupId !== undefined ? (groupId ? (groups?.find((g) => g.id === groupId) ?? null) : null) : cat.group;
             return {
               ...cat,
               name: name ?? cat.name,

@@ -43,8 +43,7 @@ export function ForgotPasswordForm() {
       <AuthCard description="メールを送信しました | パスワードリセットのリンクをメールで送信しました">
         <div className="space-y-4">
           <p className="text-sm text-muted-foreground text-center">
-            {email} にパスワードリセットのリンクを送信しました。
-            メールをご確認ください。
+            {email} にパスワードリセットのリンクを送信しました。 メールをご確認ください。
           </p>
           <Link href="/login">
             <Button variant="outline" className="w-full">
@@ -59,11 +58,7 @@ export function ForgotPasswordForm() {
   return (
     <AuthCard description="パスワードをリセット | 登録したメールアドレスを入力してください">
       <form onSubmit={handleSubmit} className="space-y-4">
-        {error && (
-          <div className="p-3 text-sm text-destructive bg-destructive/10 rounded-md">
-            {error}
-          </div>
-        )}
+        {error && <div className="p-3 text-sm text-destructive bg-destructive/10 rounded-md">{error}</div>}
 
         <div className="space-y-1.5">
           <Label htmlFor="email">メールアドレス</Label>

@@ -1,5 +1,5 @@
 import Link from "next/link";
-import { Settings, HelpCircle, Layers } from "lucide-react";
+import { Settings, HelpCircle } from "lucide-react";
 import { MobileHeader } from "@/components/layout";
 
 const MENU_ITEMS = [

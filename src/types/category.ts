@@ -44,4 +44,3 @@ export type Group = {
   createdAt: string;
   updatedAt: string;
 };
-

@@ -25,10 +25,7 @@ export function BottomNav() {
   };
 
   const isMenuActive =
-    pathname.startsWith("/menu") ||
-    pathname.startsWith("/settings") ||
-    pathname.startsWith("/help") ||
-    pathname.startsWith("/groups");
+    pathname.startsWith("/menu") || pathname.startsWith("/settings") || pathname.startsWith("/help") || pathname.startsWith("/groups");
   const bottomNavItems = NAV_ITEMS.filter((item) => BOTTOM_NAV_HREFS.has(item.href));
 
   return (

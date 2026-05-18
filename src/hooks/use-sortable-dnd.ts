@@ -17,10 +17,7 @@ export function useSortableDnd<T extends { id: string }>({
   const queryClient = useQueryClient();
   const [activeItem, setActiveItem] = useState<T | null>(null);
 
-  const sensors = useSensors(
-    useSensor(PointerSensor),
-    useSensor(TouchSensor, { activationConstraint: { delay: 200, tolerance: 5 } }),
-  );
+  const sensors = useSensors(useSensor(PointerSensor), useSensor(TouchSensor, { activationConstraint: { delay: 200, tolerance: 5 } }));
 
   const handleDragStart = (event: DragStartEvent) => {
     const item = items?.find((i) => i.id === (event.active.id as string));

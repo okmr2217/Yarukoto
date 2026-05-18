@@ -29,9 +29,7 @@ import { toTask } from "@/lib/task-helpers";
  * - カテゴリIDが指定された場合、そのカテゴリがユーザーのものであることを確認します
  * - scheduledAtはYYYY-MM-DD形式の文字列で、PostgreSQLのDATE型に格納されます
  */
-export async function createTask(
-  input: CreateTaskInput,
-): Promise<ActionResult<{ task: Task }>> {
+export async function createTask(input: CreateTaskInput): Promise<ActionResult<{ task: Task }>> {
   try {
     const parsed = createTaskSchema.safeParse(input);
     if (!parsed.success) {
@@ -95,9 +93,7 @@ export async function createTask(
  * - undefinedのフィールドは更新されません（部分更新をサポート）
  * - タイトルとメモは前後の空白が自動的に削除されます
  */
-export async function updateTask(
-  input: UpdateTaskInput,
-): Promise<ActionResult<{ task: Task }>> {
+export async function updateTask(input: UpdateTaskInput): Promise<ActionResult<{ task: Task }>> {
   try {
     const parsed = updateTaskSchema.safeParse(input);
     if (!parsed.success) {
@@ -156,9 +152,7 @@ export async function updateTask(
  * - ステータスを「COMPLETED」に設定し、完了日時を現在時刻に設定します
  * - スキップ情報（skippedAt, skipReason）はクリアされます
  */
-export async function completeTask(input: {
-  id: string;
-}): Promise<ActionResult<{ task: Task }>> {
+export async function completeTask(input: { id: string }): Promise<ActionResult<{ task: Task }>> {
   try {
     const parsed = taskIdSchema.safeParse(input);
     if (!parsed.success) {
@@ -204,9 +198,7 @@ export async function completeTask(input: {
  * - タスクがユーザーのものであることを確認します
  * - ステータスを「PENDING」に戻し、完了日時をクリアします
  */
-export async function uncompleteTask(input: {
-  id: string;
-}): Promise<ActionResult<{ task: Task }>> {
+export async function uncompleteTask(input: { id: string }): Promise<ActionResult<{ task: Task }>> {
   try {
     const parsed = taskIdSchema.safeParse(input);
     if (!parsed.success) {
@@ -252,9 +244,7 @@ export async function uncompleteTask(input: {
  * - 完了情報（completedAt）はクリアされます
  * - スキップ理由は前後の空白が自動的に削除されます
  */
-export async function skipTask(
-  input: SkipTaskInput,
-): Promise<ActionResult<{ task: Task }>> {
+export async function skipTask(input: SkipTaskInput): Promise<ActionResult<{ task: Task }>> {
   try {
     const parsed = skipTaskSchema.safeParse(input);
     if (!parsed.success) {
@@ -300,9 +290,7 @@ export async function skipTask(
  * - タスクがユーザーのものであることを確認します
  * - ステータスを「PENDING」に戻し、スキップ情報（skippedAt, skipReason）をクリアします
  */
-export async function unskipTask(input: {
-  id: string;
-}): Promise<ActionResult<{ task: Task }>> {
+export async function unskipTask(input: { id: string }): Promise<ActionResult<{ task: Task }>> {
   try {
     const parsed = taskIdSchema.safeParse(input);
     if (!parsed.success) {
@@ -347,9 +335,7 @@ export async function unskipTask(input: {
  * - タスクがユーザーのものであることを確認します
  * - 削除は物理削除（データベースから完全に削除）されます
  */
-export async function deleteTask(input: {
-  id: string;
-}): Promise<ActionResult<{ id: string }>> {
+export async function deleteTask(input: { id: string }): Promise<ActionResult<{ id: string }>> {
   try {
     const parsed = taskIdSchema.safeParse(input);
     if (!parsed.success) {
@@ -465,9 +451,7 @@ export async function reorderTasks(input: {
  * - タスクがユーザーのものであることを確認します
  * - isFavoriteをトグル（true↔false）します
  */
-export async function toggleFavorite(
-  input: ToggleFavoriteInput,
-): Promise<ActionResult<{ task: Task }>> {
+export async function toggleFavorite(input: ToggleFavoriteInput): Promise<ActionResult<{ task: Task }>> {
   try {
     const parsed = toggleFavoriteSchema.safeParse(input);
     if (!parsed.success) {

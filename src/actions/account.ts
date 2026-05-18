@@ -4,9 +4,7 @@ import { prisma } from "@/lib/prisma";
 import { getRequiredSession } from "@/lib/auth-server";
 import { success, failure, type ActionResult } from "@/types";
 
-export async function changeEmail(
-  newEmail: string
-): Promise<ActionResult<{ success: boolean }>> {
+export async function changeEmail(newEmail: string): Promise<ActionResult<{ success: boolean }>> {
   try {
     const session = await getRequiredSession();
     const userId = session.user.id;
@@ -23,10 +21,7 @@ export async function changeEmail(
     });
 
     if (existingUser && existingUser.id !== userId) {
-      return failure(
-        "このメールアドレスは既に使用されています",
-        "VALIDATION_ERROR"
-      );
+      return failure("このメールアドレスは既に使用されています", "VALIDATION_ERROR");
     }
 
     // Update email directly without verification
@@ -38,16 +33,11 @@ export async function changeEmail(
     return success({ success: true });
   } catch (error) {
     console.error("Failed to change email:", error);
-    return failure(
-      "メールアドレスの変更に失敗しました",
-      "INTERNAL_ERROR"
-    );
+    return failure("メールアドレスの変更に失敗しました", "INTERNAL_ERROR");
   }
 }
 
-export async function deleteAccount(): Promise<
-  ActionResult<{ success: boolean }>
-> {
+export async function deleteAccount(): Promise<ActionResult<{ success: boolean }>> {
   try {
     const session = await getRequiredSession();
     const userId = session.user.id;

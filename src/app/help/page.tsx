@@ -23,10 +23,7 @@ export default function HelpPage() {
             <span className="text-xl font-medium font-logo">Yarukoto</span>
           </Link>
           <Button asChild variant="link" size="sm" className="text-xs">
-
-          <Link href="/">
-            アプリへ戻る
-          </Link>
+            <Link href="/">アプリへ戻る</Link>
           </Button>
         </div>
       </header>
@@ -80,7 +77,9 @@ export default function HelpPage() {
               <div>
                 <h3 className="text-sm font-medium mb-2">タスクの作成</h3>
                 <ol className="text-sm text-muted-foreground space-y-1 list-decimal list-inside leading-relaxed">
-                  <li>画面右下の「＋」ボタン、またはキーボードの <Kbd>N</Kbd> キーを押す</li>
+                  <li>
+                    画面右下の「＋」ボタン、またはキーボードの <Kbd>N</Kbd> キーを押す
+                  </li>
                   <li>タイトルを入力する（必須・最大500文字）</li>
                   <li>必要に応じて予定日・カテゴリ・優先度・メモを設定する</li>
                   <li>「追加」ボタンを押す</li>
@@ -173,9 +172,7 @@ export default function HelpPage() {
           {/* 4. カテゴリ設定 */}
           <section id="categories" className="scroll-mt-20">
             <h2 className="text-base font-semibold mb-4">カテゴリ設定</h2>
-            <p className="text-sm text-muted-foreground mb-4">
-              画面左のサイドバーまたはメニューから「カテゴリ」を開きます。
-            </p>
+            <p className="text-sm text-muted-foreground mb-4">画面左のサイドバーまたはメニューから「カテゴリ」を開きます。</p>
             <div className="space-y-6">
               <div>
                 <h3 className="text-sm font-medium mb-2">カテゴリの追加</h3>
@@ -184,9 +181,7 @@ export default function HelpPage() {
                   <li>名前（必須・最大100文字）・説明（任意・最大200文字）・カラー（任意）を入力する</li>
                   <li>「追加」ボタンを押す</li>
                 </ol>
-                <p className="text-sm text-muted-foreground mt-2">
-                  カラーは赤・オレンジ・黄・緑・青・紫・グレーから選択できます。
-                </p>
+                <p className="text-sm text-muted-foreground mt-2">カラーは赤・オレンジ・黄・緑・青・紫・グレーから選択できます。</p>
               </div>
 
               <div>
@@ -221,9 +216,7 @@ export default function HelpPage() {
           {/* 5. 統計 */}
           <section id="stats" className="scroll-mt-20">
             <h2 className="text-base font-semibold mb-4">統計</h2>
-            <p className="text-sm text-muted-foreground mb-4">
-              画面下部のナビゲーションから「統計」を開きます。
-            </p>
+            <p className="text-sm text-muted-foreground mb-4">画面下部のナビゲーションから「統計」を開きます。</p>
             <div className="space-y-6">
               <div>
                 <h3 className="text-sm font-medium mb-2">日別タブ</h3>
@@ -242,9 +235,7 @@ export default function HelpPage() {
 
               <div>
                 <h3 className="text-sm font-medium mb-2">カテゴリ別タブ</h3>
-                <p className="text-sm text-muted-foreground mb-2">
-                  カテゴリごとのタスク状況を確認できます。
-                </p>
+                <p className="text-sm text-muted-foreground mb-2">カテゴリごとのタスク状況を確認できます。</p>
                 <Table
                   headers={["項目", "説明"]}
                   rows={[
@@ -277,9 +268,7 @@ export default function HelpPage() {
               ]}
               keyColumn={1}
             />
-            <p className="text-sm text-muted-foreground mt-3">
-              カテゴリの番号は、カテゴリ一覧の表示順に対応しています。
-            </p>
+            <p className="text-sm text-muted-foreground mt-3">カテゴリの番号は、カテゴリ一覧の表示順に対応しています。</p>
           </section>
         </main>
       </div>
@@ -288,22 +277,10 @@ export default function HelpPage() {
 }
 
 function Kbd({ children }: { children: React.ReactNode }) {
-  return (
-    <kbd className="inline-flex items-center rounded border border-border bg-muted px-1.5 py-0.5 text-xs font-mono">
-      {children}
-    </kbd>
-  );
+  return <kbd className="inline-flex items-center rounded border border-border bg-muted px-1.5 py-0.5 text-xs font-mono">{children}</kbd>;
 }
 
-function Table({
-  headers,
-  rows,
-  keyColumn,
-}: {
-  headers: [string, string];
-  rows: [string, string][];
-  keyColumn?: number;
-}) {
+function Table({ headers, rows, keyColumn }: { headers: [string, string]; rows: [string, string][]; keyColumn?: number }) {
   return (
     <div className="rounded-lg border border-border overflow-hidden">
       <table className="w-full text-sm">
@@ -317,13 +294,7 @@ function Table({
           {rows.map(([col0, col1], i) => (
             <tr key={i} className="border-b border-border last:border-0">
               <td className="px-4 py-2.5 text-muted-foreground">{col0}</td>
-              <td className="px-4 py-2.5 text-muted-foreground">
-                {keyColumn === 1 ? (
-                  <Kbd>{col1}</Kbd>
-                ) : (
-                  col1
-                )}
-              </td>
+              <td className="px-4 py-2.5 text-muted-foreground">{keyColumn === 1 ? <Kbd>{col1}</Kbd> : col1}</td>
             </tr>
           ))}
         </tbody>

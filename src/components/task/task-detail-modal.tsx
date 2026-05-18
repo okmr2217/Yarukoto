@@ -20,12 +20,7 @@ import { CategorySelector } from "./category-selector";
 import { useTaskMutations } from "@/hooks/use-task-mutations";
 import { useRecentCategories } from "@/hooks";
 import type { Task, Category, Group } from "@/types";
-import {
-  formatDateTimeForDisplay,
-  formatRelativeScheduledDate,
-  getTodayInJST,
-  addDaysJST,
-} from "@/lib/dateUtils";
+import { formatDateTimeForDisplay, formatRelativeScheduledDate, getTodayInJST, addDaysJST } from "@/lib/dateUtils";
 
 interface TaskDetailModalProps {
   task: Task | null;
@@ -146,12 +141,8 @@ export function TaskDetailModal({
     ...(task.updatedAt !== task.createdAt
       ? [{ Icon: PenLine, label: "更新", value: task.updatedAt, className: "text-muted-foreground/60" }]
       : []),
-    ...(isCompleted && task.completedAt
-      ? [{ Icon: CheckCircle2, label: "完了", value: task.completedAt, className: "text-success" }]
-      : []),
-    ...(isSkipped && task.skippedAt
-      ? [{ Icon: Ban, label: "やらない", value: task.skippedAt, className: "text-yellow-600" }]
-      : []),
+    ...(isCompleted && task.completedAt ? [{ Icon: CheckCircle2, label: "完了", value: task.completedAt, className: "text-success" }] : []),
+    ...(isSkipped && task.skippedAt ? [{ Icon: Ban, label: "やらない", value: task.skippedAt, className: "text-yellow-600" }] : []),
   ];
 
   return (
@@ -243,11 +234,7 @@ export function TaskDetailModal({
                     ? "border-transparent hover:opacity-80"
                     : "border-dashed border-border text-muted-foreground hover:text-foreground hover:border-foreground/30",
                 )}
-                style={
-                  task.category
-                    ? { backgroundColor: categoryBgHex ? `${categoryBgHex}26` : "hsl(var(--muted))" }
-                    : undefined
-                }
+                style={task.category ? { backgroundColor: categoryBgHex ? `${categoryBgHex}26` : "hsl(var(--muted))" } : undefined}
               >
                 {task.category ? (
                   <>
@@ -376,18 +363,23 @@ export function TaskDetailModal({
             <Button type="button" size="sm" variant={!task.scheduledAt ? "default" : "outline"} onClick={() => handleDateSelect(null)}>
               なし
             </Button>
-            <Button type="button" size="sm" variant={task.scheduledAt === todayString ? "default" : "outline"} onClick={() => handleDateSelect(todayString)}>
+            <Button
+              type="button"
+              size="sm"
+              variant={task.scheduledAt === todayString ? "default" : "outline"}
+              onClick={() => handleDateSelect(todayString)}
+            >
               今日
-            </Button>
-            <Button type="button" size="sm" variant={task.scheduledAt === tomorrowString ? "default" : "outline"} onClick={() => handleDateSelect(tomorrowString)}>
-              明日
             </Button>
             <Button
               type="button"
               size="sm"
-              variant="outline"
-              onClick={() => dateInputRef.current?.showPicker()}
+              variant={task.scheduledAt === tomorrowString ? "default" : "outline"}
+              onClick={() => handleDateSelect(tomorrowString)}
             >
+              明日
+            </Button>
+            <Button type="button" size="sm" variant="outline" onClick={() => dateInputRef.current?.showPicker()}>
               <Calendar className="size-4" />
               選択
             </Button>
@@ -399,9 +391,7 @@ export function TaskDetailModal({
               className="sr-only"
             />
           </div>
-          {task.scheduledAt && (
-            <p className="text-xs text-muted-foreground mt-2">{task.scheduledAt.replace(/-/g, "/")}</p>
-          )}
+          {task.scheduledAt && <p className="text-xs text-muted-foreground mt-2">{task.scheduledAt.replace(/-/g, "/")}</p>}
         </DialogContent>
       </Dialog>
     </>

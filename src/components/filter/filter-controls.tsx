@@ -193,7 +193,9 @@ export function FilterSortChips({ viewMode, listSort, scheduledSort, onListSortC
                 aria-pressed={active}
                 className={cn(
                   "flex items-center justify-center px-2 py-1.5 rounded-md text-xs transition-colors border",
-                  active ? "bg-primary text-primary-foreground font-medium border-primary" : "border-input text-muted-foreground hover:bg-muted hover:text-foreground",
+                  active
+                    ? "bg-primary text-primary-foreground font-medium border-primary"
+                    : "border-input text-muted-foreground hover:bg-muted hover:text-foreground",
                 )}
                 onClick={() => onListSortChange(option.value)}
               >
@@ -210,7 +212,9 @@ export function FilterSortChips({ viewMode, listSort, scheduledSort, onListSortC
                 aria-pressed={active}
                 className={cn(
                   "flex items-center justify-center px-2 py-1.5 rounded-md text-xs transition-colors border",
-                  active ? "bg-primary text-primary-foreground font-medium border-primary" : "border-input text-muted-foreground hover:bg-muted hover:text-foreground",
+                  active
+                    ? "bg-primary text-primary-foreground font-medium border-primary"
+                    : "border-input text-muted-foreground hover:bg-muted hover:text-foreground",
                 )}
                 onClick={() => onScheduledSortChange(option.value)}
               >
@@ -231,7 +235,14 @@ interface FilterKeywordInputProps {
   tooltip?: string;
 }
 
-export function FilterKeywordInput({ localKeyword, isComposingRef, onKeywordChange, onCompositionEnd, onKeywordClear, tooltip }: FilterKeywordInputProps) {
+export function FilterKeywordInput({
+  localKeyword,
+  isComposingRef,
+  onKeywordChange,
+  onCompositionEnd,
+  onKeywordClear,
+  tooltip,
+}: FilterKeywordInputProps) {
   return (
     <>
       {tooltip && (
@@ -247,7 +258,9 @@ export function FilterKeywordInput({ localKeyword, isComposingRef, onKeywordChan
           placeholder="キーワード..."
           value={localKeyword}
           onChange={onKeywordChange}
-          onCompositionStart={() => { isComposingRef.current = true; }}
+          onCompositionStart={() => {
+            isComposingRef.current = true;
+          }}
           onCompositionEnd={onCompositionEnd}
           className="pl-8 pr-7 h-8 text-xs focus-visible:ring-1"
         />

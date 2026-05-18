@@ -2,11 +2,7 @@
 
 import { Plus } from "lucide-react";
 import { Button } from "@/components/ui/button";
-import {
-  Tooltip,
-  TooltipContent,
-  TooltipTrigger,
-} from "@/components/ui/tooltip";
+import { Tooltip, TooltipContent, TooltipTrigger } from "@/components/ui/tooltip";
 import { cn } from "@/lib/utils";
 
 interface TaskFabProps {
@@ -33,11 +29,7 @@ export function TaskFab({ onClick, className }: TaskFabProps) {
       </TooltipTrigger>
       <TooltipContent side="left" sideOffset={8}>
         <p>
-          新規タスク (
-          <kbd className="px-1 py-0.5 text-xs bg-background text-foreground rounded border">
-            N
-          </kbd>
-          )
+          新規タスク (<kbd className="px-1 py-0.5 text-xs bg-background text-foreground rounded border">N</kbd>)
         </p>
       </TooltipContent>
     </Tooltip>

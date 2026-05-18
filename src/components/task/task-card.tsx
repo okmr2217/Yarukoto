@@ -5,15 +5,7 @@ import { Checkbox } from "@/components/ui/checkbox";
 import { cn } from "@/lib/utils";
 import { LinkText } from "@/components/ui/link-text";
 import type { Task } from "@/types";
-import {
-  Ban,
-  GripVertical,
-  Calendar,
-  CheckCircle2,
-  PlusCircle,
-  PenLine,
-  Star,
-} from "lucide-react";
+import { Ban, GripVertical, Calendar, CheckCircle2, PlusCircle, PenLine, Star } from "lucide-react";
 import type { DraggableAttributes, DraggableSyntheticListeners } from "@dnd-kit/core";
 import { getScheduledDateStatus, formatCompactTime, formatRelativeScheduledDate } from "@/lib/dateUtils";
 import { useLongPress } from "@/hooks/useLongPress";
@@ -47,8 +39,7 @@ function StopPropagation({ children }: { children: React.ReactNode }) {
 }
 
 function ScheduledDateChip({ scheduledAt, status }: { scheduledAt: string; status: ReturnType<typeof getScheduledDateStatus> }) {
-  const textClass =
-    status === "today" ? "text-primary" : status === "overdue" ? "text-destructive" : "text-muted-foreground";
+  const textClass = status === "today" ? "text-primary" : status === "overdue" ? "text-destructive" : "text-muted-foreground";
   const label = status === "today" ? "今日" : formatRelativeScheduledDate(scheduledAt);
   return (
     <span className={cn("flex items-center gap-1 bg-muted/60 text-xs px-2 py-0.5 rounded-full shrink-0", textClass)}>
@@ -66,9 +57,7 @@ function CategoryChip({ category }: { category: Task["category"] }) {
       className="flex items-center gap-1 px-2 py-0.25 rounded-full text-xs font-medium text-muted-foreground shrink-0 max-w-[128px]"
       style={{ backgroundColor: bgHex ? `${bgHex}26` : "hsl(var(--muted))" }}
     >
-      {category.color && (
-        <span className="w-1.5 h-1.5 rounded-full shrink-0" style={{ backgroundColor: category.color }} />
-      )}
+      {category.color && <span className="w-1.5 h-1.5 rounded-full shrink-0" style={{ backgroundColor: category.color }} />}
       <span className="truncate">{category.name}</span>
     </span>
   );
@@ -215,9 +204,7 @@ export function TaskCard({
             <p className={cn("flex-1 text-sm font-medium leading-snug", (isCompleted || isSkipped) && "text-muted-foreground")}>
               {task.title}
             </p>
-            {task.isFavorite && (
-              <Star className="h-3.5 w-3.5 shrink-0 text-yellow-400" fill="currentColor" />
-            )}
+            {task.isFavorite && <Star className="h-3.5 w-3.5 shrink-0 text-yellow-400" fill="currentColor" />}
           </div>
 
           {/* メモ */}
@@ -231,9 +218,7 @@ export function TaskCard({
           <div className="flex items-center justify-between gap-2 pl-6">
             <div className="flex items-center gap-1.5 flex-wrap min-w-0">
               <CategoryChip category={task.category} />
-              {showScheduledDate && task.scheduledAt && (
-                <ScheduledDateChip scheduledAt={task.scheduledAt} status={scheduledDateStatus} />
-              )}
+              {showScheduledDate && task.scheduledAt && <ScheduledDateChip scheduledAt={task.scheduledAt} status={scheduledDateStatus} />}
             </div>
             <div className="flex items-center gap-2 flex-wrap ml-auto">
               {timeEntries.map((entry, i) => (

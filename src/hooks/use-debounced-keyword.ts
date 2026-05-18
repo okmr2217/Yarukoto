@@ -3,10 +3,7 @@
 import { useState, useRef, useCallback } from "react";
 import { KEYWORD_DEBOUNCE_MS } from "@/lib/filter-types";
 
-export function useDebouncedKeyword(
-  keyword: string,
-  updateSearchParams: (updates: Record<string, string | null>) => void,
-) {
+export function useDebouncedKeyword(keyword: string, updateSearchParams: (updates: Record<string, string | null>) => void) {
   const [localKeyword, setLocalKeyword] = useState(keyword);
   const [syncedKeyword, setSyncedKeyword] = useState(keyword);
   const isComposingRef = useRef(false);

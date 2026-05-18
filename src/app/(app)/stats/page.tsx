@@ -52,9 +52,7 @@ function DailyStatsTab() {
 
   const zonedDate = toJSTDate(viewDate);
   const todayStr = formatDateToJST(new Date());
-  const allDays = getAllDaysInMonth(zonedDate.getFullYear(), zonedDate.getMonth()).filter(
-    (d) => d <= todayStr,
-  );
+  const allDays = getAllDaysInMonth(zonedDate.getFullYear(), zonedDate.getMonth()).filter((d) => d <= todayStr);
 
   return (
     <div>
@@ -95,17 +93,20 @@ function DailyStatsTab() {
                 <th className="text-left px-3 py-2 font-medium text-muted-foreground">日付</th>
                 <th className="text-right px-3 py-2 font-medium text-muted-foreground">
                   <span className="flex items-center justify-end gap-1">
-                    <PlusCircle className="h-3.5 w-3.5" />作成
+                    <PlusCircle className="h-3.5 w-3.5" />
+                    作成
                   </span>
                 </th>
                 <th className="text-right px-3 py-2 font-medium text-green-600 dark:text-green-400">
                   <span className="flex items-center justify-end gap-1">
-                    <CircleCheck className="h-3.5 w-3.5" />完了
+                    <CircleCheck className="h-3.5 w-3.5" />
+                    完了
                   </span>
                 </th>
                 <th className="text-right px-3 py-2 font-medium text-yellow-600">
                   <span className="flex items-center justify-end gap-1">
-                    <Ban className="h-3.5 w-3.5" />やらない
+                    <Ban className="h-3.5 w-3.5" />
+                    やらない
                   </span>
                 </th>
               </tr>
@@ -118,21 +119,24 @@ function DailyStatsTab() {
                   <tr
                     key={dateStr}
                     onClick={() => router.push(`/?date=${dateStr}`)}
-                    className={cn(
-                      "border-b last:border-0 cursor-pointer transition-colors hover:bg-accent",
-                      today && "bg-primary/10",
-                    )}
+                    className={cn("border-b last:border-0 cursor-pointer transition-colors hover:bg-accent", today && "bg-primary/10")}
                   >
-                    <td className={cn("px-3 py-2.5", today && "text-primary font-semibold")}>
-                      {formatDayLabel(dateStr)}
-                    </td>
-                    <td className="px-3 py-2.5 text-right tabular-nums font-medium text-muted-foreground">
-                      {s?.createdCount ?? 0}
-                    </td>
-                    <td className={cn("px-3 py-2.5 text-right tabular-nums font-medium", s?.completed ? "text-green-600 dark:text-green-400" : "text-muted-foreground")}>
+                    <td className={cn("px-3 py-2.5", today && "text-primary font-semibold")}>{formatDayLabel(dateStr)}</td>
+                    <td className="px-3 py-2.5 text-right tabular-nums font-medium text-muted-foreground">{s?.createdCount ?? 0}</td>
+                    <td
+                      className={cn(
+                        "px-3 py-2.5 text-right tabular-nums font-medium",
+                        s?.completed ? "text-green-600 dark:text-green-400" : "text-muted-foreground",
+                      )}
+                    >
                       {s?.completed ?? 0}
                     </td>
-                    <td className={cn("px-3 py-2.5 text-right tabular-nums font-medium", s?.skipped ? "text-yellow-600" : "text-muted-foreground")}>
+                    <td
+                      className={cn(
+                        "px-3 py-2.5 text-right tabular-nums font-medium",
+                        s?.skipped ? "text-yellow-600" : "text-muted-foreground",
+                      )}
+                    >
                       {s?.skipped ?? 0}
                     </td>
                   </tr>
@@ -204,16 +208,9 @@ function GroupSection({ group }: { group: GroupStats }) {
           <span>スキップ {group.totalSkipped}</span>
           <span className="font-medium">平均 {group.avgCompletionRate}%</span>
         </span>
-        <ChevronDown
-          className={cn("h-4 w-4 shrink-0 transition-transform duration-200 mt-0.5", collapsed && "-rotate-90")}
-        />
+        <ChevronDown className={cn("h-4 w-4 shrink-0 transition-transform duration-200 mt-0.5", collapsed && "-rotate-90")} />
       </button>
-      <div
-        className={cn(
-          "grid transition-all duration-200",
-          collapsed ? "grid-rows-[0fr]" : "grid-rows-[1fr]",
-        )}
-      >
+      <div className={cn("grid transition-all duration-200", collapsed ? "grid-rows-[0fr]" : "grid-rows-[1fr]")}>
         <div className="overflow-hidden">
           <div className="p-2 space-y-2">
             {group.categories.map((c, i) => (
@@ -287,9 +284,7 @@ export default function StatsPage() {
                 onClick={() => setTab(t)}
                 className={cn(
                   "px-4 py-2 text-sm font-medium border-b-2 -mb-px transition-colors",
-                  tab === t
-                    ? "border-primary text-primary"
-                    : "border-transparent text-muted-foreground hover:text-foreground",
+                  tab === t ? "border-primary text-primary" : "border-transparent text-muted-foreground hover:text-foreground",
                 )}
               >
                 {t === "category" ? "カテゴリ" : "日次"}

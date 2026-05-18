@@ -80,7 +80,10 @@ export function useDeleteGroup() {
       await queryClient.cancelQueries({ queryKey: ["groups"] });
       const previous = queryClient.getQueryData<Group[]>(["groups"]);
       if (previous) {
-        queryClient.setQueryData<Group[]>(["groups"], previous.filter((g) => g.id !== id));
+        queryClient.setQueryData<Group[]>(
+          ["groups"],
+          previous.filter((g) => g.id !== id),
+        );
       }
       return { previous };
     },

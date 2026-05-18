@@ -47,11 +47,7 @@ export function LoginForm() {
   return (
     <AuthCard description="アカウントにログイン">
       <form onSubmit={handleSubmit} className="space-y-4">
-        {error && (
-          <div className="p-3 text-sm text-destructive bg-destructive/10 rounded-md">
-            {error}
-          </div>
-        )}
+        {error && <div className="p-3 text-sm text-destructive bg-destructive/10 rounded-md">{error}</div>}
 
         <div className="space-y-1.5">
           <Label htmlFor="email">メールアドレス</Label>
@@ -69,10 +65,7 @@ export function LoginForm() {
         <div className="space-y-1.5">
           <div className="flex items-center justify-between">
             <Label htmlFor="password">パスワード</Label>
-            <Link
-              href="/forgot-password"
-              className="text-sm text-primary hover:underline"
-            >
+            <Link href="/forgot-password" className="text-sm text-primary hover:underline">
               パスワードを忘れた方
             </Link>
           </div>

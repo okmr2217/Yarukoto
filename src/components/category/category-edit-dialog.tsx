@@ -27,14 +27,7 @@ interface CategoryEditDialogProps {
   isLoading?: boolean;
 }
 
-export function CategoryEditDialog({
-  open,
-  onOpenChange,
-  category,
-  groups,
-  onSave,
-  isLoading = false,
-}: CategoryEditDialogProps) {
+export function CategoryEditDialog({ open, onOpenChange, category, groups, onSave, isLoading = false }: CategoryEditDialogProps) {
   const [name, setName] = useState(category?.name ?? "");
   const [color, setColor] = useState<string>(category?.color ?? COLOR_PRESETS[4].value);
   const [description, setDescription] = useState(category?.description ?? "");
@@ -109,7 +102,9 @@ export function CategoryEditDialog({
                     {groups.map((g) => (
                       <SelectItem key={g.id} value={g.id}>
                         <span className="flex items-center gap-2">
-                          {g.color && <span className="w-2.5 h-2.5 rounded-full shrink-0 inline-block" style={{ backgroundColor: g.color }} />}
+                          {g.color && (
+                            <span className="w-2.5 h-2.5 rounded-full shrink-0 inline-block" style={{ backgroundColor: g.color }} />
+                          )}
                           {g.name}
                         </span>
                       </SelectItem>

@@ -73,7 +73,10 @@ export function GroupEditDialog({ open, onOpenChange, group, onSave, isLoading =
               <Input
                 id="group-name"
                 value={name}
-                onChange={(e) => { setName(e.target.value); setNameError(null); }}
+                onChange={(e) => {
+                  setName(e.target.value);
+                  setNameError(null);
+                }}
                 placeholder="例: 仕事"
                 maxLength={50}
                 autoFocus
@@ -86,7 +89,10 @@ export function GroupEditDialog({ open, onOpenChange, group, onSave, isLoading =
               <div className="flex flex-wrap gap-1.5 mb-2">
                 <button
                   type="button"
-                  onClick={() => { setEmoji(""); setEmojiError(null); }}
+                  onClick={() => {
+                    setEmoji("");
+                    setEmojiError(null);
+                  }}
                   className={cn(
                     "w-8 h-8 rounded-md border-2 transition-all bg-muted flex items-center justify-center text-xs text-muted-foreground",
                     !emoji ? "border-foreground scale-110" : "border-transparent hover:scale-105",
@@ -99,7 +105,10 @@ export function GroupEditDialog({ open, onOpenChange, group, onSave, isLoading =
                   <button
                     key={e}
                     type="button"
-                    onClick={() => { setEmoji(e); setEmojiError(null); }}
+                    onClick={() => {
+                      setEmoji(e);
+                      setEmojiError(null);
+                    }}
                     className={cn(
                       "w-8 h-8 rounded-md border-2 transition-all text-base flex items-center justify-center",
                       emoji === e ? "border-foreground scale-110 bg-muted" : "border-transparent hover:scale-105 hover:bg-muted",
@@ -110,12 +119,7 @@ export function GroupEditDialog({ open, onOpenChange, group, onSave, isLoading =
                   </button>
                 ))}
               </div>
-              <Input
-                value={emoji}
-                onChange={(e) => handleEmojiInput(e.target.value)}
-                placeholder="または直接入力..."
-                className="w-32"
-              />
+              <Input value={emoji} onChange={(e) => handleEmojiInput(e.target.value)} placeholder="または直接入力..." className="w-32" />
               {emojiError && <p className="text-sm text-destructive">{emojiError}</p>}
             </div>
 

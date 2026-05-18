@@ -4,11 +4,7 @@ const URL_PATTERN = /https?:\/\/[^\s<>"]+/g;
 const MAX_URL_DISPLAY_LENGTH = 50;
 
 function escapeHtml(text: string): string {
-  return text
-    .replace(/&/g, "&amp;")
-    .replace(/</g, "&lt;")
-    .replace(/>/g, "&gt;")
-    .replace(/"/g, "&quot;");
+  return text.replace(/&/g, "&amp;").replace(/</g, "&lt;").replace(/>/g, "&gt;").replace(/"/g, "&quot;");
 }
 
 function truncateUrl(url: string): string {

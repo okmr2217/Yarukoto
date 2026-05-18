@@ -2,21 +2,8 @@
 
 import { useState, useEffect, useRef, useMemo } from "react";
 import { ChevronDown, ChevronRight } from "lucide-react";
-import {
-  DndContext,
-  closestCenter,
-  PointerSensor,
-  TouchSensor,
-  useSensor,
-  useSensors,
-  type DragEndEvent,
-} from "@dnd-kit/core";
-import {
-  arrayMove,
-  SortableContext,
-  verticalListSortingStrategy,
-  useSortable,
-} from "@dnd-kit/sortable";
+import { DndContext, closestCenter, PointerSensor, TouchSensor, useSensor, useSensors, type DragEndEvent } from "@dnd-kit/core";
+import { arrayMove, SortableContext, verticalListSortingStrategy, useSortable } from "@dnd-kit/sortable";
 import { CSS } from "@dnd-kit/utilities";
 import { TaskCard, type TaskCardHandlers } from "./task-card";
 import { cn } from "@/lib/utils";
@@ -67,15 +54,8 @@ interface SortableTaskCardProps {
   matchReasons?: string[];
 }
 
-function SortableTaskCard({
-  task,
-  handlers,
-  showScheduledDate,
-  enableDragAndDrop,
-  matchReasons,
-}: SortableTaskCardProps) {
-  const { setNodeRef, transform, transition, isDragging, listeners, attributes } =
-    useSortable({ id: task.id });
+function SortableTaskCard({ task, handlers, showScheduledDate, enableDragAndDrop, matchReasons }: SortableTaskCardProps) {
+  const { setNodeRef, transform, transition, isDragging, listeners, attributes } = useSortable({ id: task.id });
 
   const style = {
     transform: CSS.Transform.toString(transform),
@@ -84,10 +64,7 @@ function SortableTaskCard({
   };
 
   return (
-    <div
-      ref={setNodeRef}
-      style={style}
-    >
+    <div ref={setNodeRef} style={style}>
       <TaskCard
         task={task}
         handlers={handlers}
@@ -184,40 +161,22 @@ export function TaskSection({
   return (
     <div className={cn("mb-4", variantStyles[variant])}>
       {!hideHeader && (
-        <button
-          onClick={() => setIsCollapsed(!isCollapsed)}
-          className="flex items-center gap-1 w-full py-2 text-left"
-        >
+        <button onClick={() => setIsCollapsed(!isCollapsed)} className="flex items-center gap-1 w-full py-2 text-left">
           {isCollapsed ? (
             <ChevronRight className="h-4 w-4 text-muted-foreground" />
           ) : (
             <ChevronDown className="h-4 w-4 text-muted-foreground" />
           )}
-          <span className={cn("text-sm font-medium", titleStyles[variant])}>
-            {title}
-          </span>
-          <span className="text-xs text-muted-foreground ml-1">
-            ({tasks.length})
-          </span>
-          {subtitle && (
-            <span className="text-xs text-muted-foreground ml-1.5">
-              — {subtitle}
-            </span>
-          )}
+          <span className={cn("text-sm font-medium", titleStyles[variant])}>{title}</span>
+          <span className="text-xs text-muted-foreground ml-1">({tasks.length})</span>
+          {subtitle && <span className="text-xs text-muted-foreground ml-1.5">— {subtitle}</span>}
         </button>
       )}
       {(!isCollapsed || hideHeader) && (
         <div className="rounded-lg border border-border overflow-hidden bg-card">
           {enableDragAndDrop ? (
-            <DndContext
-              sensors={sensors}
-              collisionDetection={closestCenter}
-              onDragEnd={handleDragEnd}
-            >
-              <SortableContext
-                items={displayTasks.map((task) => task.id)}
-                strategy={verticalListSortingStrategy}
-              >
+            <DndContext sensors={sensors} collisionDetection={closestCenter} onDragEnd={handleDragEnd}>
+              <SortableContext items={displayTasks.map((task) => task.id)} strategy={verticalListSortingStrategy}>
                 {displayTasks.map((task, index) => {
                   const isExiting = exitingIds.has(task.id);
                   return (
@@ -253,12 +212,7 @@ export function TaskSection({
                   }}
                 >
                   {index > 0 && <div className="border-t border-border" />}
-                  <TaskCard
-                    task={task}
-                    handlers={handlers}
-                    showScheduledDate={showScheduledDate}
-                    matchReasons={matchReasonsMap[task.id]}
-                  />
+                  <TaskCard task={task} handlers={handlers} showScheduledDate={showScheduledDate} matchReasons={matchReasonsMap[task.id]} />
                 </div>
               );
             })

@@ -59,11 +59,7 @@ export function SignupForm() {
   return (
     <AuthCard description="新規アカウント登録">
       <form onSubmit={handleSubmit} className="space-y-4">
-        {error && (
-          <div className="p-3 text-sm text-destructive bg-destructive/10 rounded-md">
-            {error}
-          </div>
-        )}
+        {error && <div className="p-3 text-sm text-destructive bg-destructive/10 rounded-md">{error}</div>}
 
         <div className="space-y-1.5">
           <Label htmlFor="name">お名前</Label>

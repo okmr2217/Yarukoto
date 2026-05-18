@@ -1,13 +1,9 @@
 import { z } from "zod";
 import { GROUP_CONSTANTS } from "@/lib/constants";
 
-const hexColorSchema = z
-  .string()
-  .regex(/^#[0-9A-Fa-f]{6}$/, "カラーコードは#RRGGBB形式で入力してください");
+const hexColorSchema = z.string().regex(/^#[0-9A-Fa-f]{6}$/, "カラーコードは#RRGGBB形式で入力してください");
 
-const emojiSchema = z
-  .string()
-  .refine((val) => Array.from(val).length <= 2, "絵文字は2文字以内で入力してください");
+const emojiSchema = z.string().refine((val) => Array.from(val).length <= 2, "絵文字は2文字以内で入力してください");
 
 export const createGroupSchema = z.object({
   name: z

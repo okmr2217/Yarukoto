@@ -7,11 +7,12 @@ import type { Category } from "@/types";
 import { type CategoryFilter, UNGROUPED_VIRTUAL_ID } from "@/lib/category-filter";
 
 export function useFilterState(categories: Category[], categoryFilter: CategoryFilter) {
-  const { dateFilter, keyword, statusFilter, favoriteFilter, updateSearchParams, today } =
-    useFilterSearchParams();
+  const { dateFilter, keyword, statusFilter, favoriteFilter, updateSearchParams, today } = useFilterSearchParams();
 
-  const { localKeyword, isComposingRef, handleKeywordChange, handleCompositionEnd, handleKeywordClear } =
-    useDebouncedKeyword(keyword, updateSearchParams);
+  const { localKeyword, isComposingRef, handleKeywordChange, handleCompositionEnd, handleKeywordClear } = useDebouncedKeyword(
+    keyword,
+    updateSearchParams,
+  );
 
   // カテゴリフィルターから categoryIds を解決
   const taskCategoryIds = (() => {

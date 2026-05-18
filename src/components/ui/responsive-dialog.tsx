@@ -5,8 +5,27 @@ import * as DialogPrimitive from "@radix-ui/react-dialog";
 import { X } from "lucide-react";
 import { cn } from "@/lib/utils";
 import { useMediaQuery } from "@/hooks/use-media-query";
-import { Dialog, DialogClose, DialogDescription, DialogFooter, DialogHeader, DialogOverlay, DialogPortal, DialogTitle, DialogTrigger } from "@/components/ui/dialog";
-import { Drawer, DrawerClose, DrawerContent, DrawerDescription, DrawerFooter, DrawerHeader, DrawerTitle, DrawerTrigger } from "@/components/ui/drawer";
+import {
+  Dialog,
+  DialogClose,
+  DialogDescription,
+  DialogFooter,
+  DialogHeader,
+  DialogOverlay,
+  DialogPortal,
+  DialogTitle,
+  DialogTrigger,
+} from "@/components/ui/dialog";
+import {
+  Drawer,
+  DrawerClose,
+  DrawerContent,
+  DrawerDescription,
+  DrawerFooter,
+  DrawerHeader,
+  DrawerTitle,
+  DrawerTrigger,
+} from "@/components/ui/drawer";
 
 interface BaseProps {
   children: React.ReactNode;
@@ -33,13 +52,21 @@ const ResponsiveDialog = ({ children, ...props }: RootProps) => {
 const ResponsiveDialogTrigger = ({ className, children, ...props }: ResponsiveDialogProps) => {
   const isDesktop = useMediaQuery(SM);
   const Component = isDesktop ? DialogTrigger : DrawerTrigger;
-  return <Component className={className} {...props}>{children}</Component>;
+  return (
+    <Component className={className} {...props}>
+      {children}
+    </Component>
+  );
 };
 
 const ResponsiveDialogClose = ({ className, children, ...props }: ResponsiveDialogProps) => {
   const isDesktop = useMediaQuery(SM);
   const Component = isDesktop ? DialogClose : DrawerClose;
-  return <Component className={className} {...props}>{children}</Component>;
+  return (
+    <Component className={className} {...props}>
+      {children}
+    </Component>
+  );
 };
 
 const ResponsiveDialogContent = ({ className, children }: ResponsiveDialogProps) => {
@@ -73,7 +100,11 @@ const ResponsiveDialogContent = ({ className, children }: ResponsiveDialogProps)
 const ResponsiveDialogDescription = ({ className, children, ...props }: ResponsiveDialogProps) => {
   const isDesktop = useMediaQuery(SM);
   const Component = isDesktop ? DialogDescription : DrawerDescription;
-  return <Component className={className} {...props}>{children}</Component>;
+  return (
+    <Component className={className} {...props}>
+      {children}
+    </Component>
+  );
 };
 
 const ResponsiveDialogHeader = ({ className, children, ...props }: ResponsiveDialogProps) => {
@@ -95,7 +126,11 @@ const ResponsiveDialogHeader = ({ className, children, ...props }: ResponsiveDia
 const ResponsiveDialogTitle = ({ className, children, ...props }: ResponsiveDialogProps) => {
   const isDesktop = useMediaQuery(SM);
   const Component = isDesktop ? DialogTitle : DrawerTitle;
-  return <Component className={className} {...props}>{children}</Component>;
+  return (
+    <Component className={className} {...props}>
+      {children}
+    </Component>
+  );
 };
 
 const ResponsiveDialogBody = ({ className, children, ...props }: Omit<ResponsiveDialogProps, "asChild">) => {

@@ -36,9 +36,7 @@ function toCategory(category: PrismaCategoryWithGroup): Category {
   };
 }
 
-export async function getCategories(): Promise<
-  ActionResult<{ categories: Category[] }>
-> {
+export async function getCategories(): Promise<ActionResult<{ categories: Category[] }>> {
   try {
     const user = await getRequiredUser();
 
@@ -55,9 +53,7 @@ export async function getCategories(): Promise<
   }
 }
 
-export async function getArchivedCategories(): Promise<
-  ActionResult<{ categories: Category[] }>
-> {
+export async function getArchivedCategories(): Promise<ActionResult<{ categories: Category[] }>> {
   try {
     const user = await getRequiredUser();
 
@@ -74,9 +70,7 @@ export async function getArchivedCategories(): Promise<
   }
 }
 
-export async function archiveCategory(input: {
-  id: string;
-}): Promise<ActionResult<{ category: Category }>> {
+export async function archiveCategory(input: { id: string }): Promise<ActionResult<{ category: Category }>> {
   try {
     const parsed = categoryIdSchema.safeParse(input);
     if (!parsed.success) {
@@ -106,9 +100,7 @@ export async function archiveCategory(input: {
   }
 }
 
-export async function unarchiveCategory(input: {
-  id: string;
-}): Promise<ActionResult<{ category: Category }>> {
+export async function unarchiveCategory(input: { id: string }): Promise<ActionResult<{ category: Category }>> {
   try {
     const parsed = categoryIdSchema.safeParse(input);
     if (!parsed.success) {
@@ -138,9 +130,7 @@ export async function unarchiveCategory(input: {
   }
 }
 
-export async function createCategory(
-  input: CreateCategoryInput,
-): Promise<ActionResult<{ category: Category }>> {
+export async function createCategory(input: CreateCategoryInput): Promise<ActionResult<{ category: Category }>> {
   try {
     const parsed = createCategorySchema.safeParse(input);
     if (!parsed.success) {
@@ -186,9 +176,7 @@ export async function createCategory(
   }
 }
 
-export async function updateCategory(
-  input: UpdateCategoryInput,
-): Promise<ActionResult<{ category: Category }>> {
+export async function updateCategory(input: UpdateCategoryInput): Promise<ActionResult<{ category: Category }>> {
   try {
     const parsed = updateCategorySchema.safeParse(input);
     if (!parsed.success) {
@@ -207,10 +195,7 @@ export async function updateCategory(
     }
 
     // Check for duplicate name if name is being changed
-    if (
-      name &&
-      name.trim().toLowerCase() !== existingCategory.name.toLowerCase()
-    ) {
+    if (name && name.trim().toLowerCase() !== existingCategory.name.toLowerCase()) {
       const duplicate = await prisma.category.findFirst({
         where: {
           userId: user.id,
@@ -242,9 +227,7 @@ export async function updateCategory(
   }
 }
 
-export async function updateCategorySortOrder(
-  input: UpdateCategorySortOrderInput,
-): Promise<ActionResult<{ success: true }>> {
+export async function updateCategorySortOrder(input: UpdateCategorySortOrderInput): Promise<ActionResult<{ success: true }>> {
   try {
     const parsed = updateCategorySortOrderSchema.safeParse(input);
     if (!parsed.success) {
@@ -264,11 +247,7 @@ export async function updateCategorySortOrder(
       return failure("カテゴリが見つかりません", "NOT_FOUND");
     }
 
-    await prisma.$transaction(
-      updates.map(({ id, sortOrder }) =>
-        prisma.category.update({ where: { id }, data: { sortOrder } }),
-      ),
-    );
+    await prisma.$transaction(updates.map(({ id, sortOrder }) => prisma.category.update({ where: { id }, data: { sortOrder } })));
 
     return success({ success: true });
   } catch (error) {
@@ -392,9 +371,7 @@ export async function getCategoryGroupStats(): Promise<ActionResult<GroupStats[]
   }
 }
 
-export async function deleteCategory(input: {
-  id: string;
-}): Promise<ActionResult<{ id: string }>> {
+export async function deleteCategory(input: { id: string }): Promise<ActionResult<{ id: string }>> {
   try {
     const parsed = categoryIdSchema.safeParse(input);
     if (!parsed.success) {

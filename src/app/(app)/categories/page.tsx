@@ -12,12 +12,7 @@ import {
   PointerSensor,
   TouchSensor,
 } from "@dnd-kit/core";
-import {
-  SortableContext,
-  verticalListSortingStrategy,
-  useSortable,
-  arrayMove,
-} from "@dnd-kit/sortable";
+import { SortableContext, verticalListSortingStrategy, useSortable, arrayMove } from "@dnd-kit/sortable";
 import { CSS } from "@dnd-kit/utilities";
 import { useQueryClient } from "@tanstack/react-query";
 import { DeleteConfirmDialog } from "@/components/ui/delete-confirm-dialog";
@@ -111,10 +106,7 @@ function GroupCategoryList({
   onDragEnd: (event: DragEndEvent) => void;
   onCategoryClick: (cat: Category, archived: boolean) => void;
 }) {
-  const sensors = useSensors(
-    useSensor(PointerSensor),
-    useSensor(TouchSensor, { activationConstraint: { delay: 200, tolerance: 5 } }),
-  );
+  const sensors = useSensors(useSensor(PointerSensor), useSensor(TouchSensor, { activationConstraint: { delay: 200, tolerance: 5 } }));
   const [activeCat, setActiveCat] = useState<Category | null>(null);
 
   return (
@@ -156,7 +148,14 @@ interface SortableGroupSectionProps {
   onCategoryClick: (cat: Category, archived: boolean) => void;
 }
 
-function SortableGroupSection({ group, activeCategories, archivedCategories, onHeaderClick, onDragEnd, onCategoryClick }: SortableGroupSectionProps) {
+function SortableGroupSection({
+  group,
+  activeCategories,
+  archivedCategories,
+  onHeaderClick,
+  onDragEnd,
+  onCategoryClick,
+}: SortableGroupSectionProps) {
   const { attributes, listeners, setNodeRef, transform, transition, isDragging } = useSortable({ id: group.id });
   const style = { transform: CSS.Transform.toString(transform), transition, opacity: isDragging ? 0.3 : 1 };
 
@@ -245,7 +244,12 @@ export default function CategoriesPage() {
   const [deletingGroup, setDeletingGroup] = useState<Group | null>(null);
 
   // Group-level DnD (outer context)
-  const { sensors: groupSensors, activeItem: activeGroup, handleDragStart: handleGroupDragStart, handleDragEnd: handleGroupDragEnd } = useSortableDnd<Group>({
+  const {
+    sensors: groupSensors,
+    activeItem: activeGroup,
+    handleDragStart: handleGroupDragStart,
+    handleDragEnd: handleGroupDragEnd,
+  } = useSortableDnd<Group>({
     items: groups,
     queryKey: ["groups"],
     onSort: (updates, rollback) => reorderGroups.mutate(updates, { onError: rollback }),
@@ -400,11 +404,24 @@ export default function CategoriesPage() {
         <div className="flex items-center justify-between mb-4">
           <h1 className="hidden md:block text-lg font-semibold">カテゴリ</h1>
           <div className="flex items-center gap-2 ml-auto">
-            <Button variant="outline" size="sm" onClick={() => { setEditingGroup(null); setIsGroupDialogOpen(true); }}>
+            <Button
+              variant="outline"
+              size="sm"
+              onClick={() => {
+                setEditingGroup(null);
+                setIsGroupDialogOpen(true);
+              }}
+            >
               <Plus className="h-3.5 w-3.5 mr-1" />
               グループ
             </Button>
-            <Button size="sm" onClick={() => { setEditingCategory(null); setIsEditDialogOpen(true); }}>
+            <Button
+              size="sm"
+              onClick={() => {
+                setEditingCategory(null);
+                setIsEditDialogOpen(true);
+              }}
+            >
               <Plus className="h-3.5 w-3.5 mr-1" />
               カテゴリ
             </Button>
@@ -441,7 +458,9 @@ export default function CategoriesPage() {
                     <div className="flex items-center gap-2 px-3 py-2.5 bg-muted/40 border-b border-border">
                       <div className="w-4 h-4 shrink-0" />
                       <span className="font-medium text-sm flex-1 text-muted-foreground">グループなし</span>
-                      <span className="text-xs text-muted-foreground shrink-0 mr-1">{ungroupedActive.length + ungroupedArchived.length}個</span>
+                      <span className="text-xs text-muted-foreground shrink-0 mr-1">
+                        {ungroupedActive.length + ungroupedArchived.length}個
+                      </span>
                     </div>
                     <GroupCategoryList
                       activeCategories={ungroupedActive}

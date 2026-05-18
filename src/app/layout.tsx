@@ -17,8 +17,7 @@ const outfit = Outfit({
 
 export const metadata: Metadata = {
   title: "Yarukoto - 今日やることを管理",
-  description:
-    "日毎にTODOを整理し、当日〜1週間程度の短期タスクを効率的に管理するWebアプリケーション",
+  description: "日毎にTODOを整理し、当日〜1週間程度の短期タスクを効率的に管理するWebアプリケーション",
   manifest: "/manifest.json",
   appleWebApp: {
     capable: true,
@@ -30,9 +29,7 @@ export const metadata: Metadata = {
       { url: "/icon-192.png", sizes: "192x192", type: "image/png" },
       { url: "/icon-512.png", sizes: "512x512", type: "image/png" },
     ],
-    apple: [
-      { url: "/apple-touch-icon.png", sizes: "180x180", type: "image/png" },
-    ],
+    apple: [{ url: "/apple-touch-icon.png", sizes: "180x180", type: "image/png" }],
     shortcut: "/favicon.ico",
   },
 };
@@ -52,9 +49,7 @@ export default function RootLayout({
 }>) {
   return (
     <html lang="ja">
-      <body
-        className={`${notoSansJP.variable} ${outfit.variable} font-sans antialiased`}
-      >
+      <body className={`${notoSansJP.variable} ${outfit.variable} font-sans antialiased`}>
         <Providers>{children}</Providers>
       </body>
     </html>

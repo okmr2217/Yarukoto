@@ -180,11 +180,7 @@ export function TaskCreateModal({
                       ? "border-transparent hover:opacity-80"
                       : "border-dashed border-border text-muted-foreground hover:text-foreground hover:border-foreground/30",
                   )}
-                  style={
-                    selectedCategory
-                      ? { backgroundColor: categoryBgHex ? `${categoryBgHex}26` : "hsl(var(--muted))" }
-                      : undefined
-                  }
+                  style={selectedCategory ? { backgroundColor: categoryBgHex ? `${categoryBgHex}26` : "hsl(var(--muted))" } : undefined}
                 >
                   {selectedCategory ? (
                     <>
@@ -258,7 +254,10 @@ export function TaskCreateModal({
               type="button"
               size="sm"
               variant={!scheduledAt ? "default" : "outline"}
-              onClick={() => { setScheduledAt(""); setDateSubOpen(false); }}
+              onClick={() => {
+                setScheduledAt("");
+                setDateSubOpen(false);
+              }}
             >
               なし
             </Button>
@@ -266,7 +265,10 @@ export function TaskCreateModal({
               type="button"
               size="sm"
               variant={scheduledAt === todayString ? "default" : "outline"}
-              onClick={() => { setScheduledAt(todayString); setDateSubOpen(false); }}
+              onClick={() => {
+                setScheduledAt(todayString);
+                setDateSubOpen(false);
+              }}
             >
               今日
             </Button>
@@ -274,16 +276,14 @@ export function TaskCreateModal({
               type="button"
               size="sm"
               variant={scheduledAt === tomorrowString ? "default" : "outline"}
-              onClick={() => { setScheduledAt(tomorrowString); setDateSubOpen(false); }}
+              onClick={() => {
+                setScheduledAt(tomorrowString);
+                setDateSubOpen(false);
+              }}
             >
               明日
             </Button>
-            <Button
-              type="button"
-              size="sm"
-              variant="outline"
-              onClick={() => dateInputRef.current?.showPicker()}
-            >
+            <Button type="button" size="sm" variant="outline" onClick={() => dateInputRef.current?.showPicker()}>
               <Calendar className="size-4" />
               選択
             </Button>
@@ -291,13 +291,14 @@ export function TaskCreateModal({
               ref={dateInputRef}
               type="date"
               value={scheduledAt}
-              onChange={(e) => { setScheduledAt(e.target.value); if (e.target.value) setDateSubOpen(false); }}
+              onChange={(e) => {
+                setScheduledAt(e.target.value);
+                if (e.target.value) setDateSubOpen(false);
+              }}
               className="sr-only"
             />
           </div>
-          {scheduledAt && (
-            <p className="text-xs text-muted-foreground mt-2">{scheduledAt.replace(/-/g, "/")}</p>
-          )}
+          {scheduledAt && <p className="text-xs text-muted-foreground mt-2">{scheduledAt.replace(/-/g, "/")}</p>}
         </DialogContent>
       </Dialog>
     </>

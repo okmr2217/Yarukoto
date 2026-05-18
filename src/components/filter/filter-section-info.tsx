@@ -12,7 +12,10 @@ export function FilterSectionInfo({ content }: FilterSectionInfoProps) {
     <Tooltip>
       <TooltipTrigger asChild>
         {/* タップ/クリックでも開閉できるよう button にする */}
-        <button type="button" className="inline-flex items-center text-muted-foreground/50 hover:text-muted-foreground transition-colors focus-visible:outline-none">
+        <button
+          type="button"
+          className="inline-flex items-center text-muted-foreground/50 hover:text-muted-foreground transition-colors focus-visible:outline-none"
+        >
           <Info className="size-3" />
         </button>
       </TooltipTrigger>

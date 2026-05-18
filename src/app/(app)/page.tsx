@@ -4,20 +4,8 @@ import { useState, useEffect, useCallback } from "react";
 import { useRouter, useSearchParams } from "next/navigation";
 import { FilterFab, FilterBottomSheet, FilterSidebar, DueDateAlertChip, type FilterValues } from "@/components/filter";
 import { MobileHeader } from "@/components/layout/mobile-header";
-import {
-  TaskSection,
-  TaskCreateModal,
-  TaskFab,
-  TaskDetailModal,
-  SkipReasonDialog,
-} from "@/components/task";
-import {
-  useAllTasks,
-  useTaskMutations,
-  useCategories,
-  useGroups,
-  useRecentCategories,
-} from "@/hooks";
+import { TaskSection, TaskCreateModal, TaskFab, TaskDetailModal, SkipReasonDialog } from "@/components/task";
+import { useAllTasks, useTaskMutations, useCategories, useGroups, useRecentCategories } from "@/hooks";
 import { DeleteConfirmDialog } from "@/components/ui/delete-confirm-dialog";
 import { parseCategoryParam, categoryFilterToParam, type CategoryFilter, UNGROUPED_VIRTUAL_ID } from "@/lib/category-filter";
 import type { Task } from "@/types";
@@ -107,7 +95,11 @@ export default function HomePage() {
     [updateSearchParams],
   );
 
-  const { data: tasks, isLoading, error } = useAllTasks({
+  const {
+    data: tasks,
+    isLoading,
+    error,
+  } = useAllTasks({
     categoryIds: taskCategoryIds,
     date: dateFilter || undefined,
     keyword: keyword || undefined,
@@ -299,8 +291,8 @@ export default function HomePage() {
                     <>
                       <p>タスクがありません</p>
                       <p className="text-sm mt-1">
-                        <kbd className="px-1.5 py-0.5 text-xs bg-muted rounded border">N</kbd>{" "}
-                        キーまたは下の <span className="text-primary font-semibold">＋</span> ボタンから新しいタスクを追加しましょう
+                        <kbd className="px-1.5 py-0.5 text-xs bg-muted rounded border">N</kbd> キーまたは下の{" "}
+                        <span className="text-primary font-semibold">＋</span> ボタンから新しいタスクを追加しましょう
                       </p>
                     </>
                   )}
@@ -342,9 +334,15 @@ export default function HomePage() {
         open={detailTaskId !== null}
         onClose={() => setDetailTaskId(null)}
         onUncomplete={handleUncomplete}
-        onSkip={(id) => { setDetailTaskId(null); handleSkip(id); }}
+        onSkip={(id) => {
+          setDetailTaskId(null);
+          handleSkip(id);
+        }}
         onUnskip={(id) => mutations.unskipTask.mutate(id)}
-        onDelete={(id) => { setDetailTaskId(null); handleDelete(id); }}
+        onDelete={(id) => {
+          setDetailTaskId(null);
+          handleDelete(id);
+        }}
         onToggleFavorite={handleToggleFavorite}
         categories={categories}
         groups={groups}

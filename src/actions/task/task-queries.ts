@@ -5,14 +5,7 @@ import type { Prisma } from "@/generated/prisma/client";
 import { getRequiredUser } from "@/lib/auth-server";
 
 type TaskWithCategory = Prisma.TaskGetPayload<{ include: { category: true } }>;
-import {
-  type ActionResult,
-  success,
-  failure,
-  type Task,
-  type MonthlyTaskStats,
-  type CategoryTaskCounts,
-} from "@/types";
+import { type ActionResult, success, failure, type Task, type MonthlyTaskStats, type CategoryTaskCounts } from "@/types";
 import {
   getMonthlyTaskStatsSchema,
   getAllTasksSchema,
@@ -21,12 +14,7 @@ import {
   type GetAllTasksInput,
   type GetCategoryTaskCountsInput,
 } from "@/lib/validations";
-import {
-  getTodayInJST,
-  getDateRangeInJST,
-  getMonthRangeInJST,
-  formatDateToJST,
-} from "@/lib/dateUtils";
+import { getTodayInJST, getDateRangeInJST, getMonthRangeInJST, formatDateToJST } from "@/lib/dateUtils";
 import { ERROR_MESSAGES } from "@/lib/constants";
 import { toTask } from "@/lib/task-helpers";
 
@@ -51,9 +39,7 @@ export async function getAllTasks(input?: GetAllTasksInput): Promise<ActionResul
     const user = await getRequiredUser();
     const { categoryIds, date, keyword, status, isFavorite } = parsed.data;
 
-    const andConditions: Prisma.TaskWhereInput[] = [
-      { OR: [{ categoryId: null }, { category: { archivedAt: null } }] },
-    ];
+    const andConditions: Prisma.TaskWhereInput[] = [{ OR: [{ categoryId: null }, { category: { archivedAt: null } }] }];
 
     // 単日フィルタ: scheduledAt 一致 OR completedAt/skippedAt/createdAt がその日の範囲内
     if (date) {
@@ -72,10 +58,7 @@ export async function getAllTasks(input?: GetAllTasksInput): Promise<ActionResul
     // キーワード検索（タイトルまたはメモに含まれる）
     if (keyword?.trim()) {
       andConditions.push({
-        OR: [
-          { title: { contains: keyword.trim(), mode: "insensitive" } },
-          { memo: { contains: keyword.trim(), mode: "insensitive" } },
-        ],
+        OR: [{ title: { contains: keyword.trim(), mode: "insensitive" } }, { memo: { contains: keyword.trim(), mode: "insensitive" } }],
       });
     }
 
@@ -124,9 +107,7 @@ export async function getCategoryTaskCounts(input: GetCategoryTaskCountsInput): 
     const user = await getRequiredUser();
     const { date, keyword, status, isFavorite } = parsed.data;
 
-    const andConditions: Prisma.TaskWhereInput[] = [
-      { OR: [{ categoryId: null }, { category: { archivedAt: null } }] },
-    ];
+    const andConditions: Prisma.TaskWhereInput[] = [{ OR: [{ categoryId: null }, { category: { archivedAt: null } }] }];
 
     if (date) {
       const { start, end } = getDateRangeInJST(date);
@@ -143,10 +124,7 @@ export async function getCategoryTaskCounts(input: GetCategoryTaskCountsInput): 
 
     if (keyword?.trim()) {
       andConditions.push({
-        OR: [
-          { title: { contains: keyword.trim(), mode: "insensitive" } },
-          { memo: { contains: keyword.trim(), mode: "insensitive" } },
-        ],
+        OR: [{ title: { contains: keyword.trim(), mode: "insensitive" } }, { memo: { contains: keyword.trim(), mode: "insensitive" } }],
       });
     }
 
@@ -198,7 +176,10 @@ export async function getCategoryTaskCounts(input: GetCategoryTaskCountsInput): 
  */
 function aggregateMonthlyStats(tasks: TaskWithCategory[], firstDay: Date, lastDay: Date, today: string): MonthlyTaskStats {
   const stats: MonthlyTaskStats = {};
-  const completedCategoriesMap = new Map<string, Map<string, { id: string; name: string; color: string | null; groupColor: string | null }>>();
+  const completedCategoriesMap = new Map<
+    string,
+    Map<string, { id: string; name: string; color: string | null; groupColor: string | null }>
+  >();
 
   for (const task of tasks) {
     const dates = new Set<string>();
@@ -253,9 +234,7 @@ function aggregateMonthlyStats(tasks: TaskWithCategory[], firstDay: Date, lastDa
   return stats;
 }
 
-export async function getMonthlyTaskStats(
-  input: GetMonthlyTaskStatsInput,
-): Promise<ActionResult<MonthlyTaskStats>> {
+export async function getMonthlyTaskStats(input: GetMonthlyTaskStatsInput): Promise<ActionResult<MonthlyTaskStats>> {
   try {
     const parsed = getMonthlyTaskStatsSchema.safeParse(input);
     if (!parsed.success) {

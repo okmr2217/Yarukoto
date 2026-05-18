@@ -77,9 +77,7 @@ export function ColorPicker({ value, onChange }: ColorPickerProps) {
             onClick={() => onChange(c.value)}
             className={cn(
               "w-7 h-7 rounded-full border-2 transition-all",
-              value?.toLowerCase() === c.value.toLowerCase()
-                ? "border-foreground scale-110"
-                : "border-transparent hover:scale-105",
+              value?.toLowerCase() === c.value.toLowerCase() ? "border-foreground scale-110" : "border-transparent hover:scale-105",
             )}
             style={{ backgroundColor: c.value }}
             aria-label={c.name}
@@ -96,11 +94,7 @@ export function ColorPicker({ value, onChange }: ColorPickerProps) {
               "block w-7 h-7 rounded-full border-2 transition-all cursor-pointer",
               isCustom ? "border-foreground scale-110" : "border-transparent hover:scale-105",
             )}
-            style={
-              isCustom
-                ? { backgroundColor: value }
-                : { background: "conic-gradient(red, yellow, lime, cyan, blue, magenta, red)" }
-            }
+            style={isCustom ? { backgroundColor: value } : { background: "conic-gradient(red, yellow, lime, cyan, blue, magenta, red)" }}
             aria-label="カスタムカラーを選択"
           />
           <input
@@ -117,10 +111,7 @@ export function ColorPicker({ value, onChange }: ColorPickerProps) {
           onChange={(e) => handleHexChange(e.target.value)}
           placeholder="#RRGGBB"
           maxLength={7}
-          className={cn(
-            "w-32 font-mono uppercase",
-            hexError && "border-destructive text-destructive focus-visible:ring-destructive",
-          )}
+          className={cn("w-32 font-mono uppercase", hexError && "border-destructive text-destructive focus-visible:ring-destructive")}
         />
         {hexError && <span className="text-xs text-destructive">不正なHEX</span>}
       </div>
