@@ -1,5 +1,6 @@
 import { NextRequest, NextResponse } from "next/server";
-import { verifyAccessToken, refreshAccessToken } from "@/lib/paritto-auth";
+import { decodeJwt } from "jose";
+import { refreshAccessToken } from "@/lib/paritto-auth";
 
 const PARITTO_ACCESS_TOKEN_COOKIE = "paritto_access_token";
 const PARITTO_REFRESH_TOKEN_COOKIE = "paritto_refresh_token";
@@ -23,10 +24,12 @@ export async function middleware(request: NextRequest) {
 
   if (accessToken) {
     try {
-      await verifyAccessToken(accessToken);
-      return NextResponse.next();
+      const payload = decodeJwt(accessToken);
+      if (payload.exp && payload.exp > Date.now() / 1000) {
+        return NextResponse.next();
+      }
     } catch {
-      // 期限切れの可能性 → リフレッシュを試みる
+      // 不正なトークン → リフレッシュを試みる
     }
   }
 

@@ -1,13 +1,14 @@
 import { NextRequest, NextResponse } from "next/server";
-import { exchangeCode } from "@/lib/paritto-auth";
+import { exchangeCode, verifyAccessToken } from "@/lib/paritto-auth";
+import { prisma } from "@/lib/prisma";
 import { cookies } from "next/headers";
+
 
 export const PARITTO_ACCESS_TOKEN_COOKIE = "paritto_access_token";
 export const PARITTO_REFRESH_TOKEN_COOKIE = "paritto_refresh_token";
 
 export async function GET(request: NextRequest) {
   const { searchParams } = new URL(request.url);
-  console.log("[callback] params:", Object.fromEntries(searchParams));
   const code = searchParams.get("code");
   const state = searchParams.get("state");
   const error = searchParams.get("error");
@@ -38,15 +39,30 @@ export async function GET(request: NextRequest) {
 
   try {
     const tokens = await exchangeCode(code, redirectUri, codeVerifier);
+    const payload = await verifyAccessToken(tokens.access_token);
+
+    const user = await prisma.user.upsert({
+      where: { email: payload.email },
+      create: { email: payload.email, name: payload.name ?? payload.email, emailVerified: true },
+      update: {},
+    });
+
+    await prisma.account.upsert({
+      where: { providerId_accountId: { providerId: "paritto", accountId: payload.sub } },
+      create: { providerId: "paritto", accountId: payload.sub, userId: user.id },
+      update: {},
+    });
 
     const response = NextResponse.redirect(new URL("/", request.url));
 
     response.cookies.delete("paritto_oauth_state");
     response.cookies.delete("paritto_code_verifier");
 
+    const isProduction = process.env.NODE_ENV === "production";
+
     response.cookies.set(PARITTO_ACCESS_TOKEN_COOKIE, tokens.access_token, {
       httpOnly: true,
-      secure: process.env.NODE_ENV === "production",
+      secure: isProduction,
       sameSite: "lax",
       maxAge: tokens.expires_in,
       path: "/",
@@ -54,7 +70,7 @@ export async function GET(request: NextRequest) {
 
     response.cookies.set(PARITTO_REFRESH_TOKEN_COOKIE, tokens.refresh_token, {
       httpOnly: true,
-      secure: process.env.NODE_ENV === "production",
+      secure: isProduction,
       sameSite: "lax",
       maxAge: 60 * 60 * 24 * 30,
       path: "/",

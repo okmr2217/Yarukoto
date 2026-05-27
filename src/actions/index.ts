@@ -26,5 +26,6 @@ export {
 } from "./category";
 
 export { deleteAccount, changeEmail } from "./account";
+export { clearParittoCookies } from "./auth";
 
 export { getGroups, createGroup, updateGroup, deleteGroup, reorderGroups } from "./group";
